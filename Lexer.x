@@ -1,44 +1,117 @@
 {
-{ -|
-      Lexer for programming language trinity
-}
-
-module Lexer 
-    (
+module Lexer
+    ( getToken
     ) where
 
+import Prelude
 }
 
--------------------------------------------------------------
+%wrapper "basic"
+
+$digit = 0-9			    -- digits
+
+$small = [a-z]		        -- caracateres minuscula
+$large = [A-Z]              -- caracteres mayuscula
+$alpha = [$small $large]    -- caracteres miniscula y mayuscula
+
+@numero = $digit+(\.$digit+)?
+
 
 tokens :-
 
-    --Language
-    program                 { lex' TkProgram }
-    use                     { lex' TkUse}
+        --Lenguaje
+        "program"             { return TkProgram    }
+        "end"                 { return TkEnd        }
+        "set"                 { return TkSet        }
+        ";"                   { return TkSemicolon  }
+        ","                   { return TkComma      }
 
-    -- -- Brackets
+        --Declaraciones
+        "use"                 { return TkUse        }
+        "in"                  { return TkIn         }
 
-    -- Types
-    -- boolean                 { lex' TkBooleanType }
+        --Brackets
+        "("                   { return TkLParen     }
+        ")"                   { return TkRParen     }
+        "{"                   { return TkLLlaves    }
+        "}"                   { return TkRLlaves    }
+        "["                   { return TkLCorche    }
+        "]"                   { return TkRCorche          }
 
 
-    -- Expressions/ Operators
+        --Tipos
+        "boolean"             { return TkBoolean          }
+        "number"              { return TkNumber           }
+        --"matrix"             
+        --"row"
+        --"col"
+
+        --Condicionales
+        "if"
+        "else"
+
+        --Loops
+        "for"
+
+        --Expresiones/ Operadores
+
+        -- -- Literales 
+        @numero               { return (TkNumber . read)   }
+        "true"                { return (TkBoolean . read)  }
+        "false"
+
+        -- -- Boolean 
+        "&"
+        "|"
+        "not" 
+
+        "=="
+        "/="
+
+        "<"
+        "<="
+        ">"
+        ">="
+
+        -- -- Aritmetico
+        "+"
+        "-"
+        "*"
+        "/"
+        "%"
+        "div"
+        "mod"
+        "'"
 
 
-----------------------------------------------------------------------
+
+-------------------------------------------------------------
 {
-data Token = 
 
-    -- Language
-    TkProgram | TkUse
+--El tipo Token
+
+data Token =
+    
+    --Lenguaje 
+    TkUse | TkProgram
+    deriving (Eq)
+
+
+--------------------------------------------------------------
+--
 
 instance Show Token where
     show tk = case tk of 
-        TkProgram       -> "'newline'"
-        TkUse           -> "'end'"
 
------------------------------------------------------------------------
+        --Lenguaje
+        TkUse           -> "'use'"
+        TkProgram       -> "'program'"
 
+
+---------------------------------------------------------------
+--Funciones
+
+getToken :: String -> [Token]
+getToken = alexScanTokens
 
 }
