@@ -1,0 +1,10 @@
+Primero se debe compilar el Lexer.x
+alex -g Lexer.x
+
+
+Para compilar trinity
+gch --make trinity
+
+nota:
+debemos hacer un make como matteo...
+
