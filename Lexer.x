@@ -10,18 +10,28 @@ import Prelude
 %wrapper "basic"
 
 $digit = 0-9                    -- digitos
+
 $small = [a-z]		            -- caracateres minuscula
 $large = [A-Z]                  -- caracteres mayuscula
 $alpha = [$small $large]        -- caracteres miniscula y mayuscula
 
-@num  = $digit+(\.$digit+)?
-@skip = [\ \n\t\v]
+$sliteral    = [$printable \n \\ \n]
+$identifiers = [$alpha $digit _] 
+
+@num = $digit+(\.$digit+)?
+
+@skip = [\ \n\t\v] --Posiblemente se borre
+
+@string = \"$sliteral*\"
+
+@id = $alpha $identifiers*
 
 
 tokens :-
 
-        --Espacios en blanco
-        $white+               ;
+        --Espacios en blanco y comentarios
+        $white+               { return TkWhiteS } --poner ;
+        "#".*                 { return TkComent } --poner ;
 
         --Lenguaje
         "program"             { return TkProgram          }
@@ -31,11 +41,7 @@ tokens :-
         "function"            { return TkFunction         }
         ";"                   { return TkSemicolon        }
         ","                   { return TkComma            }
-
-        --Declaraciones
-        "use"                 { return TkUse              }
-        "in"                  { return TkIn               }
-        "set"                 { return TkSet              }
+        ":"                   { return TkDoblePoint       }
 
         --Brackets
         "("                   { return TkLParen           }
@@ -52,26 +58,33 @@ tokens :-
         "row"                 { return TkRowType          }
         "col"                 { return TkColType          }
 
-        --Condicionales
+        -- Statements
+        -- -- Declaraciones
+        "="                   { return TkAssign           }
+        "use"                 { return TkUse              }
+        "in"                  { return TkIn               }
+        "set"                 { return TkSet              }        
+
+        -- -- Condicionales
         "if"                  { return TkIf               }
         "else"                { return TkElse             }
         "then"                { return TkThen             }
 
-        --Loops
+        -- -- Loops
         "for"                 { return TkFor              }
         "do"                  { return TkDo               }
         "while"               { return TkWhile            }
 
-        --Entrada/Salida
+        -- --Entrada/Salida
         "print"               { return TkPrint            }
         "read"                { return TkRead             }
 
         --Expresiones/Operadores
-
         -- --Literales 
-        @num                  { return (TkNumber . read)  }
+        @num                  { return (TkNumber  . read) }
         "true"                { return (TkBoolean . read) }
         "false"               { return (TkBoolean . read) }
+-        @string               { return (TkString  . read) } --posible error
 
         -- --Operadores Booleanos
         "&"                   { return TkAnd              }
@@ -95,6 +108,20 @@ tokens :-
         "div"                 { return TkDiv              }
         "mod"                 { return TkMod              }
         "'"                   { return TkTrans            }
+
+        -- -- Operadores Cruzados 
+        ".+."                 { return TkCruzSum          }
+        ".-."                 { return TkCruzDiff         }
+        ".*."                 { return TkCruzMul          }
+        "./."                 { return TkCruzDivEnt       }
+        ".%."                 { return TkCruzDivEnt       }
+        ".div."               { return TkCruzDiv          }
+        ".mod."               { return TkCruzMod          }
+
+        -- -- Identificadores (pag 12)
+        @id                   { return TkID               }
+
+        -- Errores
 
 -------------------------------------------------------------
 {
