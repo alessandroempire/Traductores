@@ -9,15 +9,19 @@ import Prelude
 
 %wrapper "basic"
 
-$digit = 0-9			-- digitos
-$small = [a-z]		        -- caracateres minuscula
+$digit = 0-9                    -- digitos
+$small = [a-z]		            -- caracateres minuscula
 $large = [A-Z]                  -- caracteres mayuscula
-$alpha = [$small $large]     	-- caracteres miniscula y mayuscula
+$alpha = [$small $large]        -- caracteres miniscula y mayuscula
 
-@num = $digit+(\.$digit+)?
+@num  = $digit+(\.$digit+)?
+@skip = [\ \n\t\v]
 
 
 tokens :-
+
+        --Espacios en blanco
+        $white+               ;
 
         --Lenguaje
         "program"             { return TkProgram          }
