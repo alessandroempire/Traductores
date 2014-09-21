@@ -119,7 +119,7 @@ tokens :-
         ".mod."               { return TkCruzMod          }
 
         -- -- Identificadores (pag 12)
-        @id                   { return TkID               }
+        @id                   { return TkID               } --posible error
 
         -- Errores
 
