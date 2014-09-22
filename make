@@ -13,5 +13,4 @@ alex:
 run:
 	./trinity $(RUN_ARGS)
 
-clean: smallclean
-	@rm *.hi *.o 2> /dev/null || true
+clean: @rm *.hi *.o 2> /dev/null || true

@@ -1,7 +1,7 @@
 import System.Environment as SE
 import System.Directory   as SD
 import System.IO          as IO
-import Lexer
+import Lexer1
 
 main = do
     (filename : _) <- SE.getArgs
@@ -13,13 +13,14 @@ main = do
 openF :: FilePath -> IO ()
 openF filename = do 
     handle   <- IO.openFile filename ReadMode
-    contents <- hGetLine handle
-    putStrLn contents
-    let a = getToken contents
-    putStrLn $ show a 
-    contents <- hGetLine handle
-    putStrLn contents
-    putStrLn "ahora"
-    let a = getToken contents
-    putStrLn $ show a 
-    hClose handle
+    processFile handle
+
+--processFile ::
+processFile handle = do
+    line <- hGetLine handle
+    putStrLn line
+    --let a = getToken line
+    let a = getToken line
+    putStrLn $ show a
+    processFile handle 
+    
