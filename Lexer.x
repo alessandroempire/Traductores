@@ -1,4 +1,5 @@
 {
+
 module Lexer
     ( getToken
     ) where
@@ -11,12 +12,12 @@ import Prelude
 
 $digit = 0-9                    -- digitos
 
-$small = [a-z]		            -- caracateres minuscula
+$small = [a-z]		        -- caracateres minuscula
 $large = [A-Z]                  -- caracteres mayuscula
 $alpha = [$small $large]        -- caracteres miniscula y mayuscula
 
-$sliteral    = [$printable \n \\ \n]
-$identifiers = [$alpha $digit _] 
+$sliteral    = [$printable \n \\ \n] -- strings literales
+$identifiers = [$alpha $digit _] -- identificadores
 
 @num = $digit+(\.$digit+)?
 
@@ -26,12 +27,11 @@ $identifiers = [$alpha $digit _]
 
 @id = $alpha $identifiers*
 
-
 tokens :-
 
         --Espacios en blanco y comentarios
-        $white+               { return TkWhiteS } --poner ;
-        "#".*                 { return TkComent } --poner ;
+        $white+               { return TkWhiteS           }
+        "#".*                 { return TkComent           }
 
         --Lenguaje
         "program"             { return TkProgram          }
@@ -42,6 +42,12 @@ tokens :-
         ";"                   { return TkSemicolon        }
         ","                   { return TkComma            }
         ":"                   { return TkDoblePoint       }
+
+        --Declaraciones
+        "="                   { return TkAssign           }
+        "use"                 { return TkUse              }
+        "in"                  { return TkIn               }
+        "set"                 { return TkSet              }
 
         --Brackets
         "("                   { return TkLParen           }
@@ -56,14 +62,7 @@ tokens :-
         "number"              { return TkNumberType       }
         "matrix"              { return TkMatrixType       }             
         "row"                 { return TkRowType          }
-        "col"                 { return TkColType          }
-
-        -- Statements
-        -- -- Declaraciones
-        "="                   { return TkAssign           }
-        "use"                 { return TkUse              }
-        "in"                  { return TkIn               }
-        "set"                 { return TkSet              }        
+        "col"                 { return TkColType          }        
 
         -- -- Condicionales
         "if"                  { return TkIf               }
@@ -82,9 +81,9 @@ tokens :-
         --Expresiones/Operadores
         -- --Literales 
         @num                  { return (TkNumber  . read) }
-        "true"                { return (TkBoolean . read) }
-        "false"               { return (TkBoolean . read) }
--        @string               { return (TkString  . read) } --posible error
+        "true"                { return (TkBoolean True)   }
+        "false"               { return (TkBoolean False)  }
+        @string               { return (TkString  . read) } --posible error
 
         -- --Operadores Booleanos
         "&"                   { return TkAnd              }
@@ -109,31 +108,34 @@ tokens :-
         "mod"                 { return TkMod              }
         "'"                   { return TkTrans            }
 
-        -- -- Operadores Cruzados 
+        -- --Operadores Cruzados 
         ".+."                 { return TkCruzSum          }
         ".-."                 { return TkCruzDiff         }
         ".*."                 { return TkCruzMul          }
         "./."                 { return TkCruzDivEnt       }
-        ".%."                 { return TkCruzDivEnt       }
+        ".%."                 { return TkCruzModEnt       }
         ".div."               { return TkCruzDiv          }
         ".mod."               { return TkCruzMod          }
 
-        -- -- Identificadores (pag 12)
-        @id                   { return TkID               } --posible error
+        -- --Identificadores
+        @id                   { return TkId               } --posible error
 
-        -- Errores
+        --Errores
 
 -------------------------------------------------------------
 {
 
 --Tipo Token
 data Token =
+
+    --Espacios en blanco y comentarios
+    TkWhiteS | TkComent
     
     --Lenguaje 
-    TkProgram | TkBegin | TkEnd | TkReturn | TkFunction | TkSemicolon | TkComma
+    | TkProgram | TkBegin | TkEnd | TkReturn | TkFunction | TkSemicolon | TkComma | TkDoblePoint
 
     --Declaraciones
-    | TkUse | TkIn | TkSet
+    | TkAssign | TkUse | TkIn | TkSet
 
     --Brackets
     | TkLParen | TkRParen | TkLLlaves | TkRLlaves | TkLCorche | TkRCorche
@@ -154,6 +156,7 @@ data Token =
     -- --Literales
     | TkNumber { unTkNumber :: Float }
     | TkBoolean { unTkBoolean :: Bool }
+    | TkString { unTkString :: String }
 
     -- --Operadores Booleanos
     | TkAnd | TkOr | TkNot | TkEqual | TkUnequal 
@@ -162,6 +165,12 @@ data Token =
     -- --Operadores Aritmeticos
     | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
 
+    -- --Operadores Cruzados 
+    | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt | TkCruzDiv | TkCruzMod
+
+    -- --Identificadores
+    | TkId { unTkId :: String }
+
     deriving (Eq)
 
 --------------------------------------------------------------
@@ -169,7 +178,9 @@ data Token =
 instance Show Token where
     show tk = case tk of 
 
-        --Lenguaje
+	--Espacios en blanco y comentarios
+        -- white               { return TkWhiteS           }
+        -- "#".*                 { return TkComent           }
         TkProgram       -> "'program'"
         TkBegin         -> "'begin'"
         TkEnd           -> "'end'"
@@ -177,12 +188,59 @@ instance Show Token where
         TkFunction      -> "'function'"
         TkSemicolon     -> "';'"
         TkComma         -> "','"
-
-        --Declaraciones
-        TkUse           -> "'use'" 
+	TkDoblePoint	-> "':'"
+        TkAssign 	-> "'='"
+        TkUse           -> "'use'"
         TkIn            -> "'in'"
-        TkSet           -> "'set'"
-
+        TkSet           -> "'set'"       
+	TkLParen	-> "'('"
+	TkRParen	-> "')'"
+	TkLLlaves	-> "'{'"
+	TkRLlaves	-> "'}'"
+	TkLCorche	-> "'['"
+	TkRCorche	-> "']'"
+	TkBooleanType 	-> "type 'Bool'"
+	TkNumberType	-> "type 'Number'"
+	TkMatrixType	-> "type 'Matrix'"
+	TkRowType	-> "type 'Row'"	
+	TkColType	-> "type 'Col'"	
+	TkIf		-> "'if'"
+	TkElse		-> "'else'"
+	TkThen		-> "'then'"
+	TkFor 		-> "'for'"
+	TkDo		-> "'do'"
+	TkWhile		-> "'while'"
+	TkPrint		-> "'print'"
+	TkRead		-> "'read'"
+	TkNumber _	-> "literal 'Number'"
+	TkBoolean _	-> "literal 'Bool'"
+	TkString _ 	-> "literal 'String'"
+	TkAnd		-> "'&'"
+	TkOr		-> "'|'"
+	TkNot		-> "'not'"
+	TkEqual		-> "'=='"
+	TkUnequal	-> "'/='"
+	TkLess		-> "'<'"
+	TkLessEq	-> "'<='"
+	TkGreat		-> "'>'"
+	TkGreatEq	-> "'>='"
+	TkSum		-> "'+'"
+	TkDiff		-> "'-'"
+	TkMul		-> "'*'"
+	TkDivEnt	-> "'/'"
+	TkModEnt	-> "'%'"
+	TkDiv		-> "'div'"
+	TkMod		-> "'mod'"
+	TkTrans		-> "'''"
+	TkCruzSum	-> "'.+.'"
+	TkCruzDiff	-> "'.-.'"
+	TkCruzMul	-> "'.*.'"
+	TkCruzDivEnt	-> "'./.'"
+	TkCruzModEnt	-> "'.%.'"
+	TkCruzDiv	-> "'.div.'"
+	TkCruzMod	-> "'.mod.'"
+	TkId _ 		-> "identificador de variable"
+ 
 ---------------------------------------------------------------
 --Funciones
 
