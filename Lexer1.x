@@ -1,6 +1,7 @@
 {
 module Lexer1
-    ( getToken
+    ( Token(..)
+    , alexScanTokens
     ) where
 
 import Prelude
@@ -65,11 +66,4 @@ instance Show Token where
         --Lenguaje
         TkProgram       -> "'program'"
         TkBegin         -> "'begin'"
-
----------------------------------------------------------------
---Funciones
-
-getToken :: String -> [Token]
-getToken = alexScanTokens
-
 }

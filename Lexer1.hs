@@ -2,7 +2,8 @@
 {-# LINE 1 "Lexer1.x" #-}
 
 module Lexer1
-    ( getToken
+    ( Token(..)
+    , alexScanTokens
     ) where
 
 import Prelude
@@ -216,7 +217,7 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x0e\x00\x0e\x00\x13\x00\x13\x00\xff\xff\x15\x00\x15\x00\x15\x00\xff\xff\x15\x00\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,23) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAcc (alex_action_0),AlexAcc (alex_action_1),AlexAcc (alex_action_2),AlexAcc (alex_action_3)]
-{-# LINE 38 "Lexer1.x" #-}
+{-# LINE 44 "Lexer1.x" #-}
 
 
 --Tipo Token
@@ -242,13 +243,6 @@ instance Show Token where
         --Lenguaje
         TkProgram       -> "'program'"
         TkBegin         -> "'begin'"
-
----------------------------------------------------------------
---Funciones
-
-getToken :: String -> [Token]
-getToken = alexScanTokens
-
 
 alex_action_0 =  return TkWhiteS 
 alex_action_1 =  return TkComment 

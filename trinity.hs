@@ -20,7 +20,7 @@ processFile handle = do
     line <- hGetLine handle
     putStrLn line
     --let a = getToken line
-    let a = getToken line
+    let a = alexScanTokens line
     putStrLn $ show a
     processFile handle 
     
