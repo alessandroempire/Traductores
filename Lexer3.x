@@ -39,7 +39,7 @@ tokens :-
     -- que otro errores?
     -- ejemplos 123program
     -- p@gr@am es un error tambien
-    $graphic+         { mkL TkGError    }
+    -- $graphic+         { mkL TkGError    }
  
 {
 
@@ -58,8 +58,7 @@ mkL c (p,_,_,str) len = return (L p c (take len str))
 
 lexError s = do
     (p,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn p)
-    alexMonadScanTokens
+    print (s ++ ": " ++ showPosn p)
 
 
 showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
@@ -73,7 +72,7 @@ alexMonadScanTokens = do
     sc <- alexGetStartCode
     case alexScan inp sc of
       AlexEOF -> alexEOF
-      AlexError inp' -> lexError "lexical error" --el isse es a la llamada lexError
+      AlexError inp' -> lexError "lexical error"
       -- AQUI SE DEBERIA MODIFICAR...
       AlexSkip  inp' len -> do
         alexSetInput inp'
