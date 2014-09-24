@@ -11,10 +11,26 @@ module Lexer3
 $digit = 0-9			-- digits
 $alpha = [a-zA-Z]		-- alphabetic characters
 
+$sliteral    = [$printable \n \\ \n] -- strings literales
+$identifiers = [$alpha $digit _] -- identificadores
+
+@num = $digit+(\.$digit+)?
+
+@skip = [\ \n\t\v] --Posiblemente se borre
+
+@string = \"$sliteral*\"
+
+@id = $alpha $identifiers*
+
 tokens :-
     $white+              ;
     "program"            { mkL TkProgram }
+    "#".*                { mkL TkComent  }
 
+    "true"               { mkL TkB        }
+    "false"              { mkL TkB        } 
+    @num                 { mkL TkNumber  }
+    @id                  { mkL TkId      }
  
 {
 
@@ -24,7 +40,7 @@ tokens :-
 data Token = L AlexPosn Lexeme String
 
 data Lexeme =
-        TkProgram | TkEOF
+        TkProgram | TkComent | TkNumber | TkId | TkB | TkEOF
         deriving (Eq,Show)
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token

@@ -1,27 +1,25 @@
 {
 
 module Lexer
-    ( getToken
+    ( lexx
     ) where
-
-import Prelude
 
 }
 
-%wrapper "basic"
+%wrapper "monad"
 
-$digit = 0-9                    -- digitos
+-------------------------------------------------------------
+-- Reglas para Alex
+-------------------------------------------------------------
 
-$small = [a-z]		        -- caracateres minuscula
-$large = [A-Z]                  -- caracteres mayuscula
-$alpha = [$small $large]        -- caracteres miniscula y mayuscula
-
-$sliteral    = [$printable \n \\ \n] -- strings literales
-$identifiers = [$alpha $digit _] -- identificadores
+$digit = 0-9  --Digitos
+$alpha = [a-zA-Z] --Caracteres alfabeticos
+$sliteral = [$printable \n \\ \n]  --Strings literales
+$identifiers = [$alpha $digit _]  --Identificadores
 
 @num = $digit+(\.$digit+)?
 
-@skip = [\ \n\t\v] --Posiblemente se borre
+@skip = [\ \n\t\v] --Borrar?
 
 @string = \"$sliteral*\"
 
@@ -29,119 +27,115 @@ $identifiers = [$alpha $digit _] -- identificadores
 
 tokens :-
 
-        --Espacios en blanco y comentarios
-        $white+               { return TkWhiteS           }
-        "#".*                 { return TkComent           }
+    --Espacios en blanco y comentarios
+    $white+               ;
+    "#".*                 ;
 
-        --Lenguaje
-        "program"             { return TkProgram          }
-        "begin"               { return TkBegin            }
-        "end"                 { return TkEnd              }
-        "return"              { return TkReturn           }
-        "function"            { return TkFunction         }
-        ";"                   { return TkSemicolon        }
-        ","                   { return TkComma            }
-        ":"                   { return TkDoblePoint       }
+    --Lenguaje
+    "program"             { mkL TkProgram       }
+    "begin"               { mkL TkBegin         }
+    "end"                 { mkL TkEnd           }
+    "function"            { mkL TkFunction      } 
+    "return"              { mkL TkReturn        }
+    ";"                   { mkL TkSemicolon     }
+    ","                   { mkL TkComma         }
+    ":"                   { mkL TkDoublePoint   }
 
-        --Declaraciones
-        "="                   { return TkAssign           }
-        "use"                 { return TkUse              }
-        "in"                  { return TkIn               }
-        "set"                 { return TkSet              }
+    --Tipos
+    "boolean"             { mkL TkBooleanType   }
+    "number"              { mkL TkNumberType    }
+    "matrix"              { mkL TkMatrixType    }             
+    "row"                 { mkL TkRowType       }
+    "col"                 { mkL TkColType       }
 
-        --Brackets
-        "("                   { return TkLParen           }
-        ")"                   { return TkRParen           }
-        "{"                   { return TkLLlaves          }
-        "}"                   { return TkRLlaves          }
-        "["                   { return TkLCorche          }
-        "]"                   { return TkRCorche          }
+    --Brackets
+    "("                   { mkL TkLParen        }
+    ")"                   { mkL TkRParen        }
+    "{"                   { mkL TkLLlaves       }
+    "}"                   { mkL TkRLlaves       }
+    "["                   { mkL TkLCorche       }
+    "]"                   { mkL TkRCorche       }        
 
-        --Tipos
-        "boolean"             { return TkBooleanType      }
-        "number"              { return TkNumberType       }
-        "matrix"              { return TkMatrixType       }             
-        "row"                 { return TkRowType          }
-        "col"                 { return TkColType          }        
+    --Condicionales
+    "if"                  { mkL TkIf            }
+    "else"                { mkL TkElse          }
+    "then"                { mkL TkThen          }
 
-        -- -- Condicionales
-        "if"                  { return TkIf               }
-        "else"                { return TkElse             }
-        "then"                { return TkThen             }
+    --Loops
+    "for"                 { mkL TkFor           }
+    "do"                  { mkL TkDo            }
+    "while"               { mkL TkWhile         }
 
-        -- -- Loops
-        "for"                 { return TkFor              }
-        "do"                  { return TkDo               }
-        "while"               { return TkWhile            }
+    --Entrada/Salida
+    "print"               { mkL TkPrint         }
+    "read"                { mkL TkRead          }
 
-        -- --Entrada/Salida
-        "print"               { return TkPrint            }
-        "read"                { return TkRead             }
+    --Operadores Booleanos
+    "&"                   { mkL TkAnd           }
+    "|"                   { mkL TkOr            }
+    "not"                 { mkL TkNot           }
 
-        --Expresiones/Operadores
-        -- --Literales 
-        @num                  { return (TkNumber  . read) }
-        "true"                { return (TkBoolean True)   }
-        "false"               { return (TkBoolean False)  }
-        @string               { return (TkString  . read) } --posible error
+    "=="                  { mkL TkEqual         }
+    "/="                  { mkL TkUnequal       }
+    "<="                  { mkL TkLessEq        }
+    "<"                   { mkL TkLess          }
+    ">="                  { mkL TkGreatEq       }
+    ">"                   { mkL TkGreat         }
 
-        -- --Operadores Booleanos
-        "&"                   { return TkAnd              }
-        "|"                   { return TkOr               }
-        "not"                 { return TkNot              }
+    --Operadores Aritmeticos
+    "+"                   { mkL TkSum           }
+    "-"                   { mkL TkDiff          }
+    "*"                   { mkL TkMul           }
+    "/"                   { mkL TkDivEnt        }
+    "%"                   { mkL TkModEnt        }
+    "div"                 { mkL TkDiv           }
+    "mod"                 { mkL TkMod           }
+    "'"                   { mkL TkTrans         }
 
-        "=="                  { return TkEqual            }
-        "/="                  { return TkUnequal          }
+    --Operadores Cruzados 
+    ".+."                 { mkL TkCruzSum       }
+    ".-."                 { mkL TkCruzDiff      }
+    ".*."                 { mkL TkCruzMul       }
+    "./."                 { mkL TkCruzDivEnt    }
+    ".%."                 { mkL TkCruzModEnt    }
+    ".div."               { mkL TkCruzDiv       }
+    ".mod."               { mkL TkCruzMod       }
 
-        "<"                   { return TkLess             }
-        "<="                  { return TkLessEq           }
-        ">"                   { return TkGreat            }
-        ">="                  { return TkGreatEq          }
+    --Declaraciones
+    "="                   { mkL TkAssign        }
+    "use"                 { mkL TkUse           }
+    "in"                  { mkL TkIn            }
+    "set"                 { mkL TkSet           }
 
-        -- --Operadores Aritmeticos
-        "+"                   { return TkSum              }
-        "-"                   { return TkDiff             }
-        "*"                   { return TkMul              }
-        "/"                   { return TkDivEnt           }
-        "%"                   { return TkModEnt           }
-        "div"                 { return TkDiv              }
-        "mod"                 { return TkMod              }
-        "'"                   { return TkTrans            }
+    --Expresiones literales 
+    @num                  { mkL TkNumber        }
+    "true"                { mkL TkBoolean       }
+    "false"               { mkL TkBoolean       }
+    @string               { mkL TkString        }
 
-        -- --Operadores Cruzados 
-        ".+."                 { return TkCruzSum          }
-        ".-."                 { return TkCruzDiff         }
-        ".*."                 { return TkCruzMul          }
-        "./."                 { return TkCruzDivEnt       }
-        ".%."                 { return TkCruzModEnt       }
-        ".div."               { return TkCruzDiv          }
-        ".mod."               { return TkCruzMod          }
-
-        -- --Identificadores
-        @id                   { return TkId               } --posible error
-
-        --Errores
+    --Identificadores
+    @id                   { mkL TkId            }
 
 -------------------------------------------------------------
+-- Codigo Haskell
+-------------------------------------------------------------
+
 {
 
 --Tipo Token
-data Token =
+data Token = L AlexPosn Lexeme String
 
-    --Espacios en blanco y comentarios
-    TkWhiteS | TkComent
+--Tipo Lexeme: clases de lexemas de trinity
+data Lexeme =
     
     --Lenguaje 
-    | TkProgram | TkBegin | TkEnd | TkReturn | TkFunction | TkSemicolon | TkComma | TkDoblePoint
-
-    --Declaraciones
-    | TkAssign | TkUse | TkIn | TkSet
-
-    --Brackets
-    | TkLParen | TkRParen | TkLLlaves | TkRLlaves | TkLCorche | TkRCorche
+    TkProgram | TkBegin | TkEnd | TkFunction | TkReturn | TkSemicolon | TkComma | TkDoublePoint
 
     --Tipos
     | TkBooleanType | TkNumberType | TkMatrixType | TkRowType | TkColType
+
+    --Brackets
+    | TkLParen | TkRParen | TkLLlaves | TkRLlaves | TkLCorche | TkRCorche
 
     --Condicionales
     | TkIf | TkElse | TkThen
@@ -152,99 +146,138 @@ data Token =
     --E/S
     | TkPrint | TkRead
 
-    --Expresiones/Operadores
-    -- --Literales
-    | TkNumber { unTkNumber :: Float }
-    | TkBoolean { unTkBoolean :: Bool }
-    | TkString { unTkString :: String }
-
-    -- --Operadores Booleanos
+    --Operadores Booleanos
     | TkAnd | TkOr | TkNot | TkEqual | TkUnequal 
     | TkLess | TkLessEq | TkGreat | TkGreatEq
 
-    -- --Operadores Aritmeticos
+    --Operadores Aritmeticos
     | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
 
-    -- --Operadores Cruzados 
+    --Operadores Cruzados 
     | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt | TkCruzDiv | TkCruzMod
 
-    -- --Identificadores
-    | TkId { unTkId :: String }
+    --Declaraciones
+    | TkAssign | TkUse | TkIn | TkSet
 
-    deriving (Eq)
+    --Expresiones literales
+    | TkNumber | TkBoolean | TkString
 
---------------------------------------------------------------
+    --Identificadores
+    | TkId
 
-instance Show Token where
-    show tk = case tk of 
+    --Compilador
+    | TkEOF
 
-	--Espacios en blanco y comentarios
-        -- white               { return TkWhiteS           }
-        -- "#".*                 { return TkComent           }
-        TkProgram       -> "'program'"
-        TkBegin         -> "'begin'"
-        TkEnd           -> "'end'"
-        TkReturn        -> "'return'"
-        TkFunction      -> "'function'"
-        TkSemicolon     -> "';'"
-        TkComma         -> "','"
-	TkDoblePoint	-> "':'"
-        TkAssign 	-> "'='"
-        TkUse           -> "'use'"
-        TkIn            -> "'in'"
-        TkSet           -> "'set'"       
-	TkLParen	-> "'('"
-	TkRParen	-> "')'"
-	TkLLlaves	-> "'{'"
-	TkRLlaves	-> "'}'"
-	TkLCorche	-> "'['"
-	TkRCorche	-> "']'"
-	TkBooleanType 	-> "type 'Bool'"
-	TkNumberType	-> "type 'Number'"
-	TkMatrixType	-> "type 'Matrix'"
-	TkRowType	-> "type 'Row'"	
-	TkColType	-> "type 'Col'"	
-	TkIf		-> "'if'"
-	TkElse		-> "'else'"
-	TkThen		-> "'then'"
-	TkFor 		-> "'for'"
-	TkDo		-> "'do'"
-	TkWhile		-> "'while'"
-	TkPrint		-> "'print'"
-	TkRead		-> "'read'"
-	TkNumber _	-> "literal 'Number'"
-	TkBoolean _	-> "literal 'Bool'"
-	TkString _ 	-> "literal 'String'"
-	TkAnd		-> "'&'"
-	TkOr		-> "'|'"
-	TkNot		-> "'not'"
-	TkEqual		-> "'=='"
-	TkUnequal	-> "'/='"
-	TkLess		-> "'<'"
-	TkLessEq	-> "'<='"
-	TkGreat		-> "'>'"
-	TkGreatEq	-> "'>='"
-	TkSum		-> "'+'"
-	TkDiff		-> "'-'"
-	TkMul		-> "'*'"
-	TkDivEnt	-> "'/'"
-	TkModEnt	-> "'%'"
-	TkDiv		-> "'div'"
-	TkMod		-> "'mod'"
-	TkTrans		-> "'''"
-	TkCruzSum	-> "'.+.'"
-	TkCruzDiff	-> "'.-.'"
-	TkCruzMul	-> "'.*.'"
-	TkCruzDivEnt	-> "'./.'"
-	TkCruzModEnt	-> "'.%.'"
-	TkCruzDiv	-> "'.div.'"
-	TkCruzMod	-> "'.mod.'"
-	TkId _ 		-> "identificador de variable"
+    deriving (Eq, Show)
+
+--instance Show Lexeme where
+  --  show lex = case lex of 
+     --   TkProgram       -> "'program'"
+    --    TkBegin         -> "'begin'"
+    --    TkEnd           -> "'end'"
+    --    TkFunction      -> "'function'"
+    --    TkReturn        -> "'return'"
+    --    TkSemicolon     -> "';'"
+    --    TkComma         -> "','"
+   --    	TkDoublePoint	  -> "':'"
+   --     TkBooleanType 	 -> "type 'bool'"
+	  --     TkNumberType	   -> "type 'number'"
+	     --  TkMatrixType	   -> "type 'Matrix'"
+	--       TkRowType	      -> "type 'Row'"	
+	--       TkColType	      -> "type 'Col'" 
+  --     	TkLParen	       -> "'('"
+	--       TkRParen	       -> "')'"
+    --   	TkLLlaves      	-> "'{'"
+	    --   TkRLlaves	      -> "'}'"
+	   --    TkLCorche	      -> "'['"
+	    --   TkRCorche	      -> "']'"	
+--	       TkIf		          -> "'if'"
+	 --      TkElse		        -> "'else'"
+	    --   TkThen		        -> "'then'"
+	   --    TkFor 		        -> "'for'"
+	   --    TkDo		          -> "'do'"
+    --   	TkWhile		       -> "'while'"
+	  --     TkPrint		       -> "'print'"
+	  --     TkRead		        -> "'read'"
+   --    	TkAnd		         -> "'&'"
+	  --     TkOr		          -> "'|'"
+	   --    TkNot		         -> "'not'"
+	   --    TkEqual		       -> "'=='"
+	     --  TkUnequal	      -> "'/='"
+	    --   TkLessEq	       -> "'<='"
+	   --    TkLess		        -> "'<'"
+	   --    TkGreatEq      	-> "'>='"
+	   --    TkGreat		       -> "'>'"
+	  --     TkSum	         	-> "'+'"
+	  --     TkDiff	        	-> "'-'"
+	  --     TkMul	         	-> "'*'"
+	  --     TkDivEnt       	-> "'/'"
+   --    	TkModEnt       	-> "'%'"
+   --    	TkDiv		         -> "'div'"
+--	       TkMod		         -> "'mod'"
+	 --      TkTrans	       	-> "'''"
+	   --    TkCruzSum	      -> "'.+.'"
+	     --  TkCruzDiff	     -> "'.-.'"
+	   --    TkCruzMul	      -> "'.*.'"
+	    --   TkCruzDivEnt	   -> "'./.'"
+	   --    TkCruzModEnt	   -> "'.%.'"
+	    --   TkCruzDiv	      -> "'.div.'"
+	     --  TkCruzMod      	-> "'.mod.'"
+     --   TkAssign 	      -> "'='"
+      --  TkUse           -> "'use'"
+      --  TkIn            -> "'in'"
+     --   TkSet           -> "'set'"      
+	    --   TkNumber	       -> "literal 'Number'"
+	    --   TkBoolean	      -> "literal 'Bool'"
+	    --   TkString       	-> "literal 'String'"
+	     --  TkId 		         -> "identificador de variable"
+      --  TkEOF           -> "'EOF'"
  
----------------------------------------------------------------
---Funciones
+-------------------------------------------------------------
+-- Funciones
+-------------------------------------------------------------
 
-getToken :: String -> [Token]
-getToken = alexScanTokens
+mkL :: Lexeme -> AlexInput -> Int -> Alex Token
+mkL c (p,_,_,str) len = return (L p c (take len str))
+
+lexError s = do
+    (p,c,_,input) <- alexGetInput
+    alexError (s ++ ": " ++ showPosn p)
+
+showPosn (AlexPn _ line col) = "in line " ++ show line ++ ", column " ++ show col
+
+showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+
+alexEOF = return (L undefined TkEOF "")
+
+alexMonadScanTokens = do
+    inp <- alexGetInput
+    sc <- alexGetStartCode
+    case alexScan inp sc of
+      AlexEOF -> alexEOF
+      AlexError inp' -> lexError "Lexical error"
+      -- AQUI SE DEBERIA MODIFICAR...
+      AlexSkip  inp' len -> do
+        alexSetInput inp'
+        alexMonadScanTokens
+      AlexToken inp' len action -> do
+        alexSetInput inp'
+        token <- action inp len
+        action (ignorePendingBytes inp) len
+
+lexTokens s = runAlex s $ loop []
+    where
+      isEof x = case x of { L _ TkEOF _ -> True; _ -> False }
+      loop acc = do
+        tok <- alexMonadScanTokens
+        if isEof tok
+        then return (reverse acc)
+        else loop (tok:acc)
+
+lexx s = do
+    let result = lexTokens s
+    case result of
+      Right x -> mapM_ (putStrLn . showToken) x
+      Left err -> putStrLn err
 
 }
