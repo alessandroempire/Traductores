@@ -14,7 +14,7 @@ module Lexer
 
 $digit = 0-9  --Digitos
 $alpha = [a-zA-Z] --Caracteres alfabeticos
-$sliteral = [$printable \n \\ \n]  --Strings literales
+$sliteral = [$printable \n \\ \"]  --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
 
 @num = $digit+(\.$digit+)?
@@ -129,7 +129,8 @@ data Token = L AlexPosn Lexeme String
 data Lexeme =
     
     --Lenguaje 
-    TkProgram | TkBegin | TkEnd | TkFunction | TkReturn | TkSemicolon | TkComma | TkDoublePoint
+    TkProgram | TkBegin | TkEnd | TkFunction | TkReturn | TkSemicolon 
+    | TkComma | TkDoublePoint
 
     --Tipos
     | TkBooleanType | TkNumberType | TkMatrixType | TkRowType | TkColType
@@ -154,7 +155,8 @@ data Lexeme =
     | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
 
     --Operadores Cruzados 
-    | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt | TkCruzDiv | TkCruzMod
+    | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt 
+    | TkCruzDiv | TkCruzMod
 
     --Declaraciones
     | TkAssign | TkUse | TkIn | TkSet
