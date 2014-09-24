@@ -34,7 +34,7 @@ tokens :-
     @string              { mkL TkString      }
 
     --Error
-    .                    { mkL TkOneError } -- un token suelto. 
+    --.                    { mkL TkOneError } -- un token suelto. 
                                             -- como $ en la mitad de la nada. 
     -- que otro errores?
     -- ejemplos 123program
@@ -49,8 +49,7 @@ tokens :-
 data Token = L AlexPosn Lexeme String
 
 data Lexeme =
-        TkProgram | TkTrue | TkFalse | TkEOF | TkOneError |
-        TkId | TkString | TkGError
+        TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString
         deriving (Eq,Show)
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token
@@ -58,7 +57,7 @@ mkL c (p,_,_,str) len = return (L p c (take len str))
 
 lexError s = do
     (p,c,_,input) <- alexGetInput
-    print (s ++ ": " ++ showPosn p)
+    alexError (s ++ ": " ++ showPosn p)
 
 
 showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
