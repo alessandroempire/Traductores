@@ -3,7 +3,7 @@ begin
 use
     number x;
 in
-    print "How old are you?\"> ";
+    print "How old are you?\\> ";
     read x;
 
     if x < 18 then

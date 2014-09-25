@@ -16,7 +16,7 @@ $digit = 0-9  --Digitos
 $alpha = [a-zA-Z] --Caracteres alfabeticos
 $sliteral = [$printable \n \\ \"] --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
-$backslash = ["\\n]
+$b
 
 @num = $digit+(\.$digit+)?
 
