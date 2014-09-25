@@ -48,6 +48,9 @@ tokens :-
 -- The token type:
 data Token = L AlexPosn Lexeme String
 
+instance Show Token where
+    show (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+
 data Lexeme =
         TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString
         deriving (Eq,Show)

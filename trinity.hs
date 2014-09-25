@@ -1,7 +1,7 @@
 import System.Environment as SE
 import System.Directory   as SD
 import System.IO          as IO
-import Lexer1
+import Lexer
 
 main = do
     (filename : _) <- SE.getArgs
@@ -17,10 +17,6 @@ openF filename = do
 
 --processFile ::
 processFile handle = do
-    line <- hGetLine handle
-    putStrLn line
-    --let a = getToken line
-    let a = alexScanTokens line
-    putStrLn $ show a
-    processFile handle 
+    line <- hGetContents handle
+    lexx line
     

@@ -17,11 +17,13 @@ $alpha = [a-zA-Z] --Caracteres alfabeticos
 $sliteral = [$printable \n \\ \"]  --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
 
+$backlash = ["\\n]
+
 @num = $digit+(\.$digit+)?
 
-@skip = [\ \n\t\v] --Borrar?
+@inside_string = ($printable # ["\\] | \\$backlash)
 
-@string = \"$sliteral*\"
+@string = \"@inside_string*\"
 
 @id = $alpha $identifiers*
 
@@ -172,68 +174,6 @@ data Lexeme =
 
     deriving (Eq, Show)
 
---instance Show Lexeme where
-  --  show lex = case lex of 
-     --   TkProgram       -> "'program'"
-    --    TkBegin         -> "'begin'"
-    --    TkEnd           -> "'end'"
-    --    TkFunction      -> "'function'"
-    --    TkReturn        -> "'return'"
-    --    TkSemicolon     -> "';'"
-    --    TkComma         -> "','"
-   --    	TkDoublePoint	  -> "':'"
-   --     TkBooleanType 	 -> "type 'bool'"
-	  --     TkNumberType	   -> "type 'number'"
-	     --  TkMatrixType	   -> "type 'Matrix'"
-	--       TkRowType	      -> "type 'Row'"	
-	--       TkColType	      -> "type 'Col'" 
-  --     	TkLParen	       -> "'('"
-	--       TkRParen	       -> "')'"
-    --   	TkLLlaves      	-> "'{'"
-	    --   TkRLlaves	      -> "'}'"
-	   --    TkLCorche	      -> "'['"
-	    --   TkRCorche	      -> "']'"	
---	       TkIf		          -> "'if'"
-	 --      TkElse		        -> "'else'"
-	    --   TkThen		        -> "'then'"
-	   --    TkFor 		        -> "'for'"
-	   --    TkDo		          -> "'do'"
-    --   	TkWhile		       -> "'while'"
-	  --     TkPrint		       -> "'print'"
-	  --     TkRead		        -> "'read'"
-   --    	TkAnd		         -> "'&'"
-	  --     TkOr		          -> "'|'"
-	   --    TkNot		         -> "'not'"
-	   --    TkEqual		       -> "'=='"
-	     --  TkUnequal	      -> "'/='"
-	    --   TkLessEq	       -> "'<='"
-	   --    TkLess		        -> "'<'"
-	   --    TkGreatEq      	-> "'>='"
-	   --    TkGreat		       -> "'>'"
-	  --     TkSum	         	-> "'+'"
-	  --     TkDiff	        	-> "'-'"
-	  --     TkMul	         	-> "'*'"
-	  --     TkDivEnt       	-> "'/'"
-   --    	TkModEnt       	-> "'%'"
-   --    	TkDiv		         -> "'div'"
---	       TkMod		         -> "'mod'"
-	 --      TkTrans	       	-> "'''"
-	   --    TkCruzSum	      -> "'.+.'"
-	     --  TkCruzDiff	     -> "'.-.'"
-	   --    TkCruzMul	      -> "'.*.'"
-	    --   TkCruzDivEnt	   -> "'./.'"
-	   --    TkCruzModEnt	   -> "'.%.'"
-	    --   TkCruzDiv	      -> "'.div.'"
-	     --  TkCruzMod      	-> "'.mod.'"
-     --   TkAssign 	      -> "'='"
-      --  TkUse           -> "'use'"
-      --  TkIn            -> "'in'"
-     --   TkSet           -> "'set'"      
-	    --   TkNumber	       -> "literal 'Number'"
-	    --   TkBoolean	      -> "literal 'Bool'"
-	    --   TkString       	-> "literal 'String'"
-	     --  TkId 		         -> "identificador de variable"
-      --  TkEOF           -> "'EOF'"
  
 -------------------------------------------------------------
 -- Funciones
