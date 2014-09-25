@@ -1,9 +1,8 @@
 {-# LANGUAGE CPP,MagicHash #-}
-{-# LINE 1 "Lexer3.x" #-}
+{-# LINE 1 "Lexer5.x" #-}
 
 module Lexer3
-    ( Token(..),
-      lexx
+    ( Token(..)
     ) 
     where
 
@@ -308,63 +307,109 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\x0d\x00\x0d\x00\x04\x00\x04\x00\xff\xff\xff\xff\x0e\x00\x0e\x00\x10\x00\x10\x00\x10\x00\x13\x00\x13\x00\xff\xff\x16\x00\x16\x00\x16\x00\xff\xff\xff\xff\x16\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,39) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAcc (alex_action_1),AlexAccSkip,AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_6)]
-{-# LINE 44 "Lexer3.x" #-}
+{-# LINE 36 "Lexer5.x" #-}
 
-
---http://stackoverflow.com/questions/6038573/request-for-comments-on-simple-alex-parser
 
 -- The token type:
-data Token = L AlexPosn Lexeme String
+data Token = Tk AlexPosn Lexeme String
 
 instance Show Token where
-    show (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+    show (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+
 
 data Lexeme =
-        TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString
+        TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString | TkError
         deriving (Eq,Show)
 
-mkL :: Lexeme -> AlexInput -> Int -> Alex Token
-mkL c (p,_,_,str) len = return (L p c (take len str))
+data LexicalError = LexicalError { lexicalErrorPosition :: AlexPosn,
+                                   lexicalErrorChar     :: Char } 
+                                   deriving(Eq)
 
-lexError s = do
-    (p,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn p)
+--instance Show LexicalError where 
+--    show  = "Lexical Error " ++ showPosn ++ showPosn lexicalErrorPosition 
 
 
+--mkL ::
+mkL c (p,_,_,str) len = return (Tk p c (take len str))
+
+--showPosn ::
 showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
 
-showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+--ShowToken ::
+showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
-alexEOF = return (L undefined TkEOF "")
+alexEOF = return (Tk undefined TkEOF "")
 
+--Debemos redefinir runalex
+-- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
+runAlex' input (Alex f) (err, tok) =
+    case f state of
+        Left msg     -> (msg : err, tok)
+        Right (_, a) -> (err,  a : tok)
+    where
+        state :: AlexState
+        state = (AlexState {alex_pos = alexStartPos,
+                            alex_inp = input,       
+                            alex_chr = '\n',
+                            alex_bytes = [],
+                            alex_scd = 0})
+
+--redefinir
 alexMonadScanTokens = do
-    inp <- alexGetInput
-    sc <- alexGetStartCode
-    case alexScan inp sc of
-      AlexEOF -> alexEOF
-      AlexError inp' -> lexError "lexical error"
-      -- AQUI SE DEBERIA MODIFICAR...
-      AlexSkip  inp' len -> do
+  inp <- alexGetInput
+  sc  <- alexGetStartCode
+  case alexScan inp sc of
+    AlexEOF -> alexEOF
+    AlexError inp' -> do     --alexError "lexical error"
+        return (Tk undefined TkError "lexical error")
         alexSetInput inp'
-        alexMonadScanTokens
-      AlexToken inp' len action -> do
+        alexMonadScan
+    AlexSkip  inp' len -> do
         alexSetInput inp'
-        token <- action inp len
+        alexMonadScan
+    AlexToken inp' len action -> do
+        alexSetInput inp'
         action (ignorePendingBytes inp) len
 
-lexTokens s = runAlex s $ loop []
-    where
-      isEof x  = case x of { L _ TkEOF _ -> True; _ -> False }
-      loop acc = do
-        tok <- alexMonadScanTokens
-        if isEof tok then return (reverse acc)
-                     else loop (tok:acc)
 
-lexx s = do
-    let result = lexTokens s
-    case result of
-      Right x  -> mapM_ (putStrLn . showToken) x
-      Left err -> putStrLn err
+lexTokens s = runAlex' s (loop []) ([],[])
+    where
+      isEof x  = case x of { Tk _ TkEOF _ -> True; _ -> False }
+      loop acc = do
+        tok <- alexMonadScan
+        if isEof tok then return (reverse acc)
+                     else loop ([tok]:acc)
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+{-
+--
+scanTokens string = getTokens string ([], [])
+
+--
+getTokens string (e, t) = do
+    let token = runAlex string alexMonadScan
+    show token
+    case token of 
+        Right a -> case a of 
+                  (Tk _ TkEOF _) -> showLexer
+                  (Tk _ l s )    -> getTokens string (e, (l,s):t)
+        -- Right a -> show "RIGHT " ++ show a    --getTokens string (e, a:t)
+        --Left ms ->  "left"                   --getTokens string (ms:e, t)
+
+showLexer = show "llege"
+-}
+
 
 alex_action_1 =  mkL TkProgram 
 alex_action_3 =  mkL TkTrue        

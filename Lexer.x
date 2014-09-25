@@ -1,7 +1,7 @@
 {
 
 module Lexer
-    ( lexx, lexTokens, showToken
+    ( lexx
     ) where
 
 }
@@ -14,13 +14,16 @@ module Lexer
 
 $digit = 0-9  --Digitos
 $alpha = [a-zA-Z] --Caracteres alfabeticos
-$sliteral = [$printable \n \\ \"] --Strings literales
+$sliteral = [$printable \n \\ \"]  --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
-$backslash = ["\\n]
+
+$backlash = ["\\n]
 
 @num = $digit+(\.$digit+)?
 
-@string = \"($printable # \\)*\"
+@inside_string = ($printable # ["\\] | \\$backlash)
+
+@string = \"@inside_string*\"
 
 @id = $alpha $identifiers*
 
@@ -115,9 +118,6 @@ tokens :-
     --Identificadores
     @id                   { mkL TkId            }
 
- --   .                    { mkL TkError } -- un token suelto. 
- --   $graphic+         { mkL TkGError    }
-
 -------------------------------------------------------------
 -- Codigo Haskell
 -------------------------------------------------------------
@@ -172,39 +172,33 @@ data Lexeme =
     --Compilador
     | TkEOF
 
-    --Error
-    -- | TkError | TkGError
-
     deriving (Eq, Show)
+
  
 -------------------------------------------------------------
 -- Funciones
 -------------------------------------------------------------
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token
-mkL lexeme (pos,_,_,str) len = return (L pos lexeme (take len str))
+mkL c (p,_,_,str) len = return (L p c (take len str))
 
-lexError :: String -> Alex a
 lexError s = do
-    (pos,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn pos)
+    (p,c,_,input) <- alexGetInput
+    alexError (s ++ ": " ++ showPosn p)
 
-showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = "at line " ++ show line ++ ", column " ++ show col
+showPosn (AlexPn _ line col) = "in line " ++ show line ++ ", column " ++ show col
 
-showToken :: Token -> String
-showToken (L pos tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn pos
+showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
-alexEOF :: Alex Token
 alexEOF = return (L undefined TkEOF "")
 
-alexMonadScanTokens :: Alex Token
 alexMonadScanTokens = do
     inp <- alexGetInput
     sc <- alexGetStartCode
     case alexScan inp sc of
       AlexEOF -> alexEOF
       AlexError inp' -> lexError "Lexical error"
+      -- AQUI SE DEBERIA MODIFICAR...
       AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScanTokens
@@ -213,7 +207,6 @@ alexMonadScanTokens = do
         token <- action inp len
         action (ignorePendingBytes inp) len
 
-lexTokens :: String -> Either String [Token]
 lexTokens s = runAlex s $ loop []
     where
       isEof x = case x of { L _ TkEOF _ -> True; _ -> False }

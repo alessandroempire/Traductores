@@ -1,15 +1,9 @@
 {
 module Lexer3
     ( Token(..),
-      lexTokens,
-      showToken,
       lexx
     ) 
     where
-
-import System.Environment as SE
-import System.Directory   as SD
-import System.IO          as IO
 }
 
 %wrapper "monad"
@@ -35,17 +29,17 @@ tokens :-
 
     "true"               { mkL TkTrue        }
     "false"              { mkL TkFalse       } 
-    @num                 { mkL TkNumber    }
+    --@num                 { mkL TkNumber    }
     @id                  { mkL TkId          }
     @string              { mkL TkString      }
 
     --Error
-    .                    { mkL TkError } -- un token suelto. 
+    --.                    { mkL TkOneError } -- un token suelto. 
                                             -- como $ en la mitad de la nada. 
     -- que otro errores?
     -- ejemplos 123program
     -- p@gr@am es un error tambien
-    $graphic+         { mkL TkGError    }
+    -- $graphic+         { mkL TkGError    }
  
 {
 
@@ -54,15 +48,20 @@ tokens :-
 -- The token type:
 data Token = L AlexPosn Lexeme String
 
+instance Show Token where
+    show (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+
 data Lexeme =
-        TkProgram | TkTrue | TkFalse | TkNumber | TkEOF | TkId | TkGError | TkError | TkString
+        TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString
         deriving (Eq,Show)
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token
 mkL c (p,_,_,str) len = return (L p c (take len str))
 
-lexError (p,c,b,input) = do
-    alexError ("last char: "++ show c ++ " Input:  " ++ show input ++ "Pending Bytes " ++ show b ++  " Pos:  "  ++ showPosn p)
+lexError s = do
+    (p,c,_,input) <- alexGetInput
+    alexError (s ++ ": " ++ showPosn p)
+
 
 showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
 
@@ -75,9 +74,9 @@ alexMonadScanTokens = do
     sc <- alexGetStartCode
     case alexScan inp sc of
       AlexEOF -> alexEOF
-      AlexError inp' -> lexError inp'
+      AlexError inp' -> lexError "lexical error"
+      -- AQUI SE DEBERIA MODIFICAR...
       AlexSkip  inp' len -> do
-        --lexError inp'
         alexSetInput inp'
         alexMonadScanTokens
       AlexToken inp' len action -> do
@@ -93,10 +92,9 @@ lexTokens s = runAlex s $ loop []
         if isEof tok then return (reverse acc)
                      else loop (tok:acc)
 
-lexx a = do
-    let result = lexTokens a
+lexx s = do
+    let result = lexTokens s
     case result of
       Right x  -> mapM_ (putStrLn . showToken) x
       Left err -> putStrLn err
-
 }

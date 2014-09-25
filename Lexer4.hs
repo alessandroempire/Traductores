@@ -1,9 +1,8 @@
 {-# LANGUAGE CPP,MagicHash #-}
-{-# LINE 1 "Lexer3.x" #-}
+{-# LINE 1 "Lexer4.x" #-}
 
-module Lexer3
-    ( Token(..),
-      lexx
+module Lexer4
+    ( 
     ) 
     where
 
@@ -308,63 +307,56 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\x0d\x00\x0d\x00\x04\x00\x04\x00\xff\xff\xff\xff\x0e\x00\x0e\x00\x10\x00\x10\x00\x10\x00\x13\x00\x13\x00\xff\xff\x16\x00\x16\x00\x16\x00\xff\xff\xff\xff\x16\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,39) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAcc (alex_action_1),AlexAccSkip,AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_6)]
-{-# LINE 44 "Lexer3.x" #-}
+{-# LINE 43 "Lexer4.x" #-}
 
-
---http://stackoverflow.com/questions/6038573/request-for-comments-on-simple-alex-parser
 
 -- The token type:
-data Token = L AlexPosn Lexeme String
+data Token = Tk AlexPosn Lexeme String
 
 instance Show Token where
-    show (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+    show (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+
+--showPosn ::
+showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
 
 data Lexeme =
         TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString
         deriving (Eq,Show)
 
-mkL :: Lexeme -> AlexInput -> Int -> Alex Token
-mkL c (p,_,_,str) len = return (L p c (take len str))
+--mkL :: Monad m => Lexeme -> (AlexPosn, t, t1, [Char]) -> Int -> Alex Token
+--mkL :: Monad m => Lexeme -> AlexState -> Int -> m Token
+-- -> Alex Token
+mkL c (p,_,_,str) len = return (Tk p c (take len str))
 
-lexError s = do
-    (p,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn p)
+alexEOF = return (Tk undefined TkEOF "")
 
-
-showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
-
-showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
-
-alexEOF = return (L undefined TkEOF "")
-
-alexMonadScanTokens = do
-    inp <- alexGetInput
-    sc <- alexGetStartCode
-    case alexScan inp sc of
-      AlexEOF -> alexEOF
-      AlexError inp' -> lexError "lexical error"
-      -- AQUI SE DEBERIA MODIFICAR...
-      AlexSkip  inp' len -> do
+alexMonadScanToken = do
+  inp <- alexGetInput
+  sc  <- alexGetStartCode
+  case alexScan inp sc of
+    AlexEOF -> alexEOF
+    AlexError inp' -> alexError "lexical error" --esto no es return...
+    AlexSkip  inp' len -> do
         alexSetInput inp'
-        alexMonadScanTokens
-      AlexToken inp' len action -> do
+        alexMonadScan
+    AlexToken inp' len action -> do
         alexSetInput inp'
-        token <- action inp len
         action (ignorePendingBytes inp) len
 
-lexTokens s = runAlex s $ loop []
-    where
-      isEof x  = case x of { L _ TkEOF _ -> True; _ -> False }
-      loop acc = do
-        tok <- alexMonadScanTokens
-        if isEof tok then return (reverse acc)
-                     else loop (tok:acc)
 
-lexx s = do
-    let result = lexTokens s
-    case result of
-      Right x  -> mapM_ (putStrLn . showToken) x
-      Left err -> putStrLn err
+--lexTokens string [a] -> [Either]
+lexTokens string array = lexTokens string (getTokens : array)
+    where
+        getTokens acc = do
+            tok <- alexMonadScanToken
+            if isEof tok then return (reverse acc)
+                          else getTokens (tok:acc)
+        isEof x  = case x of { Tk _ TkEOF _ -> True; _ -> False }
+
+--scanTokens ::
+scanTokens string = lexTokens string []
+
+--quiero arreglo
 
 alex_action_1 =  mkL TkProgram 
 alex_action_3 =  mkL TkTrue        

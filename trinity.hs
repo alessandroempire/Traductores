@@ -18,8 +18,5 @@ openF filename = do
 --processFile ::
 processFile handle = do
     line <- hGetContents handle
-    let result = lexTokens line
-    case result of
-      Right x  -> mapM_ (putStrLn . showToken) x
-      Left err -> putStrLn err
-
+    lexx line
+    
