@@ -49,9 +49,6 @@ data Lexeme =
 
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
---alexInitUserState :: AlexUserState
-alexInitUserState = AlexUSt empty
-
 data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    lexicalErrorChar :: Char } 
                                    deriving(Eq)
@@ -60,6 +57,10 @@ instance Show LexicalError where
     show (LexicalError pos char) = show "Lexical Error " ++ showPosn pos 
                                    ++ show char
 
+---------------------------------------------------------
+
+--alexInitUserState :: AlexUserState
+alexInitUserState = AlexUSt empty
 
 --mkL ::
 mkL c (p,_,_,str) len = return (Tk p c (take len str))
@@ -72,23 +73,33 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
+---------------------------------------------------------
 
--- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
+-- runalex'  :: String -> Alex a -> ( Seq LexicalError, a)
 runAlex' input (Alex f) =
-    let Right (st, a) = f state
+    let Right ( st, a) = f state
         ust           = errors (alex_ust st)
-    in (ust, a)
+        x = getState st
+    in (x, a)
     where
         state :: AlexState
         state = AlexState { alex_pos   = alexStartPos
-                           , alex_inp   = input 
-                           , alex_chr   = '\n'
-                           , alex_bytes = []
-                           , alex_ust   = alexInitUserState
-                           , alex_scd   = 0}
+                          , alex_inp   = input 
+                          , alex_chr   = '\n'
+                          , alex_bytes = []
+                          , alex_ust   = alexInitUserState
+                          , alex_scd   = 0}
+         
 
-alexError' :: AlexInput -> Alex ()
-alexError' (pos, c, _, string) = tellLError pos c
+getState :: AlexState -> String
+getState AlexState { alex_pos = a , alex_inp = x , alex_chr = b, alex_bytes = c, alex_ust = d , alex_scd = e } = x
+
+
+
+
+--alexError' :: AlexInput -> Alex ()
+alexError' (pos, c, _, string) = do tellLError pos c
+                                    return (Tk pos TkError string) 
 
 
 --getUserState :: Alex AlexUserState
@@ -101,8 +112,6 @@ modifyUserState f = Alex $ \s ->
 --
 tellLError posn err = modifyUserState $ \st -> 
                       st { errors = errors st |> (LexicalError posn err) }
-
-
 
 --redefinir
 alexMonadScanTokens = do
