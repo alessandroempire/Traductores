@@ -1,7 +1,7 @@
 import System.Environment as SE
 import System.Directory   as SD
 import System.IO          as IO
-import Lexer7 
+import Lexer 
 
 
 main = do
