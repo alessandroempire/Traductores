@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP,MagicHash #-}
 {-# LINE 1 "Lexer5.x" #-}
 
-module Lexer3
+module Lexer5
     ( Token(..)
     ) 
     where
@@ -321,20 +321,17 @@ alex_accept = listArray (0::Int,39) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAcc
 {-# LINE 38 "Lexer5.x" #-}
 
 
-data Token = Tk AlexPosn Lexeme String
+data Info = Tk AlexPosn Token String
 
 instance Show Token where
     show (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
  
-data Lexeme =
+data Token =
         TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString | TkError
         deriving (Eq,Show)
 
 
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
-
---alexInitUserState :: AlexUserState
-alexInitUserState = AlexUSt empty
 
 data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    lexicalErrorChar :: Char } 
@@ -344,9 +341,20 @@ instance Show LexicalError where
     show (LexicalError pos char) = show "Lexical Error " ++ showPosn pos 
                                    ++ show char
 
+---------------------------------------------------------
+ 
+
+
+--alexInitUserState :: AlexUserState
+alexInitUserState = AlexUSt empty
 
 --mkL ::
 mkL c (p,_,_,str) len = return (Tk p c (take len str))
+
+--Construir Tokens que no depende del input
+lex' :: Lexeme -> AlexAction 
+lex' token = 
+
 
 --showPosn ::
 showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
@@ -356,25 +364,50 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
+<<<<<<< HEAD
 -- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
+=======
+---------------------------------------------------------
+
+
+{-
+
+
+-- runalex'  :: String -> Alex a -> ( Seq LexicalError, a)
+>>>>>>> c12ca55cedd975676404e3231b5951d77e6e84e0
 runAlex' input (Alex f) =
-    let Right (st, a) = f state
+    let Right ( st, a) = f state
         ust           = errors (alex_ust st)
-    in (ust, a)
+        x = getState st
+    in (x, a)
     where
         state :: AlexState
         state = AlexState { alex_pos   = alexStartPos
-                           , alex_inp   = input 
-                           , alex_chr   = '\n'
-                           , alex_bytes = []
-                           , alex_ust   = alexInitUserState
-                           , alex_scd   = 0}
+                          , alex_inp   = input 
+                          , alex_chr   = '\n'
+                          , alex_bytes = []
+                          , alex_ust   = alexInitUserState
+                          , alex_scd   = 0}
+         
 
+getState :: AlexState -> String
+getState AlexState { alex_pos = a , alex_inp = x , alex_chr = b, alex_bytes = c, alex_ust = d , alex_scd = e } = x
+
+
+<<<<<<< HEAD
 --alexError' :: AlexInput -> Alex ()
 alexError' = do
     (pos, c, _, string) <- alexGetInput
     tellLError pos c
     return (Tk undefined TkError "")
+=======
+
+
+--alexError' :: AlexInput -> Alex ()
+alexError' (pos, c, _, string) = do tellLError pos c
+                                    return (Tk pos TkError string) 
+
+>>>>>>> c12ca55cedd975676404e3231b5951d77e6e84e0
 
 --getUserState :: Alex AlexUserState
 getUserState = Alex (\s -> Right (s,alex_ust s))
@@ -386,8 +419,6 @@ modifyUserState f = Alex $ \s ->
 --
 tellLError posn err = modifyUserState $ \st -> 
                       st { errors = errors st |> (LexicalError posn err) }
-
-
 
 --redefinir
 alexMonadScanTokens = do
@@ -410,6 +441,8 @@ lexTokens s = runAlex' s (loop [])
         tok <- alexMonadScanTokens
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
+
+-}
 
 alex_action_1 =  mkL TkProgram 
 alex_action_3 =  mkL TkTrue        
