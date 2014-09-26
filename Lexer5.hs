@@ -6,6 +6,8 @@ module Lexer3
     ) 
     where
 
+import Data.Sequence (Seq, empty, (|>))
+
 #if __GLASGOW_HASKELL__ >= 603
 #include "ghcconfig.h"
 #elif defined(__GLASGOW_HASKELL__)
@@ -27,6 +29,7 @@ import GlaExts
 {-# LINE 1 "templates/wrappers.hs" #-}
 {-# LINE 1 "templates/wrappers.hs" #-}
 {-# LINE 1 "<command-line>" #-}
+
 
 
 
@@ -74,7 +77,7 @@ import GlaExts
 
 
 
-# 6 "<command-line>" 2
+# 7 "<command-line>" 2
 {-# LINE 1 "templates/wrappers.hs" #-}
 -- -----------------------------------------------------------------------------
 -- Alex wrapper code.
@@ -175,7 +178,7 @@ data AlexState = AlexState {
         alex_bytes :: [Byte],
         alex_scd :: !Int        -- the current startcode
 
-
+      , alex_ust :: AlexUserState -- AlexUserState will be defined in the user program
 
     }
 
@@ -188,7 +191,7 @@ runAlex input (Alex f)
                         alex_chr = '\n',
                         alex_bytes = [],
 
-
+                        alex_ust = alexInitUserState,
 
                         alex_scd = 0}) of Left msg -> Left msg
                                           Right ( _, a ) -> Right a
@@ -307,26 +310,31 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\x0d\x00\x0d\x00\x04\x00\x04\x00\xff\xff\xff\xff\x0e\x00\x0e\x00\x10\x00\x10\x00\x10\x00\x13\x00\x13\x00\xff\xff\x16\x00\x16\x00\x16\x00\xff\xff\xff\xff\x16\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,39) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAcc (alex_action_1),AlexAccSkip,AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_5),AlexAcc (alex_action_6)]
-{-# LINE 36 "Lexer5.x" #-}
+{-# LINE 38 "Lexer5.x" #-}
 
 
--- The token type:
 data Token = Tk AlexPosn Lexeme String
 
 instance Show Token where
     show (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
-
-
+ 
 data Lexeme =
         TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString | TkError
         deriving (Eq,Show)
 
-data LexicalError = LexicalError { lexicalErrorPosition :: AlexPosn,
-                                   lexicalErrorChar     :: Char } 
+
+data AlexUserState = AlexUSt { errors :: Seq LexicalError}
+
+--alexInitUserState :: AlexUserState
+alexInitUserState = AlexUSt empty
+
+data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
+                                   lexicalErrorChar :: Char } 
                                    deriving(Eq)
 
---instance Show LexicalError where 
---    show  = "Lexical Error " ++ showPosn ++ showPosn lexicalErrorPosition 
+instance Show LexicalError where 
+    show (LexicalError pos char) = show "Lexical Error " ++ showPosn pos 
+                                   ++ show char
 
 
 --mkL ::
@@ -340,19 +348,25 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
---Debemos redefinir runalex
+
 -- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
-runAlex' input (Alex f) (err, tok) =
+runAlex' input (Alex f) =
+    let Right (st, a) = f state
+        ust           = errors (alex_ust st)
+    in (ust, a)
+{-
     case f state of
         Left msg     -> (msg : err, tok)
         Right (_, a) -> (err,  a : tok)
+        -}
     where
         state :: AlexState
-        state = (AlexState {alex_pos = alexStartPos,
-                            alex_inp = input,       
-                            alex_chr = '\n',
-                            alex_bytes = [],
-                            alex_scd = 0})
+        state = (AlexState { alex_pos   = alexStartPos
+                           , alex_inp   = input 
+                           , alex_chr   = '\n'
+                           , alex_bytes = []
+                           , alex_ust   = alexInitUserState
+                           , alex_scd   = 0})
 
 --redefinir
 alexMonadScanTokens = do
@@ -372,7 +386,7 @@ alexMonadScanTokens = do
         action (ignorePendingBytes inp) len
 
 
-lexTokens s = runAlex' s (loop []) ([],[])
+lexTokens s = runAlex' s (loop [])
     where
       isEof x  = case x of { Tk _ TkEOF _ -> True; _ -> False }
       loop acc = do
@@ -380,35 +394,6 @@ lexTokens s = runAlex' s (loop []) ([],[])
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
 
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
-{-
---
-scanTokens string = getTokens string ([], [])
-
---
-getTokens string (e, t) = do
-    let token = runAlex string alexMonadScan
-    show token
-    case token of 
-        Right a -> case a of 
-                  (Tk _ TkEOF _) -> showLexer
-                  (Tk _ l s )    -> getTokens string (e, (l,s):t)
-        -- Right a -> show "RIGHT " ++ show a    --getTokens string (e, a:t)
-        --Left ms ->  "left"                   --getTokens string (ms:e, t)
-
-showLexer = show "llege"
--}
 
 
 alex_action_1 =  mkL TkProgram 

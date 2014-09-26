@@ -3,9 +3,11 @@ module Lexer3
     ( Token(..)
     ) 
     where
+
+import Data.Sequence (Seq, empty, (|>))
 }
 
-%wrapper "monad"
+%wrapper "monadUserState"
 
 $digit = 0-9			-- digits
 $alpha = [a-zA-Z]		-- alphabetic characters
@@ -35,23 +37,28 @@ tokens :-
 ------------------------------------------------------------------------------- 
 {
 
--- The token type:
 data Token = Tk AlexPosn Lexeme String
 
 instance Show Token where
     show (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
-
-
+ 
 data Lexeme =
         TkProgram | TkTrue | TkFalse | TkEOF | TkId | TkString | TkError
         deriving (Eq,Show)
 
-data LexicalError = LexicalError { lexicalErrorPosition :: AlexPosn,
-                                   lexicalErrorChar     :: Char } 
+
+data AlexUserState = AlexUSt { errors :: Seq LexicalError}
+
+--alexInitUserState :: AlexUserState
+alexInitUserState = AlexUSt empty
+
+data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
+                                   lexicalErrorChar :: Char } 
                                    deriving(Eq)
 
---instance Show LexicalError where 
---    show  = "Lexical Error " ++ showPosn ++ showPosn lexicalErrorPosition 
+instance Show LexicalError where 
+    show (LexicalError pos char) = show "Lexical Error " ++ showPosn pos 
+                                   ++ show char
 
 
 --mkL ::
@@ -65,19 +72,25 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
---Debemos redefinir runalex
+
 -- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
-runAlex' input (Alex f) (err, tok) =
+runAlex' input (Alex f) =
+    let Right (st, a) = f state
+        ust           = errors (alex_ust st)
+    in (ust, a)
+{-
     case f state of
         Left msg     -> (msg : err, tok)
         Right (_, a) -> (err,  a : tok)
+        -}
     where
         state :: AlexState
-        state = (AlexState {alex_pos = alexStartPos,
-                            alex_inp = input,       
-                            alex_chr = '\n',
-                            alex_bytes = [],
-                            alex_scd = 0})
+        state = (AlexState { alex_pos   = alexStartPos
+                           , alex_inp   = input 
+                           , alex_chr   = '\n'
+                           , alex_bytes = []
+                           , alex_ust   = alexInitUserState
+                           , alex_scd   = 0})
 
 --redefinir
 alexMonadScanTokens = do
@@ -97,42 +110,11 @@ alexMonadScanTokens = do
         action (ignorePendingBytes inp) len
 
 
-lexTokens s = runAlex' s (loop []) ([],[])
+lexTokens s = runAlex' s (loop [])
     where
       isEof x  = case x of { Tk _ TkEOF _ -> True; _ -> False }
       loop acc = do
         tok <- alexMonadScan
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
-{-
---
-scanTokens string = getTokens string ([], [])
-
---
-getTokens string (e, t) = do
-    let token = runAlex string alexMonadScan
-    show token
-    case token of 
-        Right a -> case a of 
-                  (Tk _ TkEOF _) -> showLexer
-                  (Tk _ l s )    -> getTokens string (e, (l,s):t)
-        -- Right a -> show "RIGHT " ++ show a    --getTokens string (e, a:t)
-        --Left ms ->  "left"                   --getTokens string (ms:e, t)
-
-showLexer = show "llege"
--}
-
 }
