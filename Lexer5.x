@@ -78,19 +78,31 @@ runAlex' input (Alex f) =
     let Right (st, a) = f state
         ust           = errors (alex_ust st)
     in (ust, a)
-{-
-    case f state of
-        Left msg     -> (msg : err, tok)
-        Right (_, a) -> (err,  a : tok)
-        -}
     where
         state :: AlexState
-        state = (AlexState { alex_pos   = alexStartPos
+        state = AlexState { alex_pos   = alexStartPos
                            , alex_inp   = input 
                            , alex_chr   = '\n'
                            , alex_bytes = []
                            , alex_ust   = alexInitUserState
-                           , alex_scd   = 0})
+                           , alex_scd   = 0}
+
+alexError' :: AlexInput -> Alex ()
+alexError' (pos, c, _, string) = tellLError pos c
+
+
+--getUserState :: Alex AlexUserState
+getUserState = Alex (\s -> Right (s,alex_ust s))
+
+--modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
+modifyUserState f = Alex $ \s -> 
+                            let st = alex_ust s in Right (s {alex_ust = f st},())
+
+--
+tellLError posn err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (LexicalError posn err) }
+
+
 
 --redefinir
 alexMonadScanTokens = do
@@ -98,17 +110,13 @@ alexMonadScanTokens = do
   sc  <- alexGetStartCode
   case alexScan inp sc of
     AlexEOF -> alexEOF
-    AlexError inp' -> do     --alexError "lexical error"
-        return (Tk undefined TkError "lexical error")
-        alexSetInput inp'
-        alexMonadScan
+    AlexError inp' -> alexError' inp
     AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScan
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
-
 
 lexTokens s = runAlex' s (loop [])
     where
