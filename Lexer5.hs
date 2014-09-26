@@ -336,13 +336,6 @@ data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 --alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
 
-
-modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
-modifyUserState f = Alex $ \s -> let st = alex_ust s in Right (s {alex_ust = f st},())
-
-getUserState :: Alex AlexUserState
-getUserState = Alex (\s -> Right (s,alex_ust s))
-
 data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    lexicalErrorChar :: Char } 
                                    deriving(Eq)
@@ -363,7 +356,6 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
-
 -- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
 runAlex' input (Alex f) =
     let Right (st, a) = f state
@@ -378,9 +370,11 @@ runAlex' input (Alex f) =
                            , alex_ust   = alexInitUserState
                            , alex_scd   = 0}
 
-alexError' :: AlexInput -> Alex ()
-alexError' (pos, c, _, string) = tellLError pos c
-
+--alexError' :: AlexInput -> Alex ()
+alexError' = do
+    (pos, c, _, string) <- alexGetInput
+    tellLError pos c
+    return (Tk undefined TkError "")
 
 --getUserState :: Alex AlexUserState
 getUserState = Alex (\s -> Right (s,alex_ust s))
@@ -401,7 +395,7 @@ alexMonadScanTokens = do
   sc  <- alexGetStartCode
   case alexScan inp sc of
     AlexEOF -> alexEOF
-    AlexError inp' -> alexError' inp
+    AlexError inp' -> alexError'
     AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScan
@@ -413,7 +407,7 @@ lexTokens s = runAlex' s (loop [])
     where
       isEof x  = case x of { Tk _ TkEOF _ -> True; _ -> False }
       loop acc = do
-        tok <- alexMonadScan
+        tok <- alexMonadScanTokens
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
 
