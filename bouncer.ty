@@ -1,4 +1,4 @@
-program   begin # algo loco
+program begin # algo loco
 begin
 use
     number x;

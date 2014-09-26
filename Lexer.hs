@@ -3,7 +3,7 @@
 
 
 module Lexer
-    ( lexx
+    ( lexx, lexTokens, showToken
     ) where
 
 
@@ -221,12 +221,20 @@ alexGetStartCode = Alex $ \s@AlexState{alex_scd=sc} -> Right (s, sc)
 alexSetStartCode :: Int -> Alex ()
 alexSetStartCode sc = Alex $ \s -> Right (s{alex_scd=sc}, ())
 
+
+
+
+
+
+
+
+
 alexMonadScan = do
   inp <- alexGetInput
   sc <- alexGetStartCode
   case alexScan inp sc of
     AlexEOF -> alexEOF
-    AlexError inp' -> alexError "lexical error"
+    AlexError ((AlexPn _ line column),_,_,_) -> alexError $ "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
     AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScan
@@ -259,21 +267,21 @@ token t input len = return (t input len)
 -- -----------------------------------------------------------------------------
 -- Monad (with ByteString input)
 
-{-# LINE 320 "templates/wrappers.hs" #-}
+{-# LINE 328 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper
 
-{-# LINE 347 "templates/wrappers.hs" #-}
+{-# LINE 355 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper, ByteString version
 
-{-# LINE 365 "templates/wrappers.hs" #-}
+{-# LINE 373 "templates/wrappers.hs" #-}
 
-{-# LINE 378 "templates/wrappers.hs" #-}
+{-# LINE 386 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
@@ -281,13 +289,13 @@ token t input len = return (t input len)
 
 -- Adds text positions to the basic model.
 
-{-# LINE 395 "templates/wrappers.hs" #-}
+{-# LINE 403 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Posn wrapper, ByteString version
 
-{-# LINE 410 "templates/wrappers.hs" #-}
+{-# LINE 418 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
@@ -308,7 +316,7 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x11\x00\x11\x00\x07\x00\x07\x00\xff\xff\xff\xff\x14\x00\x14\x00\x16\x00\xff\xff\x16\x00\x16\x00\xff\xff\xff\xff\x21\x00\x21\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x23\x00\x23\x00\x23\x00\xff\xff\x23\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,165) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61)]
-{-# LINE 125 "Lexer.x" #-}
+{-# LINE 124 "Lexer.x" #-}
 
 
 --Tipo Token
@@ -359,33 +367,39 @@ data Lexeme =
     --Compilador
     | TkEOF
 
-    deriving (Eq, Show)
+    --Error
+    -- | TkError | TkGError
 
+    deriving (Eq, Show)
  
 -------------------------------------------------------------
 -- Funciones
 -------------------------------------------------------------
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token
-mkL c (p,_,_,str) len = return (L p c (take len str))
+mkL lexeme (pos,_,_,str) len = return (L pos lexeme (take len str))
 
+lexError :: String -> Alex a
 lexError s = do
-    (p,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn p)
+    (pos,c,_,input) <- alexGetInput
+    alexError (s ++ " " ++ showPosn pos)
 
-showPosn (AlexPn _ line col) = "in line " ++ show line ++ ", column " ++ show col
+showPosn :: AlexPosn -> String
+showPosn (AlexPn _ line col) = "at line " ++ show line ++ ", column " ++ show col
 
-showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+showToken :: Token -> String
+showToken (L pos tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn pos
 
+alexEOF :: Alex Token
 alexEOF = return (L undefined TkEOF "")
 
+alexMonadScanTokens :: Alex Token
 alexMonadScanTokens = do
     inp <- alexGetInput
     sc <- alexGetStartCode
     case alexScan inp sc of
       AlexEOF -> alexEOF
       AlexError inp' -> lexError "Lexical error"
-      -- AQUI SE DEBERIA MODIFICAR...
       AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScanTokens
@@ -394,6 +408,7 @@ alexMonadScanTokens = do
         token <- action inp len
         action (ignorePendingBytes inp) len
 
+lexTokens :: String -> Either String [Token]
 lexTokens s = runAlex s $ loop []
     where
       isEof x = case x of { L _ TkEOF _ -> True; _ -> False }
@@ -532,9 +547,20 @@ alex_action_61 =  mkL TkId
 -- -----------------------------------------------------------------------------
 -- INTERNALS and main scanner engine
 
-{-# LINE 35 "templates/GenericTemplate.hs" #-}
+{-# LINE 21 "templates/GenericTemplate.hs" #-}
 
-{-# LINE 45 "templates/GenericTemplate.hs" #-}
+
+
+
+
+#if __GLASGOW_HASKELL__ > 706
+#define GTE(n,m) (tagToEnum# (n >=# m))
+#define EQ(n,m) (tagToEnum# (n ==# m))
+#else
+#define GTE(n,m) (n >=# m)
+#define EQ(n,m) (n ==# m)
+#endif
+{-# LINE 50 "templates/GenericTemplate.hs" #-}
 
 
 data AlexAddr = AlexA# Addr#
@@ -653,7 +679,7 @@ alex_scan_tkn user orig_input len input s last_acc =
                 offset = (base +# ord_c)
                 check  = alexIndexInt16OffAddr alex_check offset
 		
-                new_s = if (offset >=# 0#) && (check ==# ord_c)
+                new_s = if GTE(offset,0#) && EQ(check,ord_c)
 			  then alexIndexInt16OffAddr alex_table offset
 			  else alexIndexInt16OffAddr alex_deflt s
 	in
@@ -669,7 +695,7 @@ alex_scan_tkn user orig_input len input s last_acc =
 	check_accs (AlexAccNone) = last_acc
 	check_accs (AlexAcc a  ) = AlexLastAcc a input (I# (len))
 	check_accs (AlexAccSkip) = AlexLastSkip  input (I# (len))
-{-# LINE 191 "templates/GenericTemplate.hs" #-}
+{-# LINE 196 "templates/GenericTemplate.hs" #-}
 
 data AlexLastAcc a
   = AlexNone
@@ -685,7 +711,7 @@ data AlexAcc a user
   = AlexAccNone
   | AlexAcc a
   | AlexAccSkip
-{-# LINE 235 "templates/GenericTemplate.hs" #-}
+{-# LINE 240 "templates/GenericTemplate.hs" #-}
 
 -- used by wrappers
 iUnbox (I# (i)) = i

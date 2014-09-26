@@ -79,6 +79,8 @@ showToken (Tk p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
 
 alexEOF = return (Tk undefined TkEOF "")
 
+alexError (p,c,_,_) = 
+
 -- runalex'  :: String -> Alex a -> (err, tok) -> (errors, tokens)
 runAlex' input (Alex f) =
     let Right (st, a) = f state

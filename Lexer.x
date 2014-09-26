@@ -1,7 +1,8 @@
 {
 
 module Lexer
-    ( lexx
+    ( lexTokens, 
+      showToken
     ) where
 
 }
@@ -14,14 +15,13 @@ module Lexer
 
 $digit = 0-9  --Digitos
 $alpha = [a-zA-Z] --Caracteres alfabeticos
-$sliteral = [$printable \n \\ \"]  --Strings literales
+$sliteral = [$printable \n \\ \"] --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
-
-$backlash = ["\\n]
+$backslash = ["\\n]
 
 @num = $digit+(\.$digit+)?
 
-@inside_string = ($printable # ["\\] | \\$backlash)
+@inside_string = ($printable # ["\\] | \\$backslash)
 
 @string = \"@inside_string*\"
 
@@ -172,33 +172,39 @@ data Lexeme =
     --Compilador
     | TkEOF
 
-    deriving (Eq, Show)
+    --Error
+    -- | TkError | TkGError
 
+    deriving (Eq, Show)
  
 -------------------------------------------------------------
 -- Funciones
 -------------------------------------------------------------
 
 mkL :: Lexeme -> AlexInput -> Int -> Alex Token
-mkL c (p,_,_,str) len = return (L p c (take len str))
+mkL lexeme (pos,_,_,str) len = return (L pos lexeme (take len str))
 
+lexError :: String -> Alex a
 lexError s = do
-    (p,c,_,input) <- alexGetInput
-    alexError (s ++ ": " ++ showPosn p)
+    (pos,c,_,input) <- alexGetInput
+    alexError (s ++ " " ++ showPosn pos)
 
-showPosn (AlexPn _ line col) = "in line " ++ show line ++ ", column " ++ show col
+showPosn :: AlexPosn -> String
+showPosn (AlexPn _ line col) = "at line " ++ show line ++ ", column " ++ show col
 
-showToken (L p tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn p
+showToken :: Token -> String
+showToken (L pos tkn str) = show tkn ++ " '" ++ str ++ "' " ++ showPosn pos
 
+alexEOF :: Alex Token
 alexEOF = return (L undefined TkEOF "")
 
+alexMonadScanTokens :: Alex Token
 alexMonadScanTokens = do
     inp <- alexGetInput
     sc <- alexGetStartCode
     case alexScan inp sc of
       AlexEOF -> alexEOF
       AlexError inp' -> lexError "Lexical error"
-      -- AQUI SE DEBERIA MODIFICAR...
       AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScanTokens
@@ -207,6 +213,7 @@ alexMonadScanTokens = do
         token <- action inp len
         action (ignorePendingBytes inp) len
 
+lexTokens :: String -> Either String [Token]
 lexTokens s = runAlex s $ loop []
     where
       isEof x = case x of { L _ TkEOF _ -> True; _ -> False }
