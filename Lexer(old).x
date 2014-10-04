@@ -1,25 +1,21 @@
 {
 module Lexer
-    ( Token(..),
-      Lexeme,
-      LexicalError,
-      fillLex,
-      getTokens
+    ( Token(..)
+    , getTokens
     ) 
     where
 
 import          Control.Monad (liftM)
-import          Data.Maybe    (fromJust)
 import          Data.Sequence (Seq, empty, (|>))
+import          Data.Maybe    (fromJust)
 import          Prelude       hiding (lex)
+
 
 }
 
 %wrapper "monadUserState"
 
---------------------------------------------------------
--- Definiciones de Macros
---------------------------------------------------------
+--Definiciones de Macro
 
 $digit = 0-9  --Digitos
 
@@ -29,7 +25,7 @@ $sliteral = [$printable \n \\ \"]  --Strings literales
 
 $identifiers = [$alpha $digit _]  --Identificadores
 
-$backlash = ["\\n] --Backslash
+$backlash = ["\\n]
 
 @num = $digit+(\.$digit+)?
 
@@ -39,10 +35,6 @@ $backlash = ["\\n] --Backslash
 
 @id = $alpha $identifiers*
 
---------------------------------------------------------
--- Expresiones Regulares
---------------------------------------------------------
-
 tokens :-
  
     --Espacios en blanco y comentarios
@@ -50,96 +42,104 @@ tokens :-
     "#".*                 ;
 
     --Lenguaje
-    "program"             { lex' TkProgram        }
-    "begin"               { lex' TkBegin          }
-    "end"                 { lex' TkEnd            }
-    "function"            { lex' TkFunction       } 
-    "return"              { lex' TkReturn         }
-    ";"                   { lex' TkSemicolon      }
-    ","                   { lex' TkComma          }
-    ":"                   { lex' TkDoublePoint    }
+    "program"             { lex' TkProgram       }
+    "begin"               { lex' TkBegin         }
+    "end"                 { lex' TkEnd           }
+    "function"            { lex' TkFunction      } 
+    "return"              { lex' TkReturn        }
+    ";"                   { lex' TkSemicolon     }
+    ","                   { lex' TkComma         }
+    ":"                   { lex' TkDoublePoint   }
 
     --Tipos
-    "boolean"             { lex' TkBooleanType    }
-    "number"              { lex' TkNumberType     }
-    "matrix"              { lex' TkMatrixType     }             
-    "row"                 { lex' TkRowType        }
-    "col"                 { lex' TkColType        }
+    "boolean"             { lex' TkBooleanType   }
+    "number"              { lex' TkNumberType    }
+    "matrix"              { lex' TkMatrixType    }             
+    "row"                 { lex' TkRowType       }
+    "col"                 { lex' TkColType       }
 
     --Brackets
-    "("                   { lex' TkLParen         }
-    ")"                   { lex' TkRParen         }
-    "{"                   { lex' TkLLlaves        }
-    "}"                   { lex' TkRLlaves        }
-    "["                   { lex' TkLCorche        }
-    "]"                   { lex' TkRCorche        }        
+    "("                   { lex' TkLParen        }
+    ")"                   { lex' TkRParen        }
+    "{"                   { lex' TkLLlaves       }
+    "}"                   { lex' TkRLlaves       }
+    "["                   { lex' TkLCorche       }
+    "]"                   { lex' TkRCorche       }        
 
     --Condicionales
-    "if"                  { lex' TkIf             }
-    "else"                { lex' TkElse           }
-    "then"                { lex' TkThen           }
+    "if"                  { lex' TkIf            }
+    "else"                { lex' TkElse          }
+    "then"                { lex' TkThen          }
 
     --Loops
-    "for"                 { lex' TkFor            }
-    "do"                  { lex' TkDo             }
-    "while"               { lex' TkWhile          }
+    "for"                 { lex' TkFor           }
+    "do"                  { lex' TkDo            }
+    "while"               { lex' TkWhile         }
 
     --Entrada/Salida
-    "print"               { lex' TkPrint          }
-    "read"                { lex' TkRead           }
+    "print"               { lex' TkPrint         }
+    "read"                { lex' TkRead          }
 
     --Operadores Booleanos
-    "&"                   { lex' TkAnd            }
-    "|"                   { lex' TkOr             }
-    "not"                 { lex' TkNot            }
+    "&"                   { lex' TkAnd           }
+    "|"                   { lex' TkOr            }
+    "not"                 { lex' TkNot           }
 
-    "=="                  { lex' TkEqual          }
-    "/="                  { lex' TkUnequal        }
-    "<="                  { lex' TkLessEq         }
-    "<"                   { lex' TkLess           }
-    ">="                  { lex' TkGreatEq        }
-    ">"                   { lex' TkGreat          }
+    "=="                  { lex' TkEqual         }
+    "/="                  { lex' TkUnequal       }
+    "<="                  { lex' TkLessEq        }
+    "<"                   { lex' TkLess          }
+    ">="                  { lex' TkGreatEq       }
+    ">"                   { lex' TkGreat         }
 
     --Operadores Aritmeticos
-    "+"                   { lex' TkSum            }
-    "-"                   { lex' TkDiff           }
-    "*"                   { lex' TkMul            }
-    "/"                   { lex' TkDivEnt         }
-    "%"                   { lex' TkModEnt         }
-    "div"                 { lex' TkDiv            }
-    "mod"                 { lex' TkMod            }
-    "'"                   { lex' TkTrans          }
+    "+"                   { lex' TkSum           }
+    "-"                   { lex' TkDiff          }
+    "*"                   { lex' TkMul           }
+    "/"                   { lex' TkDivEnt        }
+    "%"                   { lex' TkModEnt        }
+    "div"                 { lex' TkDiv           }
+    "mod"                 { lex' TkMod           }
+    "'"                   { lex' TkTrans         }
 
     --Operadores Cruzados 
-    ".+."                 { lex' TkCruzSum        }
-    ".-."                 { lex' TkCruzDiff       }
-    ".*."                 { lex' TkCruzMul        }
-    "./."                 { lex' TkCruzDivEnt     }
-    ".%."                 { lex' TkCruzModEnt     }
-    ".div."               { lex' TkCruzDiv        }
-    ".mod."               { lex' TkCruzMod        }
+    ".+."                 { lex' TkCruzSum       }
+    ".-."                 { lex' TkCruzDiff      }
+    ".*."                 { lex' TkCruzMul       }
+    "./."                 { lex' TkCruzDivEnt    }
+    ".%."                 { lex' TkCruzModEnt    }
+    ".div."               { lex' TkCruzDiv       }
+    ".mod."               { lex' TkCruzMod       }
 
-    --Declaraciones/Asignaciones
-    "="                   { lex' TkAssign         }
-    "use"                 { lex' TkUse            }
-    "in"                  { lex' TkIn             }
-    "set"                 { lex' TkSet            }
+    --Declaraciones
+    "="                   { lex' TkAssign        }
+    "use"                 { lex' TkUse           }
+    "in"                  { lex' TkIn            }
+    "set"                 { lex' TkSet           }
 
     --Expresiones literales 
     @num                  { lex (TkNumber . read) }
-    "true"                { lex' (TkBoolean True) }
-    "false"               { lex' (TkBoolean False)}
+    "true"                { lex' TkBoolean        }
+    "false"               { lex' TkBoolean        }
     @string               { lex TkString          }
 
     --Identificadores
-    @id                   { lex TkId              }
+    @id                   { lex TkId             }
 
+------------------------------------------------------------------------------- 
 {
 
---------------------------------------------------------
---Codigo Alex
---------------------------------------------------------
+data Lexeme a = Lex { lexInfo :: a
+                    , lexPosn ::  AlexPosn 
+                    }
+                 
+instance Show a => Show (Lexeme a) where
+    show (Lex a pos) = show a ++ " : " ++ showPosn pos
 
+instance Functor Lexeme where
+    fmap f (Lex a p) = Lex (f a) p 
+
+--------------------------------------------------------
 data Token =
 
     --Lenguaje 
@@ -172,16 +172,16 @@ data Token =
     | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt 
     | TkCruzDiv | TkCruzMod
 
-    --Declaraciones/Asignaciones
+    --Declaraciones
     | TkAssign | TkUse | TkIn | TkSet
 
     --Expresiones literales
-    | TkNumber  { unTkNumber :: Double }
-    | TkBoolean { unTkBoolean :: Bool } 
-    | TkString  { unTkString :: String }
+    | TkNumber  {unTk :: Double } --revisar
+    | TkBoolean 
+    | TkString  {unTkStr :: String}
 
     --Identificadores
-    | TkId { unTkId :: String }
+    | TkId {unTkId :: String }
 
     --Compilador
     | TkEOF
@@ -198,12 +198,12 @@ instance Show Token where
         TkFunction      -> "'function'"
         TkSemicolon     -> "';'"
         TkComma         -> "','"
-        TkDoublePoint   -> "':'"
-        TkAssign 	      -> "'='"
+        TkDoublePoint    -> "':'"
+        TkAssign 	    -> "'='"
         TkUse           -> "'use'"
         TkIn            -> "'in'"
         TkSet           -> "'set'"       
-        TkLParen	       -> "'('"
+        TkLParen	    -> "'('"
         TkRParen        -> "')'"
         TkLLlaves       -> "'{'"
         TkRLlaves       -> "'}'"
@@ -252,22 +252,7 @@ instance Show Token where
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
 
---------------------------------------------------------
--- Codigo Haskell
---------------------------------------------------------
-
-data Lexeme a = Lex { lexInfo :: a
-                    , lexPosn ::  AlexPosn 
-                    }
-                 
-instance Show a => Show (Lexeme a) where
-    show (Lex a pos) = show a ++ " : " ++ showPosn pos
-
-instance Functor Lexeme where
-    fmap f (Lex a p) = Lex (f a) p 
-
-fillLex :: a -> Lexeme a
-fillLex = flip Lex (AlexPn _ 0 0)
+-----------------------------------------------------------
 
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
@@ -276,8 +261,10 @@ data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    deriving(Eq)
 
 instance Show LexicalError where 
-    show (LexicalError pos char) = show "Error Lexico" ++ showPosn pos 
-                                   ++ " " ++ show char
+    show (LexicalError pos char) = show "Lexical Error " ++ showPosn pos 
+                                   ++ show char
+
+---------------------------------------------------------
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
@@ -289,16 +276,16 @@ alexGetPosition :: Alex AlexPosn
 alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return p
 
 showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = "en la linea " ++ show line ++ ", columna " ++ show col
-
--- Tokens que dependen del input 
+showPosn (AlexPn _ line col) = "in line " ++ show line ++ " ,column " ++ show col
+ 
 lex :: (String -> Token) -> AlexAction (Lexeme Token)
 lex f (p,_,_,str) i = return $ Lex (f (take i str)) (p)
 
--- Tokens que no dependen del input
+-- Para Tokens que no dependen del input
 lex' :: Token -> AlexAction (Lexeme Token)
 lex' = lex . const
 
+----------------------------------------------------------------------
 runAlex' :: String -> Alex a -> (Seq LexicalError, a)
 runAlex' input (Alex f) =
     let Right (st,a) = f state
@@ -321,17 +308,23 @@ getTokens s = runAlex' s (loop [])
       isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
       loop acc = do
         tok <- alexMonadScanTokens
-        if isEof tok then return (reverse ([tok]:acc))
+        if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
 
+-- agrega los errores al AlexUserState
 alexError' :: AlexPosn -> Char -> Alex()
 alexError' pos char = modifyUserState $ \st -> 
                               st { errors = errors st |> (LexicalError pos char)}
 
+-- Modifica el AlexUserState
 modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
 modifyUserState f = Alex $ \s -> 
                     let st = alex_ust s 
                     in Right(s {alex_ust = f st},())
+
+-- Auxiliar
+--muestra :: AlexInput -> Alex()
+--muestra inp = Alex $ \s -> Left (show inp)
 
 extractInput :: (Byte, AlexInput) -> AlexInput
 extractInput (_,input) = input
@@ -342,6 +335,9 @@ extractPos (p,_,_,_) = p
 extractChar :: AlexInput -> Char
 extractChar (_,c,_,_) = c
 
+-- Se modifico el alexError para cuando consiga un error, se 
+-- modique el alexUserState agregando el caracter que dio error
+-- e ignorando el resto de los caraceteres de ese strin. 
 alexMonadScanTokens :: Alex (Lexeme Token)
 alexMonadScanTokens = do
   inp <- alexGetInput
@@ -362,5 +358,4 @@ alexMonadScanTokens = do
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
-
 }
