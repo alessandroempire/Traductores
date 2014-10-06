@@ -4,6 +4,6 @@ import Lexer
 main = do
     (fileName : _ )  <- SE.getArgs
     string <- readFile fileName
-    let (error, tokens) = getTokens string
-    print error
+    let (errors, tokens) = getTokens string
+    print errors
     mapM_ print tokens
