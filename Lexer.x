@@ -3,7 +3,7 @@ module Lexer
     ( Token(..),
       Lexeme,
       LexicalError,
-      fillLex,
+      --fillLex,
       getTokens
     ) 
     where
@@ -126,10 +126,10 @@ tokens :-
     "set"                 { lex' TkSet            }
 
     --Expresiones literales 
-    @num                  { lex (TkNumber . read) }
+    @num                  { lex (TkNumber . read)   }
     "true"                { lex' (TkBoolean True) }
-    "false"               { lex' (TkBoolean False)}
-    @string               { lex TkString          }
+    "false"               { lex' (TkBoolean False) }
+    @string               { lex TkString            }
 
     --Identificadores
     @id                   { lex TkId              }
@@ -176,9 +176,9 @@ data Token =
     | TkAssign | TkUse | TkIn | TkSet
 
     --Expresiones literales
-    | TkNumber  { unTkNumber :: Double }
-    | TkBoolean { unTkBoolean :: Bool } 
-    | TkString  { unTkString :: String }
+    | TkNumber  { unTkNumbe   :: Double }
+    | TkBoolean { unTkBoolean :: Bool   } 
+    | TkString  { unTkString  :: String }
 
     --Identificadores
     | TkId { unTkId :: String }
@@ -248,7 +248,7 @@ instance Show Token where
         TkCruzMod       -> "'.mod.'"
         TkEOF           -> "'EOF'"
         TkNumber n      -> "literal 'Number' " ++ show n
-        TkBoolean       -> "literal 'Bool'"
+        TkBoolean b     -> "literal 'Bool' " ++ show b
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
 
@@ -266,8 +266,8 @@ instance Show a => Show (Lexeme a) where
 instance Functor Lexeme where
     fmap f (Lex a p) = Lex (f a) p 
 
-fillLex :: a -> Lexeme a
-fillLex = flip Lex (AlexPn _ 0 0)
+--fillLex :: a -> Lexeme a
+--fillLex = flip Lex (AlexPn _ 0 0)
 
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
