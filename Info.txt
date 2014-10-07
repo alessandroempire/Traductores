@@ -8,3 +8,5 @@ gch --make trinity
 nota:
 debemos hacer un make como matteo...
 
+para saber el exit status
+echo $?
