@@ -1,6 +1,6 @@
 {
 module Parser
-    ( parse
+    ( parseProgram
     ) 
     where
 
@@ -18,11 +18,8 @@ import          Prelude hiding (concatMap, foldr, zip)
 %name parse
 %tokentype { Lexeme Token }
 %monad { Alex }
--- %lexer { lexWrap } { Lex TkEOF }
--- %error { parsingError }
--- Hay que agregar la funcion de error, ademas de errores en gramatica...
--- Fijate en la definicion de lexWrap de Matteo. No nos sirve (al menos por ahora)
--- porque nosotros no definimos tokens de error. 
+%lexer { lexWrap } { Lex TkEOF _ } 
+%error { parseError }
 
 --------------------------------------------------------
 -- Tokens Reconocibles
@@ -129,7 +126,13 @@ import          Prelude hiding (concatMap, foldr, zip)
 
 %left "+" "-"
 %left "*" "/" "%" "div" "mod"
--- %right "'" REVISAR TRASPUESTA
+-- %right "'"
+%left NEG
+
+%left ".+." ".-."
+%left ".*." "./." ".%." ".div." ".mod."
+
+-- %left? "[" ? (proyeccion de componentes, maxima prec)
 --(Mayor Precedencia)
 
 %%
@@ -139,30 +142,26 @@ import          Prelude hiding (concatMap, foldr, zip)
 --------------------------------------------------------
 
 Program :: { Program } --Tipo retornado.
-  : FuncSeq "program" StBlock "end" ";"    { Program $1 $3 }
-
-FuncSeq :: { FuncSeq }
-  :    { empty }
-  | FunctionList    { $1 }
-
-FunctionList :: { FuncSeq }
-  : FunctionDef    { singleton $1 }
-  | FunctionList ; FuntionDef    { $1 |> $3 }
-
-FunctionDef :: { Lexeme Function }
-  : "function" Id "(" DeclarationList ")" "return" TypeId "begin" StatementList "end"    { Function $2 $4 $7 $9 <$ $1 } 
+  : StatementList ";" "program" StBlock "end" ";"    { Program $1 $4 }
+  | "program" StBlock "end" ";"    { Program empty $2 }
 
 StBlock :: { StBlock }
-  : "use" DeclarationList "in" StatementList "end" ";"    { StBlock $2 $4 <$ $1 }
+  : "use" DeclarationSeq "in" StatementList ";" "end" ";"    { StBlock $2 $4}
 
---Puede ser vacia?
+DeclarationSeq :: { DeclarationSeq }
+  :    { empty }
+  | DeclarationList ";"    { $1 }
+
 DeclarationList :: { DeclarationSeq }
   : Declaration    { singleton $1 }
   | DeclarationList ";" Declaration    { $1 |> $3 }
 
+--Signature :: { DeclarationSeq }
+--Declaration
+
 Declaration :: { Lexeme Declaration }
-  : TypeId Id    { Declaration $1 $2 empty <$ $1 }
-  | TypeId Id "=" Expression    {  Declaration $1 $2 $4 <$ $1 }
+  : TypeId Id   { Dcl $1 $2 <$ $1 }
+  | TypeId Id "=" Expression   { DclInit $1 $2 $4 <$ $1 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -179,21 +178,22 @@ StatementList :: { StatementSeq }
   | StatementList ";" Statement    { $1 >< expandStatement $3 }
 
 Statement :: { Lexeme Statement }
-  : { -λ, no-op - }    { fillLex StNoop }
+--  : { - empty - }    { pure StNoop }
   --Asignacion
-  | "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
-  --Funciones
+  : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
+  --Funciones cambiaa! 1
+  | "function" Id "(" DeclarationSeq ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
   | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
   | "return" Expression    { StReturn $2 <$ $1 }
   --Condicionales
-  | "if" Expression "then" StatementList "else" StatementList "end"    { StIf $2 $4 $6 <$ $1 }
-  | "if" Expression "then" StatementList "end"    { StIf $2 $4 empty <$ $1 }
+  | "if" Expression "then" StatementList ";" "else" StatementList ";" "end"    { StIf $2 $4 $7 <$ $1 }
+  | "if" Expression "then" StatementList ";" "end"    { StIf $2 $4 empty <$ $1 }
   --Loops
-  | "for" Id "in" Expression "do" StatementList "end"    { StFor $2 $4 $6 <$ $1 }
-  | "while" Expression "do" StatementList "end"    { StWhile $2 $4 <$ $1 }
+  | "for" Id "in" Expression "do" StatementList ";" "end"    { StFor $2 $4 $6 <$ $1 }
+  | "while" Expression "do" StatementList ";" "end"    { StWhile $2 $4 <$ $1 }
   --I/O
   | "read" Access    { StRead $2 <$ $1 }
-  | "print" ExpressionList    { StPrintList $3 <$ $1 }
+  | "print" ExpressionList    { StPrintList $2 <$ $1 }
   
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
@@ -218,8 +218,8 @@ String :: { Lexeme String }
   : string    { unTkString `fmap` $1 }
 
 Expression :: { Lexeme Expression }
-  : Num    { LitNumber $1 <$ $1 }
-  | Bool    { LitBoolean $1 <$ $1 }
+  : Number    { LitNumber $1 <$ $1 }
+  | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
   | Access    { Variable $1 <$ $1 }
   --Falta literales matriciales...Y proyeccion de componentes...
@@ -246,7 +246,7 @@ Expression :: { Lexeme Expression }
   | Expression ">" Expression    { ExpBinary (OpGreat <$ $2) $1 $3 <$ $1 }
   | Expression ">=" Expression    { ExpBinary (OpGreatEq <$ $2) $1 $3 <$ $1 } 
 --  | Expression "'"    { }
-  | "-" Expression { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
+  | "-" Expression %prec NEG { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
@@ -256,29 +256,29 @@ Expression :: { Lexeme Expression }
 
 {
 
-newtype Program = Program FuncSeq StBlock
+data Program = Program StatementSeq StBlock
 
---instance Show Program where
---    show (Program sts) = --Hay que definirlo...
-
-type FuncSeq = Seq (Lexeme Function)
+instance Show Program where
+    show (Program _ stB) = "program " ++ show stB ++ "end"
 
 data StBlock = StBlock DeclarationSeq StatementSeq
+
+instance Show StBlock where
+    show (StBlock dclS stS) = "use " ++ concatMap (show . lexInfo) dclS ++ 
+                             "in " ++  concatMap (show . lexInfo) stS ++ "end"
 
 type DeclarationSeq = Seq (Lexeme Declaration)    
 
 type StatementSeq = Seq (Lexeme Statement)
 
-data Function 
-    = Function (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) StatementSeq
-    deriving (Show)
+data Declaration 
+    = Dcl (Lexeme TypeId) (Lexeme Identifier)
+    | DclInit (Lexeme TypeId) (Lexeme Identifier) (Lexeme Expression)
 
-data Declaration = Declaration
-    { dclIdentifier :: Lexeme Identifier
-    , dclType :: Lexeme TypeId
-    , dclInit :: Lexeme Expression
-    } 
-    deriving (Show)
+instance Show Declaration where
+    show dcl = case dcl of
+         Dcl tL idL -> show (lexInfo tL) ++ "  " ++ lexInfo idL
+         DclInit tL idL expL -> show (lexInfo tL) ++ "  " ++ lexInfo idL ++ "= " ++ show (lexInfo expL) 
 
 type Identifier = String
 
@@ -288,19 +288,19 @@ data TypeId
     | Matrix (Seq (Lexeme Expression))
     | Row (Lexeme Expression)
     | Col (Lexeme Expression)
-    deriving (Eq, Ord)
 
 instance Show TypeId where
-    show tid = case tid of
+    show t = case t of
         Bool -> "Bool"
         Double -> "Number"
---        Matrix exp -> " " ++ concatMap (++) lexInfo idnL
-        Row exp -> "Row" ++ lexInfo exp
-        Col exp -> "Col" ++ lexInfo exp
+        Matrix expLs -> "Matrix("  ++ concatMap (show . lexInfo) expLs ++ ")"
+        Row exp -> "Row(" ++ show (lexInfo exp) ++ ")"
+        Col exp -> "Col(" ++ show (lexInfo exp) ++ ")"
 
 data Statement
     = StNoop
     | StAssign (Lexeme Access) (Lexeme Expression)
+    | StFunctionDef (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) StatementSeq
     | StFunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | StReturn (Lexeme Expression)
     | StRead (Lexeme Access)
@@ -308,8 +308,19 @@ data Statement
     | StPrintList (Seq (Lexeme Expression))
     | StIf (Lexeme Expression) StatementSeq StatementSeq
     | StFor (Lexeme Identifier) (Lexeme Expression) StatementSeq
-    | StWhile (Lexeme Expression) StBlock
-    deriving (Show)
+    | StWhile (Lexeme Expression) StatementSeq
+
+instance Show Statement where
+    show st = case st of
+        StAssign accL expL -> "set " ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
+        StFunctionDef idnL _ _ _ -> "function " ++ lexInfo idnL
+        StFunctionCall idnL expLs -> lexInfo idnL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
+        StReturn expL -> "return " ++ show (lexInfo expL)
+        StRead accL -> "read " ++ show (lexInfo accL)
+        StPrint expL -> "print " ++ show (lexInfo expL)
+        StIf expL _ _ -> "if " ++ show (lexInfo expL)
+        StFor idnL expL _ -> "for " ++ lexInfo idnL ++ " in " ++ show (lexInfo expL) ++ " do .. end"
+        StWhile expL _ -> "while " ++ show (lexInfo expL) ++ "do .. end"
 
 data Expression
     = LitNumber (Lexeme Double)
@@ -318,18 +329,25 @@ data Expression
     | Variable (Lexeme Access)
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
     | ExpUnary (Lexeme Unary) (Lexeme Expression)
-    deriving (Eq, Ord, Show)
+
+instance Show Expression where
+    show exp = case exp of
+        LitNumber vL -> show (lexInfo vL)
+        LitBool vL -> show (lexInfo vL)
+        LitString strL -> show (lexInfo strL)
+        Variable accL -> show (lexInfo accL)
+        ExpBinary opL lExpL rExpL -> show (lexInfo lExpL) ++ " " ++ show (lexInfo opL) ++ " " ++ show (lexInfo rExpL)
+        ExpUnary opL expL -> show (lexInfo opL) ++ " " ++ show (lexInfo expL)
 
 data Binary
-    = OpSum | OpDiff | OpMul | OpDivEnt | OpModEnt | OpDiv | OpMod |
+    = OpSum | OpDiff | OpMul | OpDivEnt | OpModEnt | OpDiv | OpMod
     | OpCruzSum | OpCruzDiff | OpCruzMul | OpCruzDivEnt | OpCruzModEnt
     | OpCruzDiv | OpCruzMod
     | OpEqual | OpUnequal | OpLess | OpLessEq | OpGreat | OpGreatEq
     | OpOr | OpAnd
-    deriving (Eq, Ord)
 
 instance Show Binary where
-    show op = case op of
+    show bexp = case bexp of
         OpSum        -> "+"
         OpDiff       -> "-"
         OpMul        -> "*"
@@ -356,28 +374,36 @@ instance Show Binary where
 data Unary 
     = OpNegative
     | OpNot
-    deriving (Eq, Ord)
 
 instance Show Unary where
-    show op = case op of
+    show uexp = case uexp of
         OpNegative   -> "-"
         OpNot        -> "not"
 
 data Access 
     = VariableAccess (Lexeme Identifier)
-    | MatrixAccess (Lexeme Access) (Lexeme Expression)
-    deriving (Eq, Ord)
+    | MatrixAccess (Lexeme Identifier) (Lexeme Expression)
 
 instance Show Access where
     show acc = case acc of
         VariableAccess idnL -> lexInfo idnL
         MatrixAccess accL indL -> show (lexInfo accL) ++ "[" ++ show (lexInfo indL) ++ "]"
 
-
 expandStatement :: Lexeme Statement -> StatementSeq
-    expandStatement stL = case lexInfo stL of
-        StNoop -> empty
-        StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
-        _ -> singleton stL
+expandStatement stL = case lexInfo stL of
+    StNoop -> empty
+    StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
+    _ -> singleton stL
+
+lexWrap :: (Lexeme Token -> Alex a) -> Alex a
+lexWrap cont = do
+    token <- alexMonadScanTokens
+    cont token
+
+parseError :: Lexeme Token -> Alex a
+parseError (Lex t p) = fail $ "Error de Sintaxis, Token: " ++ show t ++ " " ++ showPosn p ++ "\n"
+
+parseProgram :: String ->  (Seq LexicalError, Program)
+parseProgram input = runAlex' input parse
 
 }

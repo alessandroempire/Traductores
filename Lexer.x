@@ -1,9 +1,12 @@
 {
 module Lexer
-    ( Token(..),
-      Lexeme,
+    ( Alex(..),
+      Token(..),
+      Lexeme(..),
       LexicalError,
-      fillLex,
+      showPosn,
+      runAlex',
+      alexMonadScanTokens,
       getTokens
     ) 
     where
@@ -248,7 +251,7 @@ instance Show Token where
         TkCruzMod       -> "'.mod.'"
         TkEOF           -> "'EOF'"
         TkNumber n      -> "literal 'Number' " ++ show n
-        TkBoolean       -> "literal 'Bool'"
+        TkBoolean b      -> "literal 'Bool' " ++ show b
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
 
@@ -266,9 +269,6 @@ instance Show a => Show (Lexeme a) where
 instance Functor Lexeme where
     fmap f (Lex a p) = Lex (f a) p 
 
-fillLex :: a -> Lexeme a
-fillLex = flip Lex (AlexPn _ 0 0)
-
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
 data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
@@ -276,7 +276,7 @@ data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    deriving(Eq)
 
 instance Show LexicalError where 
-    show (LexicalError pos char) = show "Error Lexico" ++ showPosn pos 
+    show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
                                    ++ " " ++ show char
 
 alexInitUserState :: AlexUserState
