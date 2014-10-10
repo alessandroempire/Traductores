@@ -1,15 +1,16 @@
 function
   scale(number s, row(3) r)
   return row(3)
- begin
-  return r .*. s;
- end;
+  begin
+     return r .*. s;
+  end;
 function
   doubleit(number s)
   return number
- begin
-  return s*2;
+  begin
+    return s*2;
  end;
+
 program # algo loco
  use
     number x;

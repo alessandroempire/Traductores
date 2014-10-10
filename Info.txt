@@ -1,6 +1,9 @@
 Primero se debe compilar el Lexer.x
 alex -g Lexer.x
 
+para compilar el happy
+alex -i Parser.y   --esto me da mas info
+
 
 Para compilar trinity
 gch --make trinity

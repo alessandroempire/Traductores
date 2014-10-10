@@ -1,0 +1,7 @@
+program 
+    use 
+        matrix(2+3) a;
+    in
+        set a = 2;
+    end;
+end;

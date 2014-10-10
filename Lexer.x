@@ -278,8 +278,6 @@ instance Show LexicalError where
     show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
                                    ++ " " ++ show char
 
---fillLex lex = Lex lex (AlexPn 0 0 0)
-
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
 
@@ -354,5 +352,4 @@ alexMonadScanTokens = do
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
-
 }

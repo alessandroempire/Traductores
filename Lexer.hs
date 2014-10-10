@@ -2,11 +2,13 @@
 {-# LINE 1 "Lexer.x" #-}
 
 module Lexer
-    ( Token(..),
-      Lexeme,
+    ( Alex(..),
+      Token(..),
+      Lexeme(..),
       LexicalError,
-      --fillLex,
-      getTokens
+      showPosn,
+      runAlex',
+      alexMonadScanTokens
     ) 
     where
 
@@ -318,7 +320,7 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x11\x00\x11\x00\x07\x00\x07\x00\xff\xff\xff\xff\x14\x00\x14\x00\x16\x00\xff\xff\x16\x00\x16\x00\xff\xff\xff\xff\x21\x00\x21\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x23\x00\x23\x00\x23\x00\xff\xff\x23\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,165) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61)]
-{-# LINE 137 "Lexer.x" #-}
+{-# LINE 139 "Lexer.x" #-}
 
 
 --------------------------------------------------------
@@ -361,9 +363,9 @@ data Token =
     | TkAssign | TkUse | TkIn | TkSet
 
     --Expresiones literales
-    | TkNumber  { unTkNumbe   :: Double }
-    | TkBoolean { unTkBoolean :: Bool   } 
-    | TkString  { unTkString  :: String }
+    | TkNumber  { unTkNumber :: Double }
+    | TkBoolean { unTkBoolean :: Bool } 
+    | TkString  { unTkString :: String }
 
     --Identificadores
     | TkId { unTkId :: String }
@@ -384,11 +386,11 @@ instance Show Token where
         TkSemicolon     -> "';'"
         TkComma         -> "','"
         TkDoublePoint   -> "':'"
-        TkAssign 	      -> "'='"
+        TkAssign        -> "'='"
         TkUse           -> "'use'"
         TkIn            -> "'in'"
         TkSet           -> "'set'"       
-        TkLParen	       -> "'('"
+        TkLParen        -> "'('"
         TkRParen        -> "')'"
         TkLLlaves       -> "'{'"
         TkRLlaves       -> "'}'"
@@ -433,7 +435,7 @@ instance Show Token where
         TkCruzMod       -> "'.mod.'"
         TkEOF           -> "'EOF'"
         TkNumber n      -> "literal 'Number' " ++ show n
-        TkBoolean b     -> "literal 'Bool' " ++ show b
+        TkBoolean b      -> "literal 'Bool' " ++ show b
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
 
@@ -451,9 +453,6 @@ instance Show a => Show (Lexeme a) where
 instance Functor Lexeme where
     fmap f (Lex a p) = Lex (f a) p 
 
---fillLex :: a -> Lexeme a
---fillLex = flip Lex (AlexPn _ 0 0)
-
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
 data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
@@ -461,7 +460,7 @@ data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
                                    deriving(Eq)
 
 instance Show LexicalError where 
-    show (LexicalError pos char) = show "Error Lexico" ++ showPosn pos 
+    show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
                                    ++ " " ++ show char
 
 alexInitUserState :: AlexUserState
@@ -499,15 +498,6 @@ runAlex' input (Alex f) =
             , alex_ust   = alexInitUserState
             , alex_scd   = 0
             }
-
-getTokens :: String -> (Seq LexicalError, [[Lexeme Token]])
-getTokens s = runAlex' s (loop [])
-    where
-      isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
-      loop acc = do
-        tok <- alexMonadScanTokens
-        if isEof tok then return (reverse ([tok]:acc))
-                     else loop ([tok]:acc)
 
 alexError' :: AlexPosn -> Char -> Alex()
 alexError' pos char = modifyUserState $ \st -> 
@@ -548,67 +538,66 @@ alexMonadScanTokens = do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
 
-
-alex_action_2 =  lex' TkProgram        
-alex_action_3 =  lex' TkBegin          
-alex_action_4 =  lex' TkEnd            
-alex_action_5 =  lex' TkFunction       
-alex_action_6 =  lex' TkReturn         
-alex_action_7 =  lex' TkSemicolon      
-alex_action_8 =  lex' TkComma          
-alex_action_9 =  lex' TkDoublePoint    
-alex_action_10 =  lex' TkBooleanType    
-alex_action_11 =  lex' TkNumberType     
-alex_action_12 =  lex' TkMatrixType     
-alex_action_13 =  lex' TkRowType        
-alex_action_14 =  lex' TkColType        
-alex_action_15 =  lex' TkLParen         
-alex_action_16 =  lex' TkRParen         
-alex_action_17 =  lex' TkLLlaves        
-alex_action_18 =  lex' TkRLlaves        
-alex_action_19 =  lex' TkLCorche        
-alex_action_20 =  lex' TkRCorche        
-alex_action_21 =  lex' TkIf             
-alex_action_22 =  lex' TkElse           
-alex_action_23 =  lex' TkThen           
-alex_action_24 =  lex' TkFor            
-alex_action_25 =  lex' TkDo             
-alex_action_26 =  lex' TkWhile          
-alex_action_27 =  lex' TkPrint          
-alex_action_28 =  lex' TkRead           
-alex_action_29 =  lex' TkAnd            
-alex_action_30 =  lex' TkOr             
-alex_action_31 =  lex' TkNot            
-alex_action_32 =  lex' TkEqual          
-alex_action_33 =  lex' TkUnequal        
-alex_action_34 =  lex' TkLessEq         
-alex_action_35 =  lex' TkLess           
-alex_action_36 =  lex' TkGreatEq        
-alex_action_37 =  lex' TkGreat          
-alex_action_38 =  lex' TkSum            
-alex_action_39 =  lex' TkDiff           
-alex_action_40 =  lex' TkMul            
-alex_action_41 =  lex' TkDivEnt         
-alex_action_42 =  lex' TkModEnt         
-alex_action_43 =  lex' TkDiv            
-alex_action_44 =  lex' TkMod            
-alex_action_45 =  lex' TkTrans          
-alex_action_46 =  lex' TkCruzSum        
-alex_action_47 =  lex' TkCruzDiff       
-alex_action_48 =  lex' TkCruzMul        
-alex_action_49 =  lex' TkCruzDivEnt     
-alex_action_50 =  lex' TkCruzModEnt     
-alex_action_51 =  lex' TkCruzDiv        
-alex_action_52 =  lex' TkCruzMod        
-alex_action_53 =  lex' TkAssign         
-alex_action_54 =  lex' TkUse            
-alex_action_55 =  lex' TkIn             
-alex_action_56 =  lex' TkSet            
-alex_action_57 =  lex (TkNumber . read)   
-alex_action_58 =  lex' (TkBoolean True) 
+alex_action_2 =  lex' TkProgram         
+alex_action_3 =  lex' TkBegin           
+alex_action_4 =  lex' TkEnd             
+alex_action_5 =  lex' TkFunction        
+alex_action_6 =  lex' TkReturn          
+alex_action_7 =  lex' TkSemicolon       
+alex_action_8 =  lex' TkComma           
+alex_action_9 =  lex' TkDoublePoint     
+alex_action_10 =  lex' TkBooleanType     
+alex_action_11 =  lex' TkNumberType      
+alex_action_12 =  lex' TkMatrixType      
+alex_action_13 =  lex' TkRowType         
+alex_action_14 =  lex' TkColType         
+alex_action_15 =  lex' TkLParen          
+alex_action_16 =  lex' TkRParen          
+alex_action_17 =  lex' TkLLlaves         
+alex_action_18 =  lex' TkRLlaves         
+alex_action_19 =  lex' TkLCorche         
+alex_action_20 =  lex' TkRCorche         
+alex_action_21 =  lex' TkIf              
+alex_action_22 =  lex' TkElse            
+alex_action_23 =  lex' TkThen            
+alex_action_24 =  lex' TkFor             
+alex_action_25 =  lex' TkDo              
+alex_action_26 =  lex' TkWhile           
+alex_action_27 =  lex' TkPrint           
+alex_action_28 =  lex' TkRead            
+alex_action_29 =  lex' TkAnd             
+alex_action_30 =  lex' TkOr              
+alex_action_31 =  lex' TkNot             
+alex_action_32 =  lex' TkEqual           
+alex_action_33 =  lex' TkUnequal         
+alex_action_34 =  lex' TkLessEq          
+alex_action_35 =  lex' TkLess            
+alex_action_36 =  lex' TkGreatEq         
+alex_action_37 =  lex' TkGreat           
+alex_action_38 =  lex' TkSum             
+alex_action_39 =  lex' TkDiff            
+alex_action_40 =  lex' TkMul             
+alex_action_41 =  lex' TkDivEnt          
+alex_action_42 =  lex' TkModEnt          
+alex_action_43 =  lex' TkDiv             
+alex_action_44 =  lex' TkMod             
+alex_action_45 =  lex' TkTrans           
+alex_action_46 =  lex' TkCruzSum         
+alex_action_47 =  lex' TkCruzDiff        
+alex_action_48 =  lex' TkCruzMul         
+alex_action_49 =  lex' TkCruzDivEnt      
+alex_action_50 =  lex' TkCruzModEnt      
+alex_action_51 =  lex' TkCruzDiv         
+alex_action_52 =  lex' TkCruzMod         
+alex_action_53 =  lex' TkAssign          
+alex_action_54 =  lex' TkUse             
+alex_action_55 =  lex' TkIn              
+alex_action_56 =  lex' TkSet             
+alex_action_57 =  lex (TkNumber . read)  
+alex_action_58 =  lex' (TkBoolean True)  
 alex_action_59 =  lex' (TkBoolean False) 
-alex_action_60 =  lex TkString            
-alex_action_61 =  lex TkId              
+alex_action_60 =  lex TkString           
+alex_action_61 =  lex TkId               
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 {-# LINE 1 "<command-line>" #-}
