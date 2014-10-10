@@ -10,11 +10,19 @@ function
  begin
   return s*2;
  end;
+set m = 4;
 program # algo loco
  use
     number x;
  in
     read x;
+    function
+     doubleit(number s)
+    return number
+    begin
+    return s*2;
+    end;
+
     set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
 
     if x < 18 then

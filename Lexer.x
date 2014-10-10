@@ -6,7 +6,8 @@ module Lexer
       LexicalError,
       showPosn,
       runAlex',
-      alexMonadScanTokens
+      alexMonadScanTokens,
+      fillLex
     ) 
     where
 
@@ -277,8 +278,8 @@ data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
 instance Show LexicalError where 
     show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
                                    ++ " " ++ show char
-
---fillLex lex = Lex lex (AlexPn 0 0 0)
+fillLex :: a -> Lexeme a
+fillLex lex = Lex lex (AlexPn 0 0 0)
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty

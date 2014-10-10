@@ -145,19 +145,28 @@ import          Lexer
 --------------------------------------------------------
 
 Program :: { Program } --Tipo retornado.
-  : StatementList ";" "program" StatementList ";" "end" ";"    { Program $1 $4 }
-  | "program" StatementList ";" "end" ";"    { Program empty $2 }
+  : "program" "end" ";"    { Program empty (fillLex StNoop) }
+  | "program" StBlock ";" "end" ";"    { Program empty $2 }
+  | FunctionList ";" "program" StBlock ";" "end" ";"    { Program $1 $4 }
+
+StBlock :: { Lexeme Statement }
+  : "use" DeclarationSeq "in" StatementList ";" "end"    { StBlock $2 $4 <$ $1 }
+
+FunctionList :: { FunctionSeq }
+  : Function    { singleton $1 }
+  | FunctionList ";" Function    { $1 |> $3 }
+
+Function :: { Lexeme Function }
+  : "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
 
 StatementList :: { StatementSeq }
   : Statement    { expandStatement $1 }
   | StatementList ";" Statement    { $1 >< expandStatement $3 }
 
 Statement :: { Lexeme Statement }
---  : { - empty - }    { pure StNoop }
   --Asignacion
   : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
-  --Funciones
---  | "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
+  --Instrucciones de funciones
   | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
   | "return" Expression    { StReturn $2 <$ $1 }
   --Condicionales
@@ -170,7 +179,7 @@ Statement :: { Lexeme Statement }
   | "read" Access    { StRead $2 <$ $1 }
   | "print" ExpressionList    { StPrintList $2 <$ $1 }
   --Bloques anidados
-  | "use" DeclarationSeq "in" StatementList ";" "end"   { StBlock $2 $4 <$ $1 }
+  | StBlock    { $1 }
 
 DeclarationSeq :: { DeclarationSeq }
   :    { empty }
@@ -216,6 +225,7 @@ String :: { Lexeme String }
 
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
+  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -223,7 +233,7 @@ Id :: { Lexeme Identifier }
 TypeId :: { Lexeme TypeId }
   : "boolean"    { Bool <$ $1 }
   | "number"    { Double <$ $1 }
-  | "matrix" "(" ExpressionList ")"    { Matrix $3 <$ $1 }             
+  | "matrix" "(" Expression "," Expression ")"    { Matrix $3 $5 <$ $1 }             
   | "row" "(" Expression ")"    { Row $3 <$ $1 }
   | "col" "(" Expression ")"    { Col $3 <$ $1 }
 
@@ -267,45 +277,23 @@ Expression :: { Lexeme Expression }
 
 {
 
-data Program = Program StatementSeq StatementSeq
+data Program = Program FunctionSeq (Lexeme Statement)
 
 instance Show Program where
-    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ concatMap ((++) "\n" . show . lexInfo) stB ++ "\nend"
+    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ show (lexInfo stB) ++ "\nend"
 
-type DeclarationSeq = Seq (Lexeme Declaration)    
+type FunctionSeq = Seq (Lexeme Function)
 
-data Declaration 
-    = Dcl (Lexeme TypeId) (Lexeme Identifier)
-    | DclInit (Lexeme TypeId) (Lexeme Identifier) (Lexeme Expression)
+data Function = Function (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) StatementSeq
 
-instance Show Declaration where
-    show dcl = case dcl of
-         Dcl tL idL -> show (lexInfo tL) ++ "  " ++ lexInfo idL
-         DclInit tL idL expL -> show (lexInfo tL) ++ "  " ++ lexInfo idL ++ "= " ++ show (lexInfo expL) 
-
-type Identifier = String
-
-data TypeId 
-    = Bool 
-    | Double
-    | Matrix (Seq (Lexeme Expression))
-    | Row (Lexeme Expression)
-    | Col (Lexeme Expression)
-
-instance Show TypeId where
-    show t = case t of
-        Bool -> "Bool"
-        Double -> "Number"
-        Matrix expLs -> "Matrix("  ++ concatMap (show . lexInfo) expLs ++ ")"
-        Row exp -> "Row(" ++ show (lexInfo exp) ++ ")"
-        Col exp -> "Col(" ++ show (lexInfo exp) ++ ")"
+instance Show Function where
+    show (Function idnL _ _ _) = "function " ++ lexInfo idnL
 
 type StatementSeq = Seq (Lexeme Statement)
 
 data Statement
     = StNoop
     | StAssign (Lexeme Access) (Lexeme Expression)
-    | StFunctionDef (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) StatementSeq
     | StFunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | StReturn (Lexeme Expression)
     | StRead (Lexeme Access)
@@ -319,7 +307,6 @@ data Statement
 instance Show Statement where
     show st = case st of
         StAssign accL expL -> "set " ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
-        StFunctionDef idnL _ _ _ -> "function " ++ lexInfo idnL
         StFunctionCall idnL expLs -> lexInfo idnL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
         StReturn expL -> "return " ++ show (lexInfo expL)
         StRead accL -> "read " ++ show (lexInfo accL)
@@ -329,6 +316,43 @@ instance Show Statement where
         StWhile expL _ -> "while " ++ show (lexInfo expL) ++ "do .. end"
         StBlock dclLs stLs -> "\tuse\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclLs ++ 
                              "\n\tin\n\t " ++  concatMap ( (++) "\n\t\t" . show . lexInfo) stLs ++ "\n\tend"
+
+type DeclarationSeq = Seq (Lexeme Declaration)    
+
+data Declaration 
+    = Dcl (Lexeme TypeId) (Lexeme Identifier)
+    | DclInit (Lexeme TypeId) (Lexeme Identifier) (Lexeme Expression)
+
+instance Show Declaration where
+    show dcl = case dcl of
+         Dcl tL idL -> show (lexInfo tL) ++ "  " ++ lexInfo idL
+         DclInit tL idL expL -> show (lexInfo tL) ++ "  " ++ lexInfo idL ++ "= " ++ show (lexInfo expL) 
+
+data Access 
+    = VariableAccess (Lexeme Identifier)
+    | MatrixAccess (Lexeme Identifier) (Seq (Lexeme Expression))
+
+instance Show Access where
+    show acc = case acc of
+        VariableAccess idnL -> lexInfo idnL
+        MatrixAccess idnL _ -> lexInfo idnL ++ "[" ++ "]"
+
+type Identifier = String
+
+data TypeId 
+    = Bool 
+    | Double
+    | Matrix (Lexeme Expression) (Lexeme Expression)
+    | Row (Lexeme Expression)
+    | Col (Lexeme Expression)
+
+instance Show TypeId where
+    show t = case t of
+        Bool -> "Bool"
+        Double -> "Number"
+        Matrix exp1 exp2 -> "Matrix \n\t" ++ show (lexInfo exp1) ++ "\n\t" ++ show (lexInfo exp2) ++ "\n"
+        Row exp -> "Row \n\t" ++ show (lexInfo exp) ++ "\n"
+        Col exp -> "Col \n\t" ++ show (lexInfo exp) ++ "\n"
 
 data Expression
     = LitNumber (Lexeme Double)
@@ -393,13 +417,6 @@ instance Show Unary where
         OpNegative   -> "-"
         OpNot        -> "not"
         OpTranspose  -> "transpose"
-
-data Access 
-    = VariableAccess (Lexeme Identifier)
-
-instance Show Access where
-    show acc = case acc of
-        VariableAccess idnL -> lexInfo idnL
 
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
