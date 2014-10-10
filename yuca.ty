@@ -1,0 +1,33 @@
+program
+ use
+  number x; # inicializado en 0
+  number y; # inicializado en 0
+ in
+  use
+   row(3) x;
+   col(3) y;
+  in
+   set x = { 1 , 2 , 3 };
+   set y = { 1 : 2 : 3 };
+   print "Print 1", x; # x es del tipo especificado por matrix(1, 3)
+  end;
+  use 
+   boolean x; # inicializado en false
+   boolean y; # inicializado en false
+  in
+   set x = true;
+   print "Print 2", x; # x es del tipo booleano
+  end;
+  print "Print 3", x; # x es del tipo numérico
+  for x in
+  { 1, 2, 3 : 4, 5, 6 }
+  do
+    use
+      boolean x; # esconde la x declarada en el for y se inicializa en 'false'
+    in
+      set x = not x;
+      print "Print 4", x; # x es del tipo booleano
+    end;
+  end;
+ end;
+end;

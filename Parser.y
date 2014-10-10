@@ -4,8 +4,6 @@ module Parser
     ) 
     where
 
-import          Lexer
-
 import          Control.Monad (unless)
 import          Data.Functor ((<$>),(<$))
 import          Data.Maybe (fromJust, isJust)
@@ -13,7 +11,11 @@ import          Data.Sequence hiding (length)
 import          Data.Foldable (concatMap)
 import          Prelude hiding (concatMap, foldr, zip)
 
+import          Lexer
+
 }
+
+--Por hacer: bloques anidados (yuca.ty).
 
 %name parse
 %tokentype { Lexeme Token }
@@ -126,13 +128,14 @@ import          Prelude hiding (concatMap, foldr, zip)
 
 %left "+" "-"
 %left "*" "/" "%" "div" "mod"
--- %right "'"
+%left "'"
 %left NEG
+%nonassoc "["
 
 %left ".+." ".-."
 %left ".*." "./." ".%." ".div." ".mod."
 
--- %left? "[" ? (proyeccion de componentes, maxima prec)
+%nonassoc MAX
 --(Mayor Precedencia)
 
 %%
@@ -146,7 +149,7 @@ Program :: { Program } --Tipo retornado.
   | "program" StBlock "end" ";"    { Program empty $2 }
 
 StBlock :: { StBlock }
-  : "use" DeclarationSeq "in" StatementList ";" "end" ";"    { StBlock $2 $4}
+  : "use" DeclarationSeq "in" StatementList ";" "end" ";"   { StBlock $2 $4 }
 
 DeclarationSeq :: { DeclarationSeq }
   :    { empty }
@@ -156,8 +159,13 @@ DeclarationList :: { DeclarationSeq }
   : Declaration    { singleton $1 }
   | DeclarationList ";" Declaration    { $1 |> $3 }
 
---Signature :: { DeclarationSeq }
---Declaration
+MaybeSignature :: { DeclarationSeq }
+  :    { empty }
+  | Signature    { $1 }
+
+Signature :: { DeclarationSeq }
+  : Declaration    { singleton $1 }
+  | Signature "," Declaration    { $1 |> $3 }
 
 Declaration :: { Lexeme Declaration }
   : TypeId Id   { Dcl $1 $2 <$ $1 }
@@ -181,8 +189,8 @@ Statement :: { Lexeme Statement }
 --  : { - empty - }    { pure StNoop }
   --Asignacion
   : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
-  --Funciones cambiaa! 1
-  | "function" Id "(" DeclarationSeq ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
+  --Funciones
+  | "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
   | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
   | "return" Expression    { StReturn $2 <$ $1 }
   --Condicionales
@@ -194,14 +202,19 @@ Statement :: { Lexeme Statement }
   --I/O
   | "read" Access    { StRead $2 <$ $1 }
   | "print" ExpressionList    { StPrintList $2 <$ $1 }
+  -- Bloques anidados
+--  | StBlock    { InnerBlock $1 <$ $1 }
   
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
-  | Id "[" Expression "]"    { MatrixAccess $1 $3 <$ $1 }
 
 ExpressionList :: { Seq (Lexeme Expression) }
   : Expression    { singleton $1 }
   | ExpressionList "," Expression    { $1 |> $3 }
+
+MatrixList :: { [Seq (Lexeme Expression)] }
+  : ExpressionList    { [$1] }
+  | MatrixList ":" ExpressionList    { $1 ++ [$3] }
 
 MaybeExpressionList :: { Seq (Lexeme Expression) }
   :    { empty }
@@ -222,7 +235,7 @@ Expression :: { Lexeme Expression }
   | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
   | Access    { Variable $1 <$ $1 }
-  --Falta literales matriciales...Y proyeccion de componentes...
+  | "{" MatrixList "}"    { LitMatrix $2 <$ $1 }
   | Expression "+" Expression    { ExpBinary (OpSum <$ $2) $1 $3 <$ $1 }
   | Expression "-" Expression    { ExpBinary (OpDiff <$ $2) $1 $3 <$ $1 }
   | Expression "*" Expression    { ExpBinary (OpMul <$ $2) $1 $3 <$ $1 }
@@ -245,8 +258,9 @@ Expression :: { Lexeme Expression }
   | Expression "<=" Expression    { ExpBinary (OpLessEq <$ $2) $1 $3 <$ $1 }
   | Expression ">" Expression    { ExpBinary (OpGreat <$ $2) $1 $3 <$ $1 }
   | Expression ">=" Expression    { ExpBinary (OpGreatEq <$ $2) $1 $3 <$ $1 } 
---  | Expression "'"    { }
-  | "-" Expression %prec NEG { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
+  | Expression "'"    { ExpUnary (OpTranspose <$ $2) $1 <$ $1 }
+  | "-" Expression %prec NEG     { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
+  | Expression "[" ExpressionList "]" %prec MAX    { Proy $1 $3 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
@@ -259,13 +273,13 @@ Expression :: { Lexeme Expression }
 data Program = Program StatementSeq StBlock
 
 instance Show Program where
-    show (Program _ stB) = "program " ++ show stB ++ "end"
+    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ show stB ++ "\nend"
 
 data StBlock = StBlock DeclarationSeq StatementSeq
 
 instance Show StBlock where
-    show (StBlock dclS stS) = "use " ++ concatMap (show . lexInfo) dclS ++ 
-                             "in " ++  concatMap (show . lexInfo) stS ++ "end"
+    show (StBlock dclS stS) = "use\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclS ++ 
+                             "\n\tin\n\t " ++  concatMap ( (++) "\n\t\t" . show . lexInfo) stS ++ "\n\tend"
 
 type DeclarationSeq = Seq (Lexeme Declaration)    
 
@@ -309,6 +323,7 @@ data Statement
     | StIf (Lexeme Expression) StatementSeq StatementSeq
     | StFor (Lexeme Identifier) (Lexeme Expression) StatementSeq
     | StWhile (Lexeme Expression) StatementSeq
+    | InnerBlock (Lexeme StBlock)
 
 instance Show Statement where
     show st = case st of
@@ -318,15 +333,18 @@ instance Show Statement where
         StReturn expL -> "return " ++ show (lexInfo expL)
         StRead accL -> "read " ++ show (lexInfo accL)
         StPrint expL -> "print " ++ show (lexInfo expL)
-        StIf expL _ _ -> "if " ++ show (lexInfo expL)
+        StIf expL _ _ -> "if " ++ show (lexInfo expL) ++ " then .. end"
         StFor idnL expL _ -> "for " ++ lexInfo idnL ++ " in " ++ show (lexInfo expL) ++ " do .. end"
         StWhile expL _ -> "while " ++ show (lexInfo expL) ++ "do .. end"
+--        InnerBlock block -> show block
 
 data Expression
     = LitNumber (Lexeme Double)
     | LitBool (Lexeme Bool)
     | LitString (Lexeme String)
     | Variable (Lexeme Access)
+    | LitMatrix [Seq (Lexeme Expression)]
+    | Proy (Lexeme Expression) (Seq (Lexeme Expression))
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
     | ExpUnary (Lexeme Unary) (Lexeme Expression)
 
@@ -336,6 +354,8 @@ instance Show Expression where
         LitBool vL -> show (lexInfo vL)
         LitString strL -> show (lexInfo strL)
         Variable accL -> show (lexInfo accL)
+        LitMatrix expS -> "{ Literal matricial }"
+        Proy expL expLs -> show (lexInfo expL) ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"        
         ExpBinary opL lExpL rExpL -> show (lexInfo lExpL) ++ " " ++ show (lexInfo opL) ++ " " ++ show (lexInfo rExpL)
         ExpUnary opL expL -> show (lexInfo opL) ++ " " ++ show (lexInfo expL)
 
@@ -374,20 +394,20 @@ instance Show Binary where
 data Unary 
     = OpNegative
     | OpNot
+    | OpTranspose
 
 instance Show Unary where
     show uexp = case uexp of
         OpNegative   -> "-"
         OpNot        -> "not"
+        OpTranspose  -> "transpose"
 
 data Access 
     = VariableAccess (Lexeme Identifier)
-    | MatrixAccess (Lexeme Identifier) (Lexeme Expression)
 
 instance Show Access where
     show acc = case acc of
         VariableAccess idnL -> lexInfo idnL
-        MatrixAccess accL indL -> show (lexInfo accL) ++ "[" ++ show (lexInfo indL) ++ "]"
 
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
@@ -396,9 +416,7 @@ expandStatement stL = case lexInfo stL of
     _ -> singleton stL
 
 lexWrap :: (Lexeme Token -> Alex a) -> Alex a
-lexWrap cont = do
-    token <- alexMonadScanTokens
-    cont token
+lexWrap = (alexMonadScanTokens >>=)
 
 parseError :: Lexeme Token -> Alex a
 parseError (Lex t p) = fail $ "Error de Sintaxis, Token: " ++ show t ++ " " ++ showPosn p ++ "\n"

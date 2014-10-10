@@ -6,8 +6,7 @@ module Lexer
       LexicalError,
       showPosn,
       runAlex',
-      alexMonadScanTokens,
-      getTokens
+      alexMonadScanTokens
     ) 
     where
 
@@ -53,89 +52,89 @@ tokens :-
     "#".*                 ;
 
     --Lenguaje
-    "program"             { lex' TkProgram        }
-    "begin"               { lex' TkBegin          }
-    "end"                 { lex' TkEnd            }
-    "function"            { lex' TkFunction       } 
-    "return"              { lex' TkReturn         }
-    ";"                   { lex' TkSemicolon      }
-    ","                   { lex' TkComma          }
-    ":"                   { lex' TkDoublePoint    }
+    "program"             { lex' TkProgram         }
+    "begin"               { lex' TkBegin           }
+    "end"                 { lex' TkEnd             }
+    "function"            { lex' TkFunction        } 
+    "return"              { lex' TkReturn          }
+    ";"                   { lex' TkSemicolon       }
+    ","                   { lex' TkComma           }
+    ":"                   { lex' TkDoublePoint     }
 
     --Tipos
-    "boolean"             { lex' TkBooleanType    }
-    "number"              { lex' TkNumberType     }
-    "matrix"              { lex' TkMatrixType     }             
-    "row"                 { lex' TkRowType        }
-    "col"                 { lex' TkColType        }
+    "boolean"             { lex' TkBooleanType     }
+    "number"              { lex' TkNumberType      }
+    "matrix"              { lex' TkMatrixType      }             
+    "row"                 { lex' TkRowType         }
+    "col"                 { lex' TkColType         }
 
     --Brackets
-    "("                   { lex' TkLParen         }
-    ")"                   { lex' TkRParen         }
-    "{"                   { lex' TkLLlaves        }
-    "}"                   { lex' TkRLlaves        }
-    "["                   { lex' TkLCorche        }
-    "]"                   { lex' TkRCorche        }        
+    "("                   { lex' TkLParen          }
+    ")"                   { lex' TkRParen          }
+    "{"                   { lex' TkLLlaves         }
+    "}"                   { lex' TkRLlaves         }
+    "["                   { lex' TkLCorche         }
+    "]"                   { lex' TkRCorche         }
 
     --Condicionales
-    "if"                  { lex' TkIf             }
-    "else"                { lex' TkElse           }
-    "then"                { lex' TkThen           }
+    "if"                  { lex' TkIf              }
+    "else"                { lex' TkElse            }
+    "then"                { lex' TkThen            }
 
     --Loops
-    "for"                 { lex' TkFor            }
-    "do"                  { lex' TkDo             }
-    "while"               { lex' TkWhile          }
+    "for"                 { lex' TkFor             }
+    "do"                  { lex' TkDo              }
+    "while"               { lex' TkWhile           }
 
     --Entrada/Salida
-    "print"               { lex' TkPrint          }
-    "read"                { lex' TkRead           }
+    "print"               { lex' TkPrint           }
+    "read"                { lex' TkRead            }
 
     --Operadores Booleanos
-    "&"                   { lex' TkAnd            }
-    "|"                   { lex' TkOr             }
-    "not"                 { lex' TkNot            }
+    "&"                   { lex' TkAnd             }
+    "|"                   { lex' TkOr              }
+    "not"                 { lex' TkNot             }
 
-    "=="                  { lex' TkEqual          }
-    "/="                  { lex' TkUnequal        }
-    "<="                  { lex' TkLessEq         }
-    "<"                   { lex' TkLess           }
-    ">="                  { lex' TkGreatEq        }
-    ">"                   { lex' TkGreat          }
+    "=="                  { lex' TkEqual           }
+    "/="                  { lex' TkUnequal         }
+    "<="                  { lex' TkLessEq          }
+    "<"                   { lex' TkLess            }
+    ">="                  { lex' TkGreatEq         }
+    ">"                   { lex' TkGreat           }
 
     --Operadores Aritmeticos
-    "+"                   { lex' TkSum            }
-    "-"                   { lex' TkDiff           }
-    "*"                   { lex' TkMul            }
-    "/"                   { lex' TkDivEnt         }
-    "%"                   { lex' TkModEnt         }
-    "div"                 { lex' TkDiv            }
-    "mod"                 { lex' TkMod            }
-    "'"                   { lex' TkTrans          }
+    "+"                   { lex' TkSum             }
+    "-"                   { lex' TkDiff            }
+    "*"                   { lex' TkMul             }
+    "/"                   { lex' TkDivEnt          }
+    "%"                   { lex' TkModEnt          }
+    "div"                 { lex' TkDiv             }
+    "mod"                 { lex' TkMod             }
+    "'"                   { lex' TkTrans           }
 
     --Operadores Cruzados 
-    ".+."                 { lex' TkCruzSum        }
-    ".-."                 { lex' TkCruzDiff       }
-    ".*."                 { lex' TkCruzMul        }
-    "./."                 { lex' TkCruzDivEnt     }
-    ".%."                 { lex' TkCruzModEnt     }
-    ".div."               { lex' TkCruzDiv        }
-    ".mod."               { lex' TkCruzMod        }
+    ".+."                 { lex' TkCruzSum         }
+    ".-."                 { lex' TkCruzDiff        }
+    ".*."                 { lex' TkCruzMul         }
+    "./."                 { lex' TkCruzDivEnt      }
+    ".%."                 { lex' TkCruzModEnt      }
+    ".div."               { lex' TkCruzDiv         }
+    ".mod."               { lex' TkCruzMod         }
 
     --Declaraciones/Asignaciones
-    "="                   { lex' TkAssign         }
-    "use"                 { lex' TkUse            }
-    "in"                  { lex' TkIn             }
-    "set"                 { lex' TkSet            }
+    "="                   { lex' TkAssign          }
+    "use"                 { lex' TkUse             }
+    "in"                  { lex' TkIn              }
+    "set"                 { lex' TkSet             }
 
     --Expresiones literales 
-    @num                  { lex (TkNumber . read) }
-    "true"                { lex' (TkBoolean True) }
-    "false"               { lex' (TkBoolean False)}
-    @string               { lex TkString          }
+    @num                  { lex (TkNumber . read)  }
+    "true"                { lex' (TkBoolean True)  }
+    "false"               { lex' (TkBoolean False) }
+    @string               { lex TkString           }
 
     --Identificadores
-    @id                   { lex TkId              }
+    @id                   { lex TkId               }
 
 {
 
@@ -202,11 +201,11 @@ instance Show Token where
         TkSemicolon     -> "';'"
         TkComma         -> "','"
         TkDoublePoint   -> "':'"
-        TkAssign 	      -> "'='"
+        TkAssign        -> "'='"
         TkUse           -> "'use'"
         TkIn            -> "'in'"
         TkSet           -> "'set'"       
-        TkLParen	       -> "'('"
+        TkLParen        -> "'('"
         TkRParen        -> "')'"
         TkLLlaves       -> "'{'"
         TkRLlaves       -> "'}'"
@@ -279,6 +278,8 @@ instance Show LexicalError where
     show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
                                    ++ " " ++ show char
 
+--fillLex lex = Lex lex (AlexPn 0 0 0)
+
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
 
@@ -314,15 +315,6 @@ runAlex' input (Alex f) =
             , alex_ust   = alexInitUserState
             , alex_scd   = 0
             }
-
-getTokens :: String -> (Seq LexicalError, [[Lexeme Token]])
-getTokens s = runAlex' s (loop [])
-    where
-      isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
-      loop acc = do
-        tok <- alexMonadScanTokens
-        if isEof tok then return (reverse ([tok]:acc))
-                     else loop ([tok]:acc)
 
 alexError' :: AlexPosn -> Char -> Alex()
 alexError' pos char = modifyUserState $ \st -> 
