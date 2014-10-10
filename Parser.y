@@ -15,7 +15,7 @@ import          Lexer
 
 }
 
---Por hacer: bloques anidados (yuca.ty).
+--Por hacer: Impresiones con tabulaciones correctas.
 
 %name parse
 %tokentype { Lexeme Token }
@@ -126,14 +126,14 @@ import          Lexer
 
 %nonassoc "==" "/=" "<" "<=" ">" ">="
 
+%left ".+." ".-."
+%left ".*." "./." ".%." ".div." ".mod."
+
 %left "+" "-"
 %left "*" "/" "%" "div" "mod"
 %left "'"
 %left NEG
 %nonassoc "["
-
-%left ".+." ".-."
-%left ".*." "./." ".%." ".div." ".mod."
 
 %nonassoc MAX
 --(Mayor Precedencia)
@@ -145,11 +145,32 @@ import          Lexer
 --------------------------------------------------------
 
 Program :: { Program } --Tipo retornado.
-  : StatementList ";" "program" StBlock "end" ";"    { Program $1 $4 }
-  | "program" StBlock "end" ";"    { Program empty $2 }
+  : StatementList ";" "program" StatementList ";" "end" ";"    { Program $1 $4 }
+  | "program" StatementList ";" "end" ";"    { Program empty $2 }
 
-StBlock :: { StBlock }
-  : "use" DeclarationSeq "in" StatementList ";" "end" ";"   { StBlock $2 $4 }
+StatementList :: { StatementSeq }
+  : Statement    { expandStatement $1 }
+  | StatementList ";" Statement    { $1 >< expandStatement $3 }
+
+Statement :: { Lexeme Statement }
+--  : { - empty - }    { pure StNoop }
+  --Asignacion
+  : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
+  --Funciones
+--  | "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
+  | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
+  | "return" Expression    { StReturn $2 <$ $1 }
+  --Condicionales
+  | "if" Expression "then" StatementList ";" "else" StatementList ";" "end"    { StIf $2 $4 $7 <$ $1 }
+  | "if" Expression "then" StatementList ";" "end"    { StIf $2 $4 empty <$ $1 }
+  --Loops
+  | "for" Id "in" Expression "do" StatementList ";" "end"    { StFor $2 $4 $6 <$ $1 }
+  | "while" Expression "do" StatementList ";" "end"    { StWhile $2 $4 <$ $1 }
+  --I/O
+  | "read" Access    { StRead $2 <$ $1 }
+  | "print" ExpressionList    { StPrintList $2 <$ $1 }
+  --Bloques anidados
+  | "use" DeclarationSeq "in" StatementList ";" "end"   { StBlock $2 $4 <$ $1 }
 
 DeclarationSeq :: { DeclarationSeq }
   :    { empty }
@@ -170,43 +191,10 @@ Signature :: { DeclarationSeq }
 Declaration :: { Lexeme Declaration }
   : TypeId Id   { Dcl $1 $2 <$ $1 }
   | TypeId Id "=" Expression   { DclInit $1 $2 $4 <$ $1 }
-
-Id :: { Lexeme Identifier }
-  : id    { unTkId `fmap` $1 }
-
-TypeId :: { Lexeme TypeId }
-  : "boolean"    { Bool <$ $1 }
-  | "number"    { Double <$ $1 }
-  | "matrix" "(" ExpressionList ")"    { Matrix $3 <$ $1 }             
-  | "row" "(" Expression ")"    { Row $3 <$ $1 }
-  | "col" "(" Expression ")"    { Col $3 <$ $1 }
-
-StatementList :: { StatementSeq }
-  : Statement    { expandStatement $1 }
-  | StatementList ";" Statement    { $1 >< expandStatement $3 }
-
-Statement :: { Lexeme Statement }
---  : { - empty - }    { pure StNoop }
-  --Asignacion
-  : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
-  --Funciones
-  | "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { StFunctionDef $2 $4 $7 $9 <$ $1 } 
-  | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
-  | "return" Expression    { StReturn $2 <$ $1 }
-  --Condicionales
-  | "if" Expression "then" StatementList ";" "else" StatementList ";" "end"    { StIf $2 $4 $7 <$ $1 }
-  | "if" Expression "then" StatementList ";" "end"    { StIf $2 $4 empty <$ $1 }
-  --Loops
-  | "for" Id "in" Expression "do" StatementList ";" "end"    { StFor $2 $4 $6 <$ $1 }
-  | "while" Expression "do" StatementList ";" "end"    { StWhile $2 $4 <$ $1 }
-  --I/O
-  | "read" Access    { StRead $2 <$ $1 }
-  | "print" ExpressionList    { StPrintList $2 <$ $1 }
-  -- Bloques anidados
---  | StBlock    { InnerBlock $1 <$ $1 }
   
-Access :: { Lexeme Access }
-  : Id    { VariableAccess $1 <$ $1 }
+MaybeExpressionList :: { Seq (Lexeme Expression) }
+  :    { empty }
+  | ExpressionList    { $1 }
 
 ExpressionList :: { Seq (Lexeme Expression) }
   : Expression    { singleton $1 }
@@ -215,10 +203,6 @@ ExpressionList :: { Seq (Lexeme Expression) }
 MatrixList :: { [Seq (Lexeme Expression)] }
   : ExpressionList    { [$1] }
   | MatrixList ":" ExpressionList    { $1 ++ [$3] }
-
-MaybeExpressionList :: { Seq (Lexeme Expression) }
-  :    { empty }
-  | ExpressionList    { $1 }
 
 Number :: { Lexeme Double }
   : num    { unTkNumber `fmap` $1 }
@@ -229,6 +213,19 @@ Bool :: { Lexeme Bool }
 
 String :: { Lexeme String }
   : string    { unTkString `fmap` $1 }
+
+Access :: { Lexeme Access }
+  : Id    { VariableAccess $1 <$ $1 }
+
+Id :: { Lexeme Identifier }
+  : id    { unTkId `fmap` $1 }
+
+TypeId :: { Lexeme TypeId }
+  : "boolean"    { Bool <$ $1 }
+  | "number"    { Double <$ $1 }
+  | "matrix" "(" ExpressionList ")"    { Matrix $3 <$ $1 }             
+  | "row" "(" Expression ")"    { Row $3 <$ $1 }
+  | "col" "(" Expression ")"    { Col $3 <$ $1 }
 
 Expression :: { Lexeme Expression }
   : Number    { LitNumber $1 <$ $1 }
@@ -270,20 +267,12 @@ Expression :: { Lexeme Expression }
 
 {
 
-data Program = Program StatementSeq StBlock
+data Program = Program StatementSeq StatementSeq
 
 instance Show Program where
-    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ show stB ++ "\nend"
-
-data StBlock = StBlock DeclarationSeq StatementSeq
-
-instance Show StBlock where
-    show (StBlock dclS stS) = "use\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclS ++ 
-                             "\n\tin\n\t " ++  concatMap ( (++) "\n\t\t" . show . lexInfo) stS ++ "\n\tend"
+    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ concatMap ((++) "\n" . show . lexInfo) stB ++ "\nend"
 
 type DeclarationSeq = Seq (Lexeme Declaration)    
-
-type StatementSeq = Seq (Lexeme Statement)
 
 data Declaration 
     = Dcl (Lexeme TypeId) (Lexeme Identifier)
@@ -311,6 +300,8 @@ instance Show TypeId where
         Row exp -> "Row(" ++ show (lexInfo exp) ++ ")"
         Col exp -> "Col(" ++ show (lexInfo exp) ++ ")"
 
+type StatementSeq = Seq (Lexeme Statement)
+
 data Statement
     = StNoop
     | StAssign (Lexeme Access) (Lexeme Expression)
@@ -323,7 +314,7 @@ data Statement
     | StIf (Lexeme Expression) StatementSeq StatementSeq
     | StFor (Lexeme Identifier) (Lexeme Expression) StatementSeq
     | StWhile (Lexeme Expression) StatementSeq
-    | InnerBlock (Lexeme StBlock)
+    | StBlock DeclarationSeq StatementSeq
 
 instance Show Statement where
     show st = case st of
@@ -336,7 +327,8 @@ instance Show Statement where
         StIf expL _ _ -> "if " ++ show (lexInfo expL) ++ " then .. end"
         StFor idnL expL _ -> "for " ++ lexInfo idnL ++ " in " ++ show (lexInfo expL) ++ " do .. end"
         StWhile expL _ -> "while " ++ show (lexInfo expL) ++ "do .. end"
---        InnerBlock block -> show block
+        StBlock dclLs stLs -> "\tuse\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclLs ++ 
+                             "\n\tin\n\t " ++  concatMap ( (++) "\n\t\t" . show . lexInfo) stLs ++ "\n\tend"
 
 data Expression
     = LitNumber (Lexeme Double)
