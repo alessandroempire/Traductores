@@ -132,8 +132,8 @@ import          Lexer
 %left "+" "-"
 %left "*" "/" "%" "div" "mod"
 %left "'"
+%left "["
 %left NEG
-%nonassoc "["
 
 %nonassoc MAX
 --(Mayor Precedencia)
@@ -225,7 +225,10 @@ String :: { Lexeme String }
 
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
-  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
+--  | Id Aux    { MatrixAccess $1 $2 <$ $1 }
+
+Aux  :: { Seq (Lexeme Expression) }
+   : "[" ExpressionList "]"    { $2 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -241,7 +244,7 @@ Expression :: { Lexeme Expression }
   : Number    { LitNumber $1 <$ $1 }
   | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
-  | Access    { Variable $1 <$ $1 }
+  | Access  { Variable $1 <$ $1 }
   | "{" MatrixList "}"    { LitMatrix $2 <$ $1 }
   | Expression "+" Expression    { ExpBinary (OpSum <$ $2) $1 $3 <$ $1 }
   | Expression "-" Expression    { ExpBinary (OpDiff <$ $2) $1 $3 <$ $1 }
@@ -267,7 +270,7 @@ Expression :: { Lexeme Expression }
   | Expression ">=" Expression    { ExpBinary (OpGreatEq <$ $2) $1 $3 <$ $1 } 
   | Expression "'"    { ExpUnary (OpTranspose <$ $2) $1 <$ $1 }
   | "-" Expression %prec NEG     { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
-  | Expression "[" ExpressionList "]" %prec MAX    { Proy $1 $3 <$ $1 }
+  | Expression Aux %prec MAX    { Proy $1 $2 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
@@ -280,14 +283,14 @@ Expression :: { Lexeme Expression }
 data Program = Program FunctionSeq (Lexeme Statement)
 
 instance Show Program where
-    show (Program funS stB) = concatMap ((++) "\n" . show . lexInfo) funS ++ "\nprogram\n\t" ++ show (lexInfo stB) ++ "\nend"
+    show (Program funS stB) = "Program: \n\t" ++ "Funciones:" ++ concatMap ((++) "\n\t" . show . lexInfo) funS ++ "\n\tInstrucciones: \n\t" ++ show (lexInfo stB)
 
 type FunctionSeq = Seq (Lexeme Function)
 
 data Function = Function (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) StatementSeq
 
 instance Show Function where
-    show (Function idnL _ _ _) = "function " ++ lexInfo idnL
+    show (Function idnL _ _ _) = "function \n\t" ++ lexInfo idnL
 
 type StatementSeq = Seq (Lexeme Statement)
 
@@ -306,7 +309,7 @@ data Statement
 
 instance Show Statement where
     show st = case st of
-        StAssign accL expL -> "set " ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
+        StAssign accL expL -> "set \n\t" ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
         StFunctionCall idnL expLs -> lexInfo idnL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
         StReturn expL -> "return " ++ show (lexInfo expL)
         StRead accL -> "read " ++ show (lexInfo accL)
@@ -314,7 +317,7 @@ instance Show Statement where
         StIf expL _ _ -> "if " ++ show (lexInfo expL) ++ " then .. end"
         StFor idnL expL _ -> "for " ++ lexInfo idnL ++ " in " ++ show (lexInfo expL) ++ " do .. end"
         StWhile expL _ -> "while " ++ show (lexInfo expL) ++ "do .. end"
-        StBlock dclLs stLs -> "\tuse\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclLs ++ 
+        StBlock dclLs stLs -> "use\n\t" ++ concatMap ((++) "\n\t\t" . show . lexInfo) dclLs ++ 
                              "\n\tin\n\t " ++  concatMap ( (++) "\n\t\t" . show . lexInfo) stLs ++ "\n\tend"
 
 type DeclarationSeq = Seq (Lexeme Declaration)    
