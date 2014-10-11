@@ -1,13 +1,13 @@
 {
 module Lexer
-    ( Alex(..),
-      Token(..),
-      Lexeme(..),
-      LexicalError,
-      showPosn,
-      runAlex',
-      alexMonadScanTokens,
-      fillLex
+    ( Alex(..)
+    , Token(..)
+    , Lexeme(..)
+    , Position(..)
+    , LexicalError
+    , runAlex'
+    , alexMonadScanTokens
+    , fillLex
     ) 
     where
 
@@ -15,6 +15,7 @@ import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
 import          Data.Sequence (Seq, empty, (|>))
 import          Prelude       hiding (lex)
+import          Lexeme
 
 }
 
@@ -259,27 +260,18 @@ instance Show Token where
 -- Codigo Haskell
 --------------------------------------------------------
 
-data Lexeme a = Lex { lexInfo :: a
-                    , lexPosn ::  AlexPosn 
-                    }
-                 
-instance Show a => Show (Lexeme a) where
-    show (Lex a pos) = show a ++ " : " ++ showPosn pos
-
-instance Functor Lexeme where
-    fmap f (Lex a p) = Lex (f a) p 
-
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
-data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
+data LexicalError = LexicalError { lexicalErrorPos  :: Position,
                                    lexicalErrorChar :: Char } 
                                    deriving(Eq)
 
 instance Show LexicalError where 
-    show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
+    show (LexicalError pos char) = "Error Léxico: " ++ show pos 
                                    ++ " " ++ show char
+
 fillLex :: a -> Lexeme a
-fillLex lex = Lex lex (AlexPn 0 0 0)
+fillLex lex = Lex lex defaultPosn
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
@@ -287,15 +279,15 @@ alexInitUserState = AlexUSt empty
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
 
-alexGetPosition :: Alex AlexPosn
-alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return p
+--alexGetPosition :: Alex AlexPosn
+alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return $ toPosition p
 
-showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = "en la línea " ++ show line ++ ", columna " ++ show col
+toPosition :: AlexPosn -> Position
+toPosition (AlexPn _ r c) = Posn (r, c)
 
 -- Tokens que dependen del input 
 lex :: (String -> Token) -> AlexAction (Lexeme Token)
-lex f (p,_,_,str) i = return $ Lex (f (take i str)) (p)
+lex f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
 
 -- Tokens que no dependen del input
 lex' :: Token -> AlexAction (Lexeme Token)
@@ -319,7 +311,8 @@ runAlex' input (Alex f) =
 
 alexError' :: AlexPosn -> Char -> Alex()
 alexError' pos char = modifyUserState $ \st -> 
-                              st { errors = errors st |> (LexicalError pos char)}
+                         st { errors = errors st |> 
+                            (LexicalError (toPosition pos) char)}
 
 modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
 modifyUserState f = Alex $ \s -> 

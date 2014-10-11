@@ -2,13 +2,14 @@
 {-# LINE 1 "Lexer.x" #-}
 
 module Lexer
-    ( Alex(..),
-      Token(..),
-      Lexeme(..),
-      LexicalError,
-      showPosn,
-      runAlex',
-      alexMonadScanTokens
+    ( Alex(..)
+    , Token(..)
+    , Lexeme(..)
+    , Position(..)
+    , LexicalError
+    , runAlex'
+    , alexMonadScanTokens
+    , fillLex
     ) 
     where
 
@@ -16,6 +17,7 @@ import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
 import          Data.Sequence (Seq, empty, (|>))
 import          Prelude       hiding (lex)
+import          Lexeme
 
 
 #if __GLASGOW_HASKELL__ >= 603
@@ -320,7 +322,7 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x11\x00\x11\x00\x07\x00\x07\x00\xff\xff\xff\xff\x14\x00\x14\x00\x16\x00\xff\xff\x16\x00\x16\x00\xff\xff\xff\xff\x21\x00\x21\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x23\x00\x23\x00\x23\x00\xff\xff\x23\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,165) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61)]
-{-# LINE 139 "Lexer.x" #-}
+{-# LINE 141 "Lexer.x" #-}
 
 
 --------------------------------------------------------
@@ -352,7 +354,7 @@ data Token =
     | TkAnd | TkOr | TkNot | TkEqual | TkUnequal 
     | TkLess | TkLessEq | TkGreat | TkGreatEq
 
-    --Operadores Aritmeticos
+    --Operadores Aritméticos
     | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
 
     --Operadores Cruzados 
@@ -443,25 +445,18 @@ instance Show Token where
 -- Codigo Haskell
 --------------------------------------------------------
 
-data Lexeme a = Lex { lexInfo :: a
-                    , lexPosn ::  AlexPosn 
-                    }
-                 
-instance Show a => Show (Lexeme a) where
-    show (Lex a pos) = show a ++ " : " ++ showPosn pos
-
-instance Functor Lexeme where
-    fmap f (Lex a p) = Lex (f a) p 
-
 data AlexUserState = AlexUSt { errors :: Seq LexicalError}
 
-data LexicalError = LexicalError { lexicalErrorPos  :: AlexPosn,
+data LexicalError = LexicalError { lexicalErrorPos  :: Position,
                                    lexicalErrorChar :: Char } 
                                    deriving(Eq)
 
 instance Show LexicalError where 
-    show (LexicalError pos char) = "Error Léxico: " ++ showPosn pos 
+    show (LexicalError pos char) = "Error Léxico: " ++ show pos 
                                    ++ " " ++ show char
+
+fillLex :: a -> Lexeme a
+fillLex lex = Lex lex defaultPosn
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty
@@ -469,15 +464,15 @@ alexInitUserState = AlexUSt empty
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
 
-alexGetPosition :: Alex AlexPosn
-alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return p
+--alexGetPosition :: Alex AlexPosn
+alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return $ toPosition p
 
-showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = "en la linea " ++ show line ++ ", columna " ++ show col
+toPosition :: AlexPosn -> Position
+toPosition (AlexPn _ r c) = Posn (r, c)
 
 -- Tokens que dependen del input 
 lex :: (String -> Token) -> AlexAction (Lexeme Token)
-lex f (p,_,_,str) i = return $ Lex (f (take i str)) (p)
+lex f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
 
 -- Tokens que no dependen del input
 lex' :: Token -> AlexAction (Lexeme Token)
@@ -501,7 +496,8 @@ runAlex' input (Alex f) =
 
 alexError' :: AlexPosn -> Char -> Alex()
 alexError' pos char = modifyUserState $ \st -> 
-                              st { errors = errors st |> (LexicalError pos char)}
+                         st { errors = errors st |> 
+                            (LexicalError (toPosition pos) char)}
 
 modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
 modifyUserState f = Alex $ \s -> 
@@ -537,6 +533,7 @@ alexMonadScanTokens = do
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
+
 
 alex_action_2 =  lex' TkProgram         
 alex_action_3 =  lex' TkBegin           
