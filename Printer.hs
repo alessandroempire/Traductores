@@ -2,12 +2,12 @@ module Printer
     (
     ) where
 
+import          Lexer
+import          Program
+
 import          Control.Monad.State  (StateT, runStateT, modify, get)
 import          Control.Monad.Writer (Writer, execWriter, tell)
 import          Data.Sequence        (Seq, singleton)
-import          Parser
-import          Lexer
-
 
 type Printer a = StateT Tabs (Writer (Seq String)) a
 
@@ -58,15 +58,16 @@ instance Show Program where
     show = processPrinter
 
 --buildPrinter :: Program -> Printer ()
-buildPrinter (Program fun block) = printStatements "PROGRAM" fun block
+buildPrinter (Program fun block) = printStatements "PROGRAM" fun
 
 --printStatements :: String -> StBlock -> Printer ()
-printStatements str fun block = do
+printStatements str fun = do
     printString str
 
     raiseTabs
-    mapM_ printStatement fun
-    mapM_ printStatement block
+    printString "llegue"
+    --mapM_ printStatement fun
+    --mapM_ printStatement block
     lowerTabs
 
 --printStatement :: Lexeme Statement -> Printer ()

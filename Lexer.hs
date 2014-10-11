@@ -13,11 +13,13 @@ module Lexer
     ) 
     where
 
+import          Lexeme
+import          Tokens
+
 import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
 import          Data.Sequence (Seq, empty, (|>))
 import          Prelude       hiding (lex)
-import          Lexeme
 
 
 #if __GLASGOW_HASKELL__ >= 603
@@ -322,124 +324,8 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x11\x00\x11\x00\x07\x00\x07\x00\xff\xff\xff\xff\x14\x00\x14\x00\x16\x00\xff\xff\x16\x00\x16\x00\xff\xff\xff\xff\x21\x00\x21\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x23\x00\x23\x00\x23\x00\xff\xff\x23\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,165) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61)]
-{-# LINE 141 "Lexer.x" #-}
+{-# LINE 143 "Lexer.x" #-}
 
-
---------------------------------------------------------
---Codigo Alex
---------------------------------------------------------
-
-data Token =
-
-    --Lenguaje 
-    TkProgram | TkBegin | TkEnd | TkFunction | TkReturn | TkSemicolon 
-    | TkComma | TkDoublePoint
-
-    --Tipos
-    | TkBooleanType | TkNumberType | TkMatrixType | TkRowType | TkColType
-
-    --Brackets
-    | TkLParen | TkRParen | TkLLlaves | TkRLlaves | TkLCorche | TkRCorche
-
-    --Condicionales
-    | TkIf | TkElse | TkThen
-
-    --Loops
-    | TkFor | TkDo | TkWhile
-
-    --E/S
-    | TkPrint | TkRead
-
-    --Operadores Booleanos
-    | TkAnd | TkOr | TkNot | TkEqual | TkUnequal 
-    | TkLess | TkLessEq | TkGreat | TkGreatEq
-
-    --Operadores Aritméticos
-    | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
-
-    --Operadores Cruzados 
-    | TkCruzSum | TkCruzDiff | TkCruzMul | TkCruzDivEnt | TkCruzModEnt 
-    | TkCruzDiv | TkCruzMod
-
-    --Declaraciones/Asignaciones
-    | TkAssign | TkUse | TkIn | TkSet
-
-    --Expresiones literales
-    | TkNumber  { unTkNumber :: Double }
-    | TkBoolean { unTkBoolean :: Bool } 
-    | TkString  { unTkString :: String }
-
-    --Identificadores
-    | TkId { unTkId :: String }
-
-    --Compilador
-    | TkEOF
-
-    deriving (Eq)
-
-instance Show Token where
-    show tk = case tk of 
-
-        TkProgram       -> "'program'"
-        TkBegin         -> "'begin'"
-        TkEnd           -> "'end'"
-        TkReturn        -> "'return'"
-        TkFunction      -> "'function'"
-        TkSemicolon     -> "';'"
-        TkComma         -> "','"
-        TkDoublePoint   -> "':'"
-        TkAssign        -> "'='"
-        TkUse           -> "'use'"
-        TkIn            -> "'in'"
-        TkSet           -> "'set'"       
-        TkLParen        -> "'('"
-        TkRParen        -> "')'"
-        TkLLlaves       -> "'{'"
-        TkRLlaves       -> "'}'"
-        TkLCorche       -> "'['"
-        TkRCorche       -> "']'"
-        TkBooleanType   -> "type 'Bool'"
-        TkNumberType    -> "type 'Number'"
-        TkMatrixType    -> "type 'Matrix'"
-        TkRowType       -> "type 'Row'"	
-        TkColType       -> "type 'Col'"	
-        TkIf            -> "'if'"
-        TkElse          -> "'else'"
-        TkThen          -> "'then'"
-        TkFor           -> "'for'"
-        TkDo            -> "'do'"
-        TkWhile         -> "'while'"
-        TkPrint         -> "'print'"
-        TkRead          -> "'read'"
-        TkAnd           -> "'&'"
-        TkOr            -> "'|'"
-        TkNot           -> "'not'"
-        TkEqual         -> "'=='"
-        TkUnequal       -> "'/='"
-        TkLess          -> "'<'"
-        TkLessEq        -> "'<='"
-        TkGreat         -> "'>'"
-        TkGreatEq       -> "'>='"
-        TkSum           -> "'+'"
-        TkDiff          -> "'-'"
-        TkMul           -> "'*'"
-        TkDivEnt        -> "'/'"
-        TkModEnt        -> "'%'"
-        TkDiv           -> "'div'"
-        TkMod           -> "'mod'"
-        TkTrans         -> "'''"
-        TkCruzSum       -> "'.+.'"
-        TkCruzDiff      -> "'.-.'"
-        TkCruzMul       -> "'.*.'"
-        TkCruzDivEnt    -> "'./.'"
-        TkCruzModEnt    -> "'.%.'"
-        TkCruzDiv       -> "'.div.'"
-        TkCruzMod       -> "'.mod.'"
-        TkEOF           -> "'EOF'"
-        TkNumber n      -> "literal 'Number' " ++ show n
-        TkBoolean b      -> "literal 'Bool' " ++ show b
-        TkString s      -> "literal 'String' " ++ s
-        TkId i          -> "identificador de variable " ++ i
 
 --------------------------------------------------------
 -- Codigo Haskell
