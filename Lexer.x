@@ -355,5 +355,4 @@ alexMonadScanTokens = do
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
-
 }

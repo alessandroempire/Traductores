@@ -9,7 +9,7 @@ main = do
     (fileName : _ ) <- SE.getArgs
     string <- readFile fileName
     let (errors, program) = parseProgram string
-    print errors
+    print program
     if DS.null errors 
         then exitSuccess
         else exitFailure
