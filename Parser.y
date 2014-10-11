@@ -144,13 +144,13 @@ import          Lexer
 -- Gramatica
 --------------------------------------------------------
 
-Program :: { Program } --Tipo retornado.
-  : "program" "end" ";"    { Program empty (fillLex StNoop) }
-  | "program" StBlock ";" "end" ";"    { Program empty $2 }
-  | FunctionList ";" "program" StBlock ";" "end" ";"    { Program $1 $4 }
+Program :: { Program }
+  : "program" "end" ";"    { Program empty empty }
+  | "program" StatementList ";" "end" ";"    { Program empty $2 }
+  | FunctionList ";" "program" StatementList ";" "end" ";"    { Program $1 $4 }
 
-StBlock :: { Lexeme Statement }
-  : "use" DeclarationSeq "in" StatementList ";" "end"    { StBlock $2 $4 <$ $1 }
+--StBlock :: { Lexeme Statement }
+--  : "use" DeclarationSeq "in" StatementList ";" "end"    { StBlock $2 $4 <$ $1 }
 
 FunctionList :: { FunctionSeq }
   : Function    { singleton $1 }
@@ -176,10 +176,10 @@ Statement :: { Lexeme Statement }
   | "for" Id "in" Expression "do" StatementList ";" "end"    { StFor $2 $4 $6 <$ $1 }
   | "while" Expression "do" StatementList ";" "end"    { StWhile $2 $4 <$ $1 }
   --I/O
-  | "read" Access    { StRead $2 <$ $1 }
+  | "read" Id    { StRead $2 <$ $1 }
   | "print" ExpressionList    { StPrintList $2 <$ $1 }
   --Bloques anidados
-  | StBlock    { $1 }
+  | "use" DeclarationSeq "in" StatementList ";" "end"    { StBlock $2 $4 <$ $1 }
 
 DeclarationSeq :: { DeclarationSeq }
   :    { empty }
@@ -225,10 +225,7 @@ String :: { Lexeme String }
 
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
---  | Id Aux    { MatrixAccess $1 $2 <$ $1 }
-
-Aux  :: { Seq (Lexeme Expression) }
-   : "[" ExpressionList "]"    { $2 }
+  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -244,7 +241,7 @@ Expression :: { Lexeme Expression }
   : Number    { LitNumber $1 <$ $1 }
   | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
-  | Access  { Variable $1 <$ $1 }
+  | Id  { VariableId $1 <$ $1 }
   | "{" MatrixList "}"    { LitMatrix $2 <$ $1 }
   | Expression "+" Expression    { ExpBinary (OpSum <$ $2) $1 $3 <$ $1 }
   | Expression "-" Expression    { ExpBinary (OpDiff <$ $2) $1 $3 <$ $1 }
@@ -270,7 +267,7 @@ Expression :: { Lexeme Expression }
   | Expression ">=" Expression    { ExpBinary (OpGreatEq <$ $2) $1 $3 <$ $1 } 
   | Expression "'"    { ExpUnary (OpTranspose <$ $2) $1 <$ $1 }
   | "-" Expression %prec NEG     { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
-  | Expression Aux %prec MAX    { Proy $1 $2 <$ $1 }
+  | Expression "[" ExpressionList "]" %prec MAX    { Proy $1 $3 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
@@ -280,10 +277,10 @@ Expression :: { Lexeme Expression }
 
 {
 
-data Program = Program FunctionSeq (Lexeme Statement)
+data Program = Program FunctionSeq StatementSeq
 
 instance Show Program where
-    show (Program funS stB) = "Program: \n\t" ++ "Funciones:" ++ concatMap ((++) "\n\t" . show . lexInfo) funS ++ "\n\tInstrucciones: \n\t" ++ show (lexInfo stB)
+    show (Program funS stB) = "Program: \n\t" ++ "Funciones:" ++ concatMap ((++) "\n\t" . show . lexInfo) funS ++ "\n\tInstrucciones: \n\t" ++ concatMap ( show . lexInfo) stB
 
 type FunctionSeq = Seq (Lexeme Function)
 
@@ -299,7 +296,7 @@ data Statement
     | StAssign (Lexeme Access) (Lexeme Expression)
     | StFunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | StReturn (Lexeme Expression)
-    | StRead (Lexeme Access)
+    | StRead (Lexeme Identifier)
     | StPrint (Lexeme Expression)
     | StPrintList (Seq (Lexeme Expression))
     | StIf (Lexeme Expression) StatementSeq StatementSeq
@@ -328,8 +325,8 @@ data Declaration
 
 instance Show Declaration where
     show dcl = case dcl of
-         Dcl tL idL -> show (lexInfo tL) ++ "  " ++ lexInfo idL
-         DclInit tL idL expL -> show (lexInfo tL) ++ "  " ++ lexInfo idL ++ "= " ++ show (lexInfo expL) 
+         Dcl tL idL -> "Declaracción: tipo " ++ show (lexInfo tL) ++ " identificador " ++ lexInfo idL
+         DclInit tL idL expL -> "Declaracción: tipo " ++ show (lexInfo tL) ++ " identificador " ++ lexInfo idL ++ " inicialización " ++ show (lexInfo expL) 
 
 data Access 
     = VariableAccess (Lexeme Identifier)
@@ -338,7 +335,7 @@ data Access
 instance Show Access where
     show acc = case acc of
         VariableAccess idnL -> lexInfo idnL
-        MatrixAccess idnL _ -> lexInfo idnL ++ "[" ++ "]"
+        MatrixAccess idnL expLs -> lexInfo idnL ++ "[" ++ concatMap ((++) "," . show . lexInfo) expLs ++ "]"
 
 type Identifier = String
 
@@ -361,7 +358,7 @@ data Expression
     = LitNumber (Lexeme Double)
     | LitBool (Lexeme Bool)
     | LitString (Lexeme String)
-    | Variable (Lexeme Access)
+    | VariableId (Lexeme Identifier)
     | LitMatrix [Seq (Lexeme Expression)]
     | Proy (Lexeme Expression) (Seq (Lexeme Expression))
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
@@ -369,14 +366,14 @@ data Expression
 
 instance Show Expression where
     show exp = case exp of
-        LitNumber vL -> show (lexInfo vL)
-        LitBool vL -> show (lexInfo vL)
-        LitString strL -> show (lexInfo strL)
-        Variable accL -> show (lexInfo accL)
-        LitMatrix expS -> "{ Literal matricial }"
-        Proy expL expLs -> show (lexInfo expL) ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"        
-        ExpBinary opL lExpL rExpL -> show (lexInfo lExpL) ++ " " ++ show (lexInfo opL) ++ " " ++ show (lexInfo rExpL)
-        ExpUnary opL expL -> show (lexInfo opL) ++ " " ++ show (lexInfo expL)
+        LitNumber vL -> "Literal numérico: " ++ show (lexInfo vL)
+        LitBool vL -> "Literal booleano: " ++ show (lexInfo vL)
+        LitString strL -> "Literal string: " ++ show (lexInfo strL)
+        VariableId accL -> "Identificador de variable: " ++ show (lexInfo accL)
+        LitMatrix expS -> "Literal Matricial: { " ++ " }"
+        Proy expL expLs -> "Proyección: " ++ show (lexInfo expL) ++ "[" ++ concatMap ((++) "," . show . lexInfo) expLs ++ "]"        
+        ExpBinary opL lL rL -> "Operador Binario: " ++ show (lexInfo lL) ++ " " ++ show (lexInfo opL) ++ " " ++ show (lexInfo rL)
+        ExpUnary opL expL -> "Operador Unario: " ++ show (lexInfo opL) ++ " " ++ show (lexInfo expL)
 
 data Binary
     = OpSum | OpDiff | OpMul | OpDivEnt | OpModEnt | OpDiv | OpMod
@@ -423,7 +420,6 @@ instance Show Unary where
 
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
-    StNoop -> empty
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
     _ -> singleton stL
 

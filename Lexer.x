@@ -24,7 +24,7 @@ import          Prelude       hiding (lex)
 -- Definiciones de Macros
 --------------------------------------------------------
 
-$digit = 0-9  --Digitos
+$digit = 0-9  --Dígitos
 
 $alpha = [a-zA-Z] --Caracteres alfabeticos
 
@@ -103,7 +103,7 @@ tokens :-
     ">="                  { lex' TkGreatEq         }
     ">"                   { lex' TkGreat           }
 
-    --Operadores Aritmeticos
+    --Operadores Aritméticos
     "+"                   { lex' TkSum             }
     "-"                   { lex' TkDiff            }
     "*"                   { lex' TkMul             }
@@ -168,7 +168,7 @@ data Token =
     | TkAnd | TkOr | TkNot | TkEqual | TkUnequal 
     | TkLess | TkLessEq | TkGreat | TkGreatEq
 
-    --Operadores Aritmeticos
+    --Operadores Aritméticos
     | TkSum | TkDiff | TkMul | TkDivEnt | TkModEnt | TkDiv | TkMod | TkTrans
 
     --Operadores Cruzados 
@@ -291,7 +291,7 @@ alexGetPosition :: Alex AlexPosn
 alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return p
 
 showPosn :: AlexPosn -> String
-showPosn (AlexPn _ line col) = "en la linea " ++ show line ++ ", columna " ++ show col
+showPosn (AlexPn _ line col) = "en la línea " ++ show line ++ ", columna " ++ show col
 
 -- Tokens que dependen del input 
 lex :: (String -> Token) -> AlexAction (Lexeme Token)
@@ -355,4 +355,5 @@ alexMonadScanTokens = do
     AlexToken inp' len action -> do
         alexSetInput inp'
         action (ignorePendingBytes inp) len
+
 }
