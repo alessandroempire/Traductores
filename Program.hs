@@ -45,9 +45,6 @@ import          Statement
 import          TypeId
 import          Token 
 
-import          Text.Show.Pretty
-
 data Program = Program FunctionSeq StatementSeq
 
-instance Show Program where
-    show (Program fun block) = ppShow fun ++ ppShow block
+

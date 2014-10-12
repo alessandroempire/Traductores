@@ -1,8 +1,28 @@
 function
+function
   scale(number s, row(3) r)
   return row(3)
   begin
      return r .*. s;
   end;
+#function
+#  doubleit(number s)
+#  return number
+#  begin
+#    return s*2;
+# end;
 program
+ use
+    number x;
+ in
+    read x;
+
+    set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
+
+    if x < 18 then
+        print "You can't be here.";
+    else
+        print "Oh, ", x, "? come right in.";
+    end;
+    end;
 end;

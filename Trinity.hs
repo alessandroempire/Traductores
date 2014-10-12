@@ -5,6 +5,7 @@ import          System.Exit              (exitFailure, exitSuccess)
 
 import          Lexer
 import          Parser
+import          Printer
 
 main = do
     (fileName : _ ) <- SE.getArgs
