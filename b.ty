@@ -4,12 +4,12 @@ function
   begin
      return r .*. s;
   end;
-#function
-#  doubleit(number s)
-#  return number
-#  begin
-#    return s*2;
-# end;
+function
+  doubleit(number s)
+  return number
+  begin
+    return s*2;
+ end;
 program
  use
     number x;
