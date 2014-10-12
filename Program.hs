@@ -42,9 +42,8 @@ import          Identifier
 import          Lexeme
 import          Position
 import          Statement
-import          TypeId
 import          Token 
+import          TypeId
 
 data Program = Program FunctionSeq StatementSeq
-
 

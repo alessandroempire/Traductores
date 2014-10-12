@@ -17,8 +17,6 @@ import          Prelude       hiding (concatMap, foldr, zip)
 
 }
 
---Por hacer: Impresiones con tabulaciones correctas.
-
 %name parse
 %tokentype { Lexeme Token }
 %monad { Alex }
@@ -124,15 +122,11 @@ import          Prelude       hiding (concatMap, foldr, zip)
 --(Menor Precedencia)
 %left "|"
 %left "&"
+%nonassoc "==" "/=" "<" "<=" ">" ">="
 %right "not"
 
-%nonassoc "==" "/=" "<" "<=" ">" ">="
-
-%left ".+." ".-."
-%left ".*." "./." ".%." ".div." ".mod."
-
-%left "+" "-"
-%left "*" "/" "%" "div" "mod"
+%left "+" "-" ".+." ".-."
+%left "*" "/" "%" "div" "mod" ".*." "./." ".%." ".div." ".mod."
 %left "'"
 %left "["
 %left NEG
@@ -147,9 +141,11 @@ import          Prelude       hiding (concatMap, foldr, zip)
 --------------------------------------------------------
 
 Program :: { Program }
-  : "program" "end" ";"    { Program empty empty }
-  | "program" StatementList ";" "end" ";"    { Program empty $2 }
-  | FunctionList ";" "program" StatementList ";" "end" ";"    { Program $1 $4 }
+  : FunctionSeq "program" StatementSeq "end" ";"    { Program $1 $3 }
+
+FunctionSeq :: { FunctionSeq }
+  :    { empty }
+  | FunctionList ";"    { $1 }
 
 FunctionList :: { FunctionSeq }
   : Function    { singleton $1 }
@@ -157,6 +153,10 @@ FunctionList :: { FunctionSeq }
 
 Function :: { Lexeme Function }
   : "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
+
+StatementSeq :: { StatementSeq }
+  :    { empty }
+  | StatementList ";"   { $1 }
 
 StatementList :: { StatementSeq }
   : Statement    { expandStatement $1 }
@@ -171,19 +171,19 @@ Statement :: { Lexeme Statement }
   | "return" Expression    { StReturn $2 <$ $1 }
   
   --Condicionales
-  | "if" Expression "then" StatementList ";" "else" StatementList ";" "end"    { StIf $2 $4 $7 <$ $1 }
-  | "if" Expression "then" StatementList ";" "end"    { StIf $2 $4 empty <$ $1 }
+  | "if" Expression "then" StatementSeq "else" StatementSeq "end"    { StIf $2 $4 $6 <$ $1 }
+  | "if" Expression "then" StatementSeq "end"    { StIf $2 $4 empty <$ $1 }
   
   --Loops
-  | "for" Id "in" Expression "do" StatementList ";" "end"    { StFor $2 $4 $6 <$ $1 }
-  | "while" Expression "do" StatementList ";" "end"    { StWhile $2 $4 <$ $1 }
+  | "for" Id "in" Expression "do" StatementSeq "end"    { StFor $2 $4 $6 <$ $1 }
+  | "while" Expression "do" StatementSeq "end"    { StWhile $2 $4 <$ $1 }
   
   --I/O
   | "read" Id    { StRead $2 <$ $1 }
   | "print" ExpressionList    { StPrintList $2 <$ $1 }
   
   --Bloques anidados
-  | "use" DeclarationSeq "in" StatementList ";" "end"    { StBlock $2 $4 <$ $1 }
+  | "use" DeclarationSeq "in" StatementSeq "end"    { StBlock $2 $4 <$ $1 }
 
 DeclarationSeq :: { DeclarationSeq }
   :    { empty }
@@ -217,35 +217,11 @@ MatrixList :: { [Seq (Lexeme Expression)] }
   : ExpressionList    { [$1] }
   | MatrixList ":" ExpressionList    { $1 ++ [$3] }
 
-Number :: { Lexeme Double }
-  : num    { unTkNumber `fmap` $1 }
-
-Bool :: { Lexeme Bool } 
-  : "true"    { unTkBoolean `fmap` $1 }
-  | "false"    { unTkBoolean `fmap` $1 }
-
-String :: { Lexeme String }
-  : string    { unTkString `fmap` $1 }
-
-Access :: { Lexeme Access }
-  : Id    { VariableAccess $1 <$ $1 }
-  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
-
-Id :: { Lexeme Identifier }
-  : id    { unTkId `fmap` $1 }
-
-TypeId :: { Lexeme TypeId }
-  : "boolean"    { Bool <$ $1 }
-  | "number"    { Double <$ $1 }
-  | "matrix" "(" Expression "," Expression ")"    { Matrix $3 $5 <$ $1 }             
-  | "row" "(" Expression ")"    { Row $3 <$ $1 }
-  | "col" "(" Expression ")"    { Col $3 <$ $1 }
-
 Expression :: { Lexeme Expression }
   : Number    { LitNumber $1 <$ $1 }
   | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
-  | Id  { VariableId $1 <$ $1 }
+  | Id    { VariableId $1 <$ $1 }
   | "{" MatrixList "}"    { LitMatrix $2 <$ $1 }
   | Expression "+" Expression    { ExpBinary (OpSum <$ $2) $1 $3 <$ $1 }
   | Expression "-" Expression    { ExpBinary (OpDiff <$ $2) $1 $3 <$ $1 }
@@ -275,10 +251,36 @@ Expression :: { Lexeme Expression }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
+Number :: { Lexeme Double }
+  : num    { unTkNumber `fmap` $1 }
+
+Bool :: { Lexeme Bool } 
+  : "true"    { unTkBoolean `fmap` $1 }
+  | "false"    { unTkBoolean `fmap` $1 }
+
+String :: { Lexeme String }
+  : string    { unTkString `fmap` $1 }
+
+Access :: { Lexeme Access }
+  : Id    { VariableAccess $1 <$ $1 }
+  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
+
+Id :: { Lexeme Identifier }
+  : id    { unTkId `fmap` $1 }
+
+TypeId :: { Lexeme TypeId }
+  : "boolean"    { Bool <$ $1 }
+  | "number"    { Double <$ $1 }
+  | "matrix" "(" Expression "," Expression ")"    { Matrix $3 $5 <$ $1 }             
+  | "row" "(" Expression ")"    { Row $3 <$ $1 }
+  | "col" "(" Expression ")"    { Col $3 <$ $1 }
+
 {
+
 --------------------------------------------------------
 -- Codigo Haskell
 --------------------------------------------------------
+
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
@@ -293,4 +295,5 @@ parseError (Lex t p) = fail $ "Error de Sintaxis, Token: " ++
 
 parseProgram :: String ->  (Seq LexicalError, Program)
 parseProgram input = runAlex' input parse
+
 }

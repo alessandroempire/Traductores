@@ -19,3 +19,4 @@ instance Functor Lexeme where
 
 fillLex :: a -> Lexeme a
 fillLex lex = Lex lex defaultPosn
+

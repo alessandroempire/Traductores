@@ -18,3 +18,4 @@ data Function = Function (Lexeme Identifier) DeclarationSeq (Lexeme TypeId) Stat
 
 instance Show Function where
     show (Function idnL _ _ _) = "function " ++ lexInfo idnL 
+

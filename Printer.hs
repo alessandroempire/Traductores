@@ -17,7 +17,7 @@ instance Show Program where
 
 type Printer a = StateT Tabs (Writer (Seq String)) a
 
---------------------------------------------------------------------------------
+----------------------------------------
 -- State
 
 type Tabs = Int
@@ -76,14 +76,14 @@ printStatement (Lex st posn) = case st of
 --    StNoop ->
 
     StAssign acc exp -> do
-        printString $ "Asignacion"
+        printString $ "Asignación "
         raiseTabs
         printAccess acc
         printExpression exp
         lowerTabs
 
     StFunctionCall id exp -> do
-        printString $ "LLamada a funcion "
+        printString $ "LLamada a función "
         raiseTabs
         printString $ "Identificador " ++ show id
         mapM_ printExpression exp
@@ -108,7 +108,7 @@ printStatement (Lex st posn) = case st of
         lowerTabs
 
     StPrintList exp -> do
-        printString $ "Print una sequencia"
+        printString $ "Print (Seq) "
         raiseTabs
         mapM_ printExpression exp
         lowerTabs
@@ -122,7 +122,7 @@ printStatement (Lex st posn) = case st of
         lowerTabs
 
     StFor id exp st -> do
-        printString $ "Ciclo for "
+        printString $ "Ciclo determinado "
         raiseTabs
         printString $ "identificador " ++ show id
         printExpression exp
@@ -130,7 +130,7 @@ printStatement (Lex st posn) = case st of
         lowerTabs
 
     StWhile exp st -> do
-        printString $ "Ciclo while "
+        printString $ "Ciclo indeterminado "
         raiseTabs
         printExpression exp
         mapM_ printStatement st
@@ -147,9 +147,9 @@ printFunction :: Lexeme Function -> Printer ()
 printFunction (Lex st posn) = case st of 
 
     Function iden dec typ st -> do
-        printString $ "Definicion de Funcion" 
+        printString $ "Definicion de Función " 
         raiseTabs
-        printString $ "Funcion: " ++ show iden
+        printString $ "Función: " ++ show iden
         mapM_ printDeclaration dec
         printString $ "Tipo " ++ show typ
         mapM_ printStatement st
@@ -158,18 +158,18 @@ printFunction (Lex st posn) = case st of
 printDeclaration :: Lexeme Declaration -> Printer ()
 printDeclaration (Lex st posn) = case st of 
     Dcl ty id -> do
-        printString $ "Declaracion "
+        printString $ "Declaración "
         raiseTabs
         printTypeId ty
         printString $ "Identificador " ++ show id
         lowerTabs
 
     DclInit ty id exp -> do
-        printString $ "Declaracion "
+        printString $ "Declaración "
         raiseTabs
         printTypeId ty
         printString $ "Identificador " ++ show id
-        printExpressionTag "valor " exp
+        printExpressionTag "valor inicial " exp
         lowerTabs
  
 printExpression :: Lexeme Expression -> Printer ()
@@ -187,14 +187,14 @@ printExpression (Lex st posn )= case st of
         lowerTabs
     
     Proy exp1 exp2 -> do
-        printString $ "Proyeccion"
+        printString $ "Proyección "
         raiseTabs
         printExpression exp1
         mapM_ printExpression exp2
         lowerTabs
 
     ExpBinary op e1 e2 -> do
-        printString $ "Operacion Binaria "
+        printString $ "Operación Binaria "
         raiseTabs
         printString $ "Operador " ++ show (lexInfo op)
         printExpressionTag "Operador izquierdo " e1
@@ -202,9 +202,9 @@ printExpression (Lex st posn )= case st of
         lowerTabs
 
     ExpUnary op e1 -> do
-        printString $ "Operacion Unaria"
+        printString $ "Operación Unaria"
         raiseTabs
-        printString $ "operador " ++ show (lexInfo op)
+        printString $ "Operador " ++ show (lexInfo op)
         printExpressionTag "Operador" e1
         lowerTabs
        
@@ -217,10 +217,10 @@ printExpressionTag tag exp = do
    
 printAccess :: Lexeme Access -> Printer ()
 printAccess (Lex st posn )= case st of
-    VariableAccess id -> printString $ "variable asignada " ++ show (lexInfo id)
+    VariableAccess id -> printString $ "Variable asignada " ++ show (lexInfo id)
     
     MatrixAccess id exp -> do
-        printString $ "variable asignada matriz "
+        printString $ "Variable asignada (matriz) "
         raiseTabs
         printString $ "Identificador " ++ show id
         mapM_ printExpression exp
@@ -229,7 +229,7 @@ printAccess (Lex st posn )= case st of
 printTypeId :: Lexeme TypeId -> Printer ()
 printTypeId (Lex st posn) = case st of
     Bool   -> printString $ "Tipo Bool "
-    Double -> printString $ "Tipo Double "
+    Double -> printString $ "Tipo Number "
 
     Matrix exp1 exp2 -> do
         printString $ "Tipo Matrix "
@@ -245,7 +245,7 @@ printTypeId (Lex st posn) = case st of
         lowerTabs
 
     Col exp1 -> do
-        printString $ "Tipo Columnn "
+        printString $ "Tipo Col "
         raiseTabs
         printExpression exp1
         lowerTabs

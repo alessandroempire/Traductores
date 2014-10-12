@@ -18,7 +18,7 @@ cabal-version:       >=1.8
 executable Trinity
   main-is: Trinity.hs
   other-modules: Lexer, Parser, Declaration, Expression, Function, 
-                 Identifier, Lexeme, Position, Program, Statement, 
+                 Identifier, Lexeme, Position, Printer, Program, Statement, 
                  Token, TypeId
-  build-depends: base ==4.6.*, containers ==0.5.*, array ==0.4.*, directory
+  build-depends: base ==4.6.*, containers ==0.5.*, array ==0.4.*, directory, mtl
   build-tools: alex, happy

@@ -26,3 +26,4 @@ row (Posn (r,_)) = r
 
 col :: Position -> Int
 col (Posn (_,c)) = c
+

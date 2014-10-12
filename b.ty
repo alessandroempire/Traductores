@@ -1,5 +1,4 @@
 function
-function
   scale(number s, row(3) r)
   return row(3)
   begin
@@ -20,9 +19,9 @@ program
     set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
 
     if x < 18 then
-        print "You can't be here.";
+    
     else
         print "Oh, ", x, "? come right in.";
     end;
-    end;
+ end;
 end;

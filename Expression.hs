@@ -36,7 +36,6 @@ instance Show Expression where
         ExpUnary opL expL   -> "Operador Unario: " ++ show (lexInfo opL) ++ " " 
                                 ++ show (lexInfo expL)
 
-
 data Access 
     = VariableAccess (Lexeme Identifier)
     | MatrixAccess (Lexeme Identifier) (Seq (Lexeme Expression))
@@ -88,3 +87,4 @@ instance Show Unary where
         OpNegative   -> "-"
         OpNot        -> "not"
         OpTranspose  -> "transpose"
+

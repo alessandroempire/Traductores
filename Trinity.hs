@@ -1,11 +1,10 @@
+import          Lexer
+import          Parser
+import          Printer
 
 import          System.Environment as SE
 import          Data.Sequence      as DS (null)
 import          System.Exit              (exitFailure, exitSuccess)
-
-import          Lexer
-import          Parser
-import          Printer
 
 main = do
     (fileName : _ ) <- SE.getArgs
@@ -18,3 +17,4 @@ main = do
         else do
             print errors
             exitFailure
+

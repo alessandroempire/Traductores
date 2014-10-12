@@ -20,3 +20,4 @@ instance Show TypeId where
                             ++ show (lexInfo exp2)
         Row exp         -> "Row" ++ show (lexInfo exp)
         Col exp         -> "Col" ++ show (lexInfo exp)
+

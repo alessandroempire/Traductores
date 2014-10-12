@@ -113,3 +113,4 @@ instance Show Token where
         TkBoolean b      -> "literal 'Bool' " ++ show b
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
+
