@@ -4,14 +4,15 @@ module Parser
     ) 
     where
 
+import          Lexer
+import          Program
+
 import          Control.Monad (unless)
 import          Data.Functor ((<$>),(<$))
 import          Data.Maybe (fromJust, isJust)
 import          Data.Sequence hiding (length)
 import          Data.Foldable (concatMap)
 import          Prelude hiding (concatMap, foldr, zip)
-
-import          Lexer
 
 }
 
@@ -161,7 +162,7 @@ StatementList :: { StatementSeq }
   | StatementList ";" Statement    { $1 >< expandStatement $3 }
 
 Statement :: { Lexeme Statement }
-  --Asignacion
+  --Asignación
   : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
   
   --Instrucciones de funciones
@@ -277,7 +278,7 @@ Expression :: { Lexeme Expression }
 -- Codigo Haskell
 --------------------------------------------------------
 {
------------------------------------------------------------------------------
+
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps

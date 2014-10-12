@@ -1,44 +1,50 @@
 module Program
     ( Program(..)
 
-    -- From lexeme
+    -- Lexeme
     , Lexeme(..)
     , Position(..)
     , defaultPosn
 
-    -- From Tokens
+    -- Token
     , Token(..)
 
     -- Identifier
     , Identifier
 
+    -- TypeId
+    , TypeId(..)
+
     -- Expression
     , Expression(..)
     , Access(..)
-    , TypeId(..)
     , Binary(..)
     , Unary(..)
 
-    -- From declaration
+    -- Declaration
     , Declaration(..)
     , DeclarationSeq
 
-    -- From Statements
+    -- Statements
     , Statement(..)
     , StatementSeq
 
-    -- From Function
+    -- Function
     , Function(..)
     , FunctionSeq
     ) where
 
+import          Declaration
+import          Expression
+import          Function
+import          Identifier
 import          Lexeme
 import          Position
-import          Tokens    
-import          Identifier
-import          Expression
-import          Declaration
-import          Statements
-import          Function
+import          Statement
+import          TypeId
+import          Token 
 
 data Program = Program FunctionSeq StatementSeq
+
+instance Show Program where
+    show (Program funS stB) = "Programa correcto..."

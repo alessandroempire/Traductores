@@ -1,12 +1,12 @@
-module Statements
+module Statement
     ( Statement(..)
     , StatementSeq
     ) where
 
-import          Lexeme
-import          Identifier
-import          Expression
 import          Declaration
+import          Expression
+import          Identifier
+import          Lexeme
 
 import          Data.Sequence (Seq)
 import          Data.Foldable (concatMap)

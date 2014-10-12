@@ -4,11 +4,12 @@ module Function
     ) where
 
 
-import          Lexeme
-import          Identifier
-import          Expression
 import          Declaration
-import          Statements
+import          Expression
+import          Identifier
+import          Lexeme
+import          Statement
+import          TypeId
 
 import          Data.Sequence (Seq)
 

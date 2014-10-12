@@ -1,4 +1,4 @@
-module Tokens
+module Token
     ( Token(..)
     ) where
 

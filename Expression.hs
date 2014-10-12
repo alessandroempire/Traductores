@@ -1,13 +1,12 @@
 module Expression
     ( Expression(..)
     , Access(..)
-    , TypeId(..)
     , Binary(..)
     , Unary(..)
     ) where
 
-import          Lexeme
 import          Identifier
+import          Lexeme
 
 import          Data.Sequence (Seq)
 import          Data.Foldable (concatMap)
@@ -46,22 +45,6 @@ instance Show Access where
     show acc = case acc of
         VariableAccess idnL     -> lexInfo idnL
         MatrixAccess idnL expLs -> lexInfo idnL ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"
-
-data TypeId 
-    = Bool 
-    | Double
-    | Matrix (Lexeme Expression) (Lexeme Expression)
-    | Row (Lexeme Expression)
-    | Col (Lexeme Expression) 
-
-instance Show TypeId where
-    show t = case t of
-        Bool            -> "Bool"
-        Double          -> "Number"
-        Matrix exp exp2 -> "Matrix" ++ show (lexInfo exp) 
-                            ++ show (lexInfo exp2)
-        Row exp         -> "Row" ++ show (lexInfo exp)
-        Col exp         -> "Col" ++ show (lexInfo exp)
 
 data Binary
     = OpSum | OpDiff | OpMul | OpDivEnt | OpModEnt | OpDiv | OpMod
