@@ -1179,6 +1179,7 @@ action_91 (10) = happyGoto action_13
 action_91 (24) = happyGoto action_14
 action_91 _ = happyReduce_7
 
+action_92 (69) = happyShift action_81
 action_92 _ = happyReduce_65
 
 action_93 (43) = happyShift action_65

@@ -127,11 +127,11 @@ import          Prelude       hiding (concatMap, foldr, zip)
 
 %left "+" "-" ".+." ".-."
 %left "*" "/" "%" "div" "mod" ".*." "./." ".%." ".div." ".mod."
-%left "'"
 %left "["
-%left NEG
+%right NEG
 
-%nonassoc MAX
+%left "'"
+%left MAX
 --(Mayor Precedencia)
 
 %%
