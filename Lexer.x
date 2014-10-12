@@ -7,12 +7,11 @@ module Lexer
     , LexicalError
     , runAlex'
     , alexMonadScanTokens
-    , fillLex
     ) 
     where
 
 import          Lexeme
-import          Tokens
+import          Token
 
 import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
@@ -155,9 +154,6 @@ data LexicalError = LexicalError { lexicalErrorPos  :: Position,
 instance Show LexicalError where 
     show (LexicalError pos char) = "Error Léxico: " ++ show pos 
                                    ++ " " ++ show char
-
-fillLex :: a -> Lexeme a
-fillLex lex = Lex lex defaultPosn
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUSt empty

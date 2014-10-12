@@ -3,7 +3,7 @@ module Position
     , defaultPosn
     ) where
 
--- Position (Row, Column)
+-- Position(Row, Column)
 newtype Position = Posn (Int, Int)
     deriving (Bounded, Eq)
 
@@ -15,8 +15,8 @@ instance Ord Position where
 
 instance Show Position where
     show (Posn tuple) = case tuple of
-        (r,0) -> "linea " ++ show r
-        (r,c) -> "linea " ++ show r ++ " fila " ++ show c
+        (r,0) -> "línea " ++ show r
+        (r,c) -> "línea " ++ show r ++ ", columna " ++ show c
 
 defaultPosn :: Position
 defaultPosn = Posn (0,0)

@@ -3,9 +3,10 @@ module Declaration
     , DeclarationSeq
     ) where
 
-import          Lexeme
-import          Identifier
 import          Expression
+import          Identifier
+import          Lexeme
+import          TypeId
 
 import          Data.Sequence (Seq)
 
