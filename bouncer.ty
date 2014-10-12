@@ -10,7 +10,7 @@ function
   begin
     return s*2;
  end;
-program # algo loco
+program
  use
     number x;
  in
@@ -23,5 +23,4 @@ program # algo loco
     else
         print "Oh, ", x, "? come right in.";
     end;
- end;
 end;

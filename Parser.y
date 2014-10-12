@@ -4,14 +4,15 @@ module Parser
     ) 
     where
 
-import          Control.Monad (unless)
-import          Data.Functor ((<$>),(<$))
-import          Data.Maybe (fromJust, isJust)
+import          Control.Monad        (unless)
+import          Data.Functor         ((<$>),(<$))
+import          Data.Maybe           (fromJust, isJust)
+import          Data.Foldable        (concatMap)
 import          Data.Sequence hiding (length)
-import          Data.Foldable (concatMap)
-import          Prelude hiding (concatMap, foldr, zip)
+import          Prelude       hiding (concatMap, foldr, zip)
 
 import          Lexer
+import          Program
 
 }
 
@@ -273,11 +274,10 @@ Expression :: { Lexeme Expression }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
+{
 --------------------------------------------------------
 -- Codigo Haskell
 --------------------------------------------------------
-{
------------------------------------------------------------------------------
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
@@ -292,5 +292,4 @@ parseError (Lex t p) = fail $ "Error de Sintaxis, Token: " ++
 
 parseProgram :: String ->  (Seq LexicalError, Program)
 parseProgram input = runAlex' input parse
-
 }

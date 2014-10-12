@@ -1,6 +1,7 @@
 module Statements
     ( Statement(..)
     , StatementSeq
+
     ) where
 
 import          Lexeme
@@ -39,3 +40,5 @@ instance Show Statement where
         StWhile expL _            -> "while " ++ show (lexInfo expL) ++ "do .. end"
         StBlock dclLs stLs        -> "use" ++ concatMap (show . lexInfo) dclLs ++ 
                                       "in" ++  concatMap ( show . lexInfo) stLs ++ "end"
+
+                                     

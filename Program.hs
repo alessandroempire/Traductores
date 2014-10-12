@@ -26,10 +26,11 @@ module Program
     -- From Statements
     , Statement(..)
     , StatementSeq
-
+    
     -- From Function
     , Function(..)
     , FunctionSeq
+
     ) where
 
 import          Lexeme
@@ -41,4 +42,9 @@ import          Declaration
 import          Statements
 import          Function
 
+import          Text.Show.Pretty
+
 data Program = Program FunctionSeq StatementSeq
+
+instance Show Program where
+    Show (Program fun block) = ppShow fun ++ ppShow block
