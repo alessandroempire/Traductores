@@ -16,8 +16,7 @@ import          Prelude       hiding(concatMap)
 type StatementSeq = Seq (Lexeme Statement)
 
 data Statement
-    = StNoop
-    | StAssign (Lexeme Access) (Lexeme Expression)
+    = StAssign (Lexeme Access) (Lexeme Expression)
     | StFunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | StReturn (Lexeme Expression)
     | StRead (Lexeme Identifier)
