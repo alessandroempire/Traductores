@@ -41,7 +41,6 @@ modifyStack :: (a -> a) -> Stack a -> Stack a
 modifyStack _ (Stack [])       = Stack[]
 modifyStack f (Stack (x : xs)) = Stack(f x : xs)
 
-
 ------------------------------------------------------
 
 emptyStack :: Stack a
