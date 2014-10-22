@@ -46,4 +46,3 @@ import          Token
 import          TypeId
 
 data Program = Program FunctionSeq StatementSeq
-
