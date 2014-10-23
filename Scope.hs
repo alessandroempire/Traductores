@@ -1,7 +1,13 @@
 module Scope 
-    (
-    ) where
+    ( Scope(..)
+    , ScopeNum
 
+    , topScope
+    , langScope
+
+    , topScopeNum
+    ,langScopeNum
+    ) where
 
 newtype Scope = Scope {serial :: ScopeNum }
     deriving(Eq)
@@ -17,7 +23,6 @@ topScope = Scope {serial = topScopeNum }
 -- tiene valor default 0
 langScope :: Scope
 langScope = Scope {serial = langScopeNum}
-
 
 -------------------------------------------------------------
 type ScopeNum  = Int
