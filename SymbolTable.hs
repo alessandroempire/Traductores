@@ -11,9 +11,9 @@ import qualified Data.Map.Strict as Map (Map, alter, empty,
                                          lookup, toList)
 import           Data.Sequence (Seq)
 
-data SymbolTable' a = SymTable
+newtype SymbolTable' a = SymTable
     { getMap :: Map.Map Identifier a
-    } deriving (Functor)
+    } 
 
 type SymbolTable = SymbolTable' (Seq Symbol)
 
@@ -22,18 +22,18 @@ type SymbolTable = SymbolTable' (Seq Symbol)
 
 data Symbol = 
     SymInfo
-        { dataType   :: Lexeme DataType
+        { dataType   :: Lexeme TypeId
         , scopeStack :: Stack Scope
         , defPosn    :: Position
         }
     | SymType
-        { dataType   :: Lexeme DataType
+        { dataType   :: Lexeme TypeId
         , scopeStack :: Stack Scope
         , defPosn    :: Position
         }
     | SymFunction
-        { paramTypes :: Seq (Lexeme DataType)
-        , returnType :: Lexeme DataType
+        { paramTypes :: Seq (Lexeme TypeId)
+        , returnType :: Lexeme TypeId
         , body       :: Function
         , scopeStack :: Stack Scope
         , defPosn    :: Position
@@ -57,9 +57,18 @@ emptySymFunction= undefined
 
 -----------------------------------------------------------
 
---Insertar un symbol
+-- Insertar un symbol
 insert :: Identifier -> SymbolTable -> SymbolTable
 insert = undefined
 
+-- Buscar el simbolo
 lookup :: Identifier -> SymbolTable -> Maybe Symbol
 lookup = undefined
+
+-- Buscar el simbolo con un alcance especificado
+lookupWithScope :: Identifier -> Stack Scope -> SymbolTable -> Maybe Symbol
+lookupWithScope = undefined
+
+-- Retorna todos los simbolos
+allSymbols :: SymbolTable -> Seq (Identifier, Symbol)
+allSymbols = undefined
