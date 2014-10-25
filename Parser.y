@@ -152,7 +152,7 @@ FunctionList :: { FunctionSeq }
   | FunctionList ";" Function    { $1 |> $3 }
 
 Function :: { Lexeme Function }
-  : "function" Id "(" MaybeSignature ")" "return" TypeId "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
+  : "function" Id "(" MaybeSignature ")" "return" DataType "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
 
 StatementSeq :: { StatementSeq }
   :    { empty }
@@ -202,8 +202,8 @@ Signature :: { DeclarationSeq }
   | Signature "," Declaration    { $1 |> $3 }
 
 Declaration :: { Lexeme Declaration }
-  : TypeId Id   { Dcl $1 $2 <$ $1 }
-  | TypeId Id "=" Expression   { DclInit $1 $2 $4 <$ $1 }
+  : DataType Id   { Dcl $1 $2 <$ $1 }
+  | DataType Id "=" Expression   { DclInit $1 $2 $4 <$ $1 }
   
 MaybeExpressionList :: { Seq (Lexeme Expression) }
   :    { empty }
@@ -268,7 +268,7 @@ Access :: { Lexeme Access }
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
 
-TypeId :: { Lexeme TypeId }
+DataType :: { Lexeme DataType }
   : "boolean"    { Bool <$ $1 }
   | "number"    { Double <$ $1 }
   | "matrix" "(" Expression "," Expression ")"    { Matrix $3 $5 <$ $1 }             

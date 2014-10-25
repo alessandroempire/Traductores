@@ -12,8 +12,8 @@ module Program
     -- Identifier
     , Identifier
 
-    -- TypeId
-    , TypeId(..)
+    -- DataType
+    , DataType(..)
 
     -- Expression
     , Expression(..)
@@ -43,6 +43,6 @@ import          Lexeme
 import          Position
 import          Statement
 import          Token 
-import          TypeId
+import          DataType
 
 data Program = Program FunctionSeq StatementSeq

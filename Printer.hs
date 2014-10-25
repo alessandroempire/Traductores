@@ -160,14 +160,14 @@ printDeclaration (Lex st posn) = case st of
     Dcl ty id -> do
         printString $ "Declaración "
         raiseTabs
-        printTypeId ty
+        printDataType ty
         printString $ "Identificador " ++ show id
         lowerTabs
 
     DclInit ty id exp -> do
         printString $ "Declaración "
         raiseTabs
-        printTypeId ty
+        printDataType ty
         printString $ "Identificador " ++ show id
         printExpressionTag "valor inicial " exp
         lowerTabs
@@ -226,8 +226,8 @@ printAccess (Lex st posn )= case st of
         mapM_ printExpression exp
         lowerTabs
 
-printTypeId :: Lexeme TypeId -> Printer ()
-printTypeId (Lex st posn) = case st of
+printDataType :: Lexeme DataType -> Printer ()
+printDataType (Lex st posn) = case st of
     Bool   -> printString $ "Tipo Bool "
     Double -> printString $ "Tipo Number "
 

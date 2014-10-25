@@ -1,18 +1,18 @@
-module TypeId
-    ( TypeId(..)
+module DataType
+    ( DataType(..)
     ) where
 
 import          Expression
 import          Lexeme
 
-data TypeId 
+data DataType 
     = Bool 
     | Double
     | Matrix (Lexeme Expression) (Lexeme Expression)
     | Row (Lexeme Expression)
     | Col (Lexeme Expression)
 
-instance Show TypeId where
+instance Show DataType where
     show t = case t of
         Bool            -> "Bool"
         Double          -> "Number"

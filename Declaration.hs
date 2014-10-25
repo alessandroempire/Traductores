@@ -6,15 +6,15 @@ module Declaration
 import          Expression
 import          Identifier
 import          Lexeme
-import          TypeId
+import          DataType
 
 import          Data.Sequence (Seq)
 
 type DeclarationSeq = Seq (Lexeme Declaration)    
 
 data Declaration 
-    = Dcl (Lexeme TypeId) (Lexeme Identifier)
-    | DclInit (Lexeme TypeId) (Lexeme Identifier) (Lexeme Expression)
+    = Dcl (Lexeme DataType) (Lexeme Identifier)
+    | DclInit (Lexeme DataType) (Lexeme Identifier) (Lexeme Expression)
 
 instance Show Declaration where
     show dcl = case dcl of
