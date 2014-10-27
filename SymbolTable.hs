@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE OverlappingInstances #-}
 
 module SymbolTable
     ( SymbolTable
@@ -10,6 +12,7 @@ module SymbolTable
     , update
     , updateWithScope
     , toSeq
+    , fromSeq
     , Symbol(..)
     , scope
     , emptySymInfo
@@ -39,10 +42,10 @@ import qualified Prelude as P (fmap)
 type SymbolTable = Map.Map Identifier (Map.Map Scope Symbol)
 
 instance Show SymbolTable where
-    show = showTable 0
+    show tb = showTable 0 tb
 
 showTable :: Int -> SymbolTable -> String
-showTable t tab = tabs ++ "Tabla de Símbolos:\n" ++ concatMap (++ ("\n" ++ tabs)) showSymbols
+showTable t tab = tabs ++ "Tabla de Simbolos:\n" ++ concatMap (++ ("\n" ++ tabs)) showSymbols
     where
         allSyms :: [(Identifier, Symbol)]
         allSyms = toList $ toSeq tab
@@ -160,14 +163,13 @@ symbolCategory sym = case sym of
 member :: Identifier -> Stack Scope -> SymbolTable -> Bool
 member id scps = isJust . lookupWithScope id scps
 
--- Inserta un símbolo en la Tabla de Símbolos
 insert :: Identifier -> Symbol -> SymbolTable -> SymbolTable
 insert id sym tab = if Map.member id tab
     then Map.adjust inner id tab
     else Map.insert id (Map.singleton scp sym) tab
     where
         inner scpTab = if Map.member scp scpTab
-            then error "SymbolTable.insert: Símbolo previamente insertado en la Tabla de Símbolos"
+            then error "SymbolTable.insert: Simbolo previamente insertado en la Tabla de Simbolos"
             else Map.insert scp sym scpTab
         scp = scope sym
 
@@ -182,7 +184,7 @@ lookupWithScope id scps tab = do
 update :: Identifier -> (Symbol -> Symbol) -> SymbolTable -> SymbolTable
 update id f tab = if Map.member id tab
     then Map.adjust (P.fmap f) id tab
-    else error "SymbolTable.update: Actualizando un símbolo inexistente en la Tabla de Símbolos"
+    else error "SymbolTable.update: Actualizando un simbolo inexistente en la Tabla de Simbolos"
 
 updateWithScope :: Identifier -> Stack Scope -> (Symbol -> Symbol) -> SymbolTable -> SymbolTable
 updateWithScope id scps f tab = Map.adjust func id tab
@@ -191,10 +193,18 @@ updateWithScope id scps f tab = Map.adjust func id tab
             where
                 updateSym scp = Map.adjust f scp scpTab
                 condition scp = Map.member scp scpTab
-                tellError = error "SymbolTable.updateWithScope: Actualizando un símbolo inexistente en la Tabla de Símbolos"
+                tellError = error "SymbolTable.updateWithScope: Actualizando un simbolo inexistente en la Tabla de Simbolos"
 
 toSeq :: SymbolTable -> Seq (Identifier, Symbol)
 toSeq = fromList . expand . Map.toList
     where
-        expand   = concatMap (\(id, syms) -> zip (repeat id) (toList syms))
+        expand = concatMap (\(id, syms) -> zip (repeat id) (toList syms))
+        sortIt = sortBy comp
+        comp x y = case compOn symbolCategory x y of
+          EQ -> compOn defPosn x y
+          other -> other
+        compOn f = compare `on` (f . snd)
+
+fromSeq :: Seq (Identifier, Symbol) -> SymbolTable
+fromSeq = foldr (uncurry insert) emptyTable
 
