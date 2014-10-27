@@ -231,21 +231,21 @@ printDataType (Lex st posn) = case st of
     Bool   -> printString $ "Tipo Bool "
     Double -> printString $ "Tipo Number "
 
-    Matrix exp1 exp2 -> do
+    Matrix sizeR sizeC -> do
         printString $ "Tipo Matrix "
         raiseTabs
-        printExpression exp1
-        printExpression exp2
+--        printString sizeR
+--        printString sizeC
         lowerTabs
 
     Row exp1 -> do
         printString $ "Tipo Row "
         raiseTabs
-        printExpression exp1
+--        printString exp1
         lowerTabs
 
     Col exp1 -> do
         printString $ "Tipo Col "
         raiseTabs
-        printExpression exp1
+--        printString exp1
         lowerTabs

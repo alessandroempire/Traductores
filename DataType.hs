@@ -2,31 +2,35 @@ module DataType
     ( DataType(..)
     ) where
 
-import          Expression
 import          Lexeme
+
+import          Data.Function (on)
 
 data DataType 
     = Bool 
     | Double
-    | Matrix (Lexeme Expression) (Lexeme Expression)
-    | Row (Lexeme Expression)
-    | Col (Lexeme Expression)
+    | Matrix (Lexeme Double) (Lexeme Double)
+    | Row (Lexeme Double)
+    | Col (Lexeme Double)
 
 instance Show DataType where
     show t = case t of
         Bool            -> "Bool"
         Double          -> "Number"
-        Matrix exp exp2 -> "Matrix" ++ show (lexInfo exp) 
-                            ++ show (lexInfo exp2)
-        Row exp         -> "Row" ++ show (lexInfo exp)
-        Col exp         -> "Col" ++ show (lexInfo exp)
+        Matrix sizeR sizeC -> "Matrix" ++ show (lexInfo sizeR) 
+                            ++ show (lexInfo sizeC)
+        Row size         -> "Row" ++ show (lexInfo size)
+        Col size         -> "Col" ++ show (lexInfo size)
 
-{-
-instance Eq TypeId where
+instance Eq DataType where
     a == b = case (a,b) of
-        (Bool, Bool)            -> True
-        (Double, Double)        -> True
-        (Matrix, Matrix)        -> True
-        (Row, Row)              -> True
-        (Col, Col)              -> True
-        -}
+        (Bool, Bool)                           -> True
+        (Double, Double)                       -> True
+        (Matrix rowA colA, Matrix rowB colB)   -> (check rowA rowB) && (check colA colB)
+        (Row sizeA, Row sizeB)                 -> check sizeA sizeB
+        (Col sizeA, Col sizeB)                 -> check sizeA sizeB
+        _                                      -> False
+        where
+            check :: Eq a => Lexeme a -> Lexeme a -> Bool
+            check = (==) `on` lexInfo       
+

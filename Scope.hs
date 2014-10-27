@@ -1,10 +1,8 @@
 module Scope 
     ( Scope(..)
     , ScopeNum
-
     , topScope
     , langScope
-
     , topScopeNum
     ,langScopeNum
     ) where
@@ -24,7 +22,6 @@ topScope = Scope {serial = topScopeNum }
 langScope :: Scope
 langScope = Scope {serial = langScopeNum}
 
--------------------------------------------------------------
 type ScopeNum  = Int
 
 topScopeNum :: ScopeNum

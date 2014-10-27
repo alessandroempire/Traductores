@@ -15,6 +15,7 @@ type DeclarationSeq = Seq (Lexeme Declaration)
 data Declaration 
     = Dcl (Lexeme DataType) (Lexeme Identifier)
     | DclInit (Lexeme DataType) (Lexeme Identifier) (Lexeme Expression)
+    | DclParam (Lexeme DataType) (Lexeme Identifier)
 
 instance Show Declaration where
     show dcl = case dcl of

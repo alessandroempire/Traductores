@@ -198,12 +198,15 @@ MaybeSignature :: { DeclarationSeq }
   | Signature    { $1 }
 
 Signature :: { DeclarationSeq }
-  : Declaration    { singleton $1 }
-  | Signature "," Declaration    { $1 |> $3 }
+  : Parameter    { singleton $1 }
+  | Signature "," Parameter    { $1 |> $3 }
 
 Declaration :: { Lexeme Declaration }
   : DataType Id   { Dcl $1 $2 <$ $1 }
   | DataType Id "=" Expression   { DclInit $1 $2 $4 <$ $1 }
+
+Parameter :: { Lexeme Declaration }
+  : DataType Id { DclParam $1 $2 <$ $1 }
   
 MaybeExpressionList :: { Seq (Lexeme Expression) }
   :    { empty }
@@ -271,9 +274,9 @@ Id :: { Lexeme Identifier }
 DataType :: { Lexeme DataType }
   : "boolean"    { Bool <$ $1 }
   | "number"    { Double <$ $1 }
-  | "matrix" "(" Expression "," Expression ")"    { Matrix $3 $5 <$ $1 }             
-  | "row" "(" Expression ")"    { Row $3 <$ $1 }
-  | "col" "(" Expression ")"    { Col $3 <$ $1 }
+  | "matrix" "(" Number "," Number ")"    { Matrix $3 $5 <$ $1 }             
+  | "row" "(" Number ")"    { Row $3 <$ $1 }
+  | "col" "(" Number ")"    { Col $3 <$ $1 }
 
 {
 

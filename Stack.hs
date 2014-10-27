@@ -4,6 +4,8 @@ module Stack
     , pop
     , push 
     , modifyStack
+    , topStack
+    , globalStack
     , emptyStack
     , singletonStack
     ) where 
@@ -27,24 +29,28 @@ instance Foldable Stack where
     foldr f b (Stack s) = P.foldr f b s
 
 top :: Stack a -> a
-top (Stack [])       = error "SymbolTable.top: Empty stack"
+top (Stack [])       = error "Stack.top: Empty stack"
 top (Stack (x : _ )) = x
 
 push :: a -> Stack a -> Stack a
 push element (Stack s) = Stack $ element : s
 
 pop :: Stack a -> Stack a
-pop (Stack [])      = error "SymbolTable.pop: Empty stack"
+pop (Stack [])      = error "Stack.pop: Empty stack"
 pop (Stack (_ : s)) = Stack s
 
 modifyStack :: (a -> a) -> Stack a -> Stack a
 modifyStack _ (Stack [])       = Stack[]
 modifyStack f (Stack (x : xs)) = Stack(f x : xs)
 
-------------------------------------------------------
+topStack :: Stack Scope
+topStack = push topScope globalStack
+
+globalStack :: Stack Scope
+globalStack = push globalScope langStack
 
 emptyStack :: Stack a
 emptyStack = Stack [ ]
 
 singletonStack :: a -> Stack a
-singletonStack x = Stack [ x ] 
+singletonStack x = Stack [ x ]

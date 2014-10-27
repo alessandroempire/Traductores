@@ -9,7 +9,7 @@ import          Position
 
 data Lexeme a = Lex { lexInfo :: a
                     , lexPosn :: Position 
-                    }
+                    } deriving (Eq, Ord)
                  
 instance Show a => Show (Lexeme a) where
     show (Lex a pos) = show a ++ " : " ++ show pos
