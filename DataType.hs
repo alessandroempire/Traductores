@@ -12,6 +12,7 @@ data DataType
     | Matrix (Lexeme Double) (Lexeme Double)
     | Row (Lexeme Double)
     | Col (Lexeme Double)
+    | Void
 
 instance Show DataType where
     show t = case t of
@@ -21,6 +22,7 @@ instance Show DataType where
                             ++ show (lexInfo sizeC)
         Row size         -> "Row" ++ show (lexInfo size)
         Col size         -> "Col" ++ show (lexInfo size)
+        Void             -> "Void"
 
 instance Eq DataType where
     a == b = case (a,b) of

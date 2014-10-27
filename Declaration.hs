@@ -24,4 +24,5 @@ instance Show Declaration where
          DclInit tL idL expL -> "Declaracción: tipo " ++ show (lexInfo tL) 
                                  ++ " identificador " ++ lexInfo idL 
                                  ++ " inicialización " ++ show (lexInfo expL)
-
+         DclParam tL idL     -> "Parametro: tipo " ++ show (lexInfo tL)
+                                 ++ " identificador " ++ lexInfo idL

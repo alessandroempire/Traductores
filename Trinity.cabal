@@ -19,6 +19,6 @@ executable Trinity
   main-is: Trinity.hs
   other-modules: Lexer, Parser, Declaration, Expression, Function, 
                  Identifier, Lexeme, Position, Printer, Program, Statement, 
-                 Token, DataType
+                 Token, DataType, SymbolTable, Scope, Stack
   build-depends: base ==4.6.*, containers ==0.5.*, array ==0.4.*, directory, mtl
   build-tools: alex, happy

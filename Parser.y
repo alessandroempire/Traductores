@@ -286,6 +286,7 @@ DataType :: { Lexeme DataType }
 
 expandStatement :: Lexeme Statement -> StatementSeq
 expandStatement stL = case lexInfo stL of
+    StNoop -> empty
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
     _ -> singleton stL
 

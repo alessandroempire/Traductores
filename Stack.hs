@@ -10,7 +10,7 @@ module Stack
     , singletonStack
     ) where 
 
-import           Program
+import           Scope
 
 import           Data.Foldable (Foldable (..))
 import           Prelude        hiding (concatMap, foldr)
@@ -47,7 +47,7 @@ topStack :: Stack Scope
 topStack = push topScope globalStack
 
 globalStack :: Stack Scope
-globalStack = push globalScope langStack
+globalStack = push globalScope emptyStack
 
 emptyStack :: Stack a
 emptyStack = Stack [ ]
