@@ -257,18 +257,18 @@ printDataType (Lex st posn) = case st of
     Matrix sizeR sizeC -> do
         printString $ "Tipo Matrix "
         raiseTabs
---        printString sizeR
---        printString sizeC
+        printString $ "Tipo Double " ++ show sizeR
+        printString $ "Tipo Double " ++ show sizeC
         lowerTabs
 
     Row exp1 -> do
         printString $ "Tipo Row "
         raiseTabs
---        printString exp1
+        printString $ "Tipo Double " ++ show exp1
         lowerTabs
 
     Col exp1 -> do
         printString $ "Tipo Col "
         raiseTabs
---        printString exp1
+        printString $ "Tipo Double " ++ show exp1
         lowerTabs

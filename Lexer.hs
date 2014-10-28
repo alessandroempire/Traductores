@@ -6,14 +6,17 @@ module Lexer
     , Token(..)
     , Lexeme(..)
     , Position(..)
-    , LexicalError
+    , tellLError
+    , tellPError
     , runAlex'
     , alexMonadScanTokens
     ) 
     where
 
+import          Error
 import          Lexeme
 import          Token
+import          TrinityMonad (initialWriter)
 
 import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
@@ -236,20 +239,12 @@ alexGetStartCode = Alex $ \s@AlexState{alex_scd=sc} -> Right (s, sc)
 alexSetStartCode :: Int -> Alex ()
 alexSetStartCode sc = Alex $ \s -> Right (s{alex_scd=sc}, ())
 
-
-alexGetUserState :: Alex AlexUserState
-alexGetUserState = Alex $ \s@AlexState{alex_ust=ust} -> Right (s,ust)
-
-alexSetUserState :: AlexUserState -> Alex ()
-alexSetUserState ss = Alex $ \s -> Right (s{alex_ust=ss}, ())
-
-
 alexMonadScan = do
   inp <- alexGetInput
   sc <- alexGetStartCode
   case alexScan inp sc of
     AlexEOF -> alexEOF
-    AlexError ((AlexPn _ line column),_,_,_) -> alexError $ "lexical error at line " ++ (show line) ++ ", column " ++ (show column)
+    AlexError inp' -> alexError "lexical error"
     AlexSkip  inp' len -> do
         alexSetInput inp'
         alexMonadScan
@@ -282,21 +277,21 @@ token t input len = return (t input len)
 -- -----------------------------------------------------------------------------
 -- Monad (with ByteString input)
 
-{-# LINE 328 "templates/wrappers.hs" #-}
+{-# LINE 320 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper
 
-{-# LINE 355 "templates/wrappers.hs" #-}
+{-# LINE 347 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Basic wrapper, ByteString version
 
-{-# LINE 373 "templates/wrappers.hs" #-}
+{-# LINE 365 "templates/wrappers.hs" #-}
 
-{-# LINE 386 "templates/wrappers.hs" #-}
+{-# LINE 378 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
@@ -304,13 +299,13 @@ token t input len = return (t input len)
 
 -- Adds text positions to the basic model.
 
-{-# LINE 403 "templates/wrappers.hs" #-}
+{-# LINE 395 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
 -- Posn wrapper, ByteString version
 
-{-# LINE 418 "templates/wrappers.hs" #-}
+{-# LINE 410 "templates/wrappers.hs" #-}
 
 
 -- -----------------------------------------------------------------------------
@@ -331,30 +326,30 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x11\x00\x11\x00\x07\x00\x07\x00\xff\xff\xff\xff\x14\x00\x14\x00\x16\x00\xff\xff\x16\x00\x16\x00\xff\xff\xff\xff\x21\x00\x21\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x23\x00\x23\x00\x23\x00\xff\xff\x23\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,165) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61)]
-{-# LINE 142 "Lexer.x" #-}
+{-# LINE 145 "Lexer.x" #-}
 
 
 --------------------------------------------------------
 -- Codigo Haskell
 --------------------------------------------------------
 
-data AlexUserState = AlexUSt { errors :: Seq LexicalError}
-
-data LexicalError = LexicalError { lexicalErrorPos  :: Position,
-                                   lexicalErrorChar :: Char } 
-                                   deriving(Eq)
-
-instance Show LexicalError where 
-    show (LexicalError pos char) = "Error Léxico: " ++ show pos 
-                                   ++ " " ++ show char
+data AlexUserState = AlexUSt { errors :: Seq Error }
 
 alexInitUserState :: AlexUserState
-alexInitUserState = AlexUSt empty
+alexInitUserState = AlexUSt initialWriter
+
+modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
+modifyUserState f = Alex $ \s -> 
+                    let st = alex_ust s 
+                    in Right(s {alex_ust = f st},())
+
+getUserState :: Alex AlexUserState
+getUserState = Alex (\s -> Right (s,alex_ust s))
 
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
 
---alexGetPosition :: Alex AlexPosn
+alexGetPosition :: Alex Position
 alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return $ toPosition p
 
 toPosition :: AlexPosn -> Position
@@ -368,7 +363,7 @@ lex f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
 lex' :: Token -> AlexAction (Lexeme Token)
 lex' = lex . const
 
-runAlex' :: String -> Alex a -> (Seq LexicalError, a)
+runAlex' :: String -> Alex a -> (Seq Error, a)
 runAlex' input (Alex f) =
     let Right (st,a) = f state
         ust = errors (alex_ust st)
@@ -384,15 +379,17 @@ runAlex' input (Alex f) =
             , alex_scd   = 0
             }
 
-alexError' :: AlexPosn -> Char -> Alex()
-alexError' pos char = modifyUserState $ \st -> 
-                         st { errors = errors st |> 
-                            (LexicalError (toPosition pos) char)}
+tellLError :: Position -> LexerError -> Alex ()
+tellLError posn err = modifyUserState $ \st -> st { errors = errors st |> (LError posn err) }
 
-modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
-modifyUserState f = Alex $ \s -> 
-                    let st = alex_ust s 
-                    in Right(s {alex_ust = f st},())
+tellPError :: Position -> ParseError -> Alex ()
+tellPError posn err = modifyUserState $ \st -> st { errors = errors st |> (PError posn err) }
+
+alexError' :: AlexPosn -> Char -> Alex()
+alexError' pos char = modifyUserState $ \st -> st { errors = errors st |> (lerror pos char) }
+    where
+        lerror :: AlexPosn -> Char -> Error
+        lerror pos char = LError (toPosition pos) (LexerError ("'" ++ [char] ++ "'"))
 
 extractInput :: (Byte, AlexInput) -> AlexInput
 extractInput (_,input) = input
@@ -547,20 +544,9 @@ alex_action_61 =  lex TkId
 -- -----------------------------------------------------------------------------
 -- INTERNALS and main scanner engine
 
-{-# LINE 21 "templates/GenericTemplate.hs" #-}
+{-# LINE 35 "templates/GenericTemplate.hs" #-}
 
-
-
-
-
-#if __GLASGOW_HASKELL__ > 706
-#define GTE(n,m) (tagToEnum# (n >=# m))
-#define EQ(n,m) (tagToEnum# (n ==# m))
-#else
-#define GTE(n,m) (n >=# m)
-#define EQ(n,m) (n ==# m)
-#endif
-{-# LINE 50 "templates/GenericTemplate.hs" #-}
+{-# LINE 45 "templates/GenericTemplate.hs" #-}
 
 
 data AlexAddr = AlexA# Addr#
@@ -679,7 +665,7 @@ alex_scan_tkn user orig_input len input s last_acc =
                 offset = (base +# ord_c)
                 check  = alexIndexInt16OffAddr alex_check offset
 		
-                new_s = if GTE(offset,0#) && EQ(check,ord_c)
+                new_s = if (offset >=# 0#) && (check ==# ord_c)
 			  then alexIndexInt16OffAddr alex_table offset
 			  else alexIndexInt16OffAddr alex_deflt s
 	in
@@ -695,7 +681,7 @@ alex_scan_tkn user orig_input len input s last_acc =
 	check_accs (AlexAccNone) = last_acc
 	check_accs (AlexAcc a  ) = AlexLastAcc a input (I# (len))
 	check_accs (AlexAccSkip) = AlexLastSkip  input (I# (len))
-{-# LINE 196 "templates/GenericTemplate.hs" #-}
+{-# LINE 191 "templates/GenericTemplate.hs" #-}
 
 data AlexLastAcc a
   = AlexNone
@@ -711,7 +697,7 @@ data AlexAcc a user
   = AlexAccNone
   | AlexAcc a
   | AlexAccSkip
-{-# LINE 240 "templates/GenericTemplate.hs" #-}
+{-# LINE 235 "templates/GenericTemplate.hs" #-}
 
 -- used by wrappers
 iUnbox (I# (i)) = i
