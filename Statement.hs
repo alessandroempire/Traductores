@@ -1,7 +1,8 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Statement
     ( Statement(..)
     , StatementSeq
-
     ) where
 
 import          Declaration
@@ -29,7 +30,7 @@ data Statement
     | StBlock DeclarationSeq StatementSeq
 
 instance Show Statement where
-    show st = case st of
+    show = \case
         StAssign accL expL        -> "set" ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
         StFunctionCall idnL expLs -> lexInfo idnL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
         StReturn expL             -> "return " ++ show (lexInfo expL)

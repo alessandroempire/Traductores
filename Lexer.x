@@ -4,14 +4,17 @@ module Lexer
     , Token(..)
     , Lexeme(..)
     , Position(..)
-    , LexicalError
+    , tellLError
+    , tellPError
     , runAlex'
     , alexMonadScanTokens
     ) 
     where
 
+import          Error
 import          Lexeme
 import          Token
+import          TrinityMonad (initialWriter)
 
 import          Control.Monad (liftM)
 import          Data.Maybe    (fromJust)
@@ -145,23 +148,23 @@ tokens :-
 -- Codigo Haskell
 --------------------------------------------------------
 
-data AlexUserState = AlexUSt { errors :: Seq LexicalError}
-
-data LexicalError = LexicalError { lexicalErrorPos  :: Position,
-                                   lexicalErrorChar :: Char } 
-                                   deriving(Eq)
-
-instance Show LexicalError where 
-    show (LexicalError pos char) = "Error Léxico: " ++ show pos 
-                                   ++ " " ++ show char
+data AlexUserState = AlexUSt { errors :: Seq Error }
 
 alexInitUserState :: AlexUserState
-alexInitUserState = AlexUSt empty
+alexInitUserState = AlexUSt initialWriter
+
+modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
+modifyUserState f = Alex $ \s -> 
+                    let st = alex_ust s 
+                    in Right(s {alex_ust = f st},())
+
+getUserState :: Alex AlexUserState
+getUserState = Alex (\s -> Right (s,alex_ust s))
 
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
 
---alexGetPosition :: Alex AlexPosn
+alexGetPosition :: Alex Position
 alexGetPosition = alexGetInput >>= \(p,_,_,_) -> return $ toPosition p
 
 toPosition :: AlexPosn -> Position
@@ -175,7 +178,7 @@ lex f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
 lex' :: Token -> AlexAction (Lexeme Token)
 lex' = lex . const
 
-runAlex' :: String -> Alex a -> (Seq LexicalError, a)
+runAlex' :: String -> Alex a -> (Seq Error, a)
 runAlex' input (Alex f) =
     let Right (st,a) = f state
         ust = errors (alex_ust st)
@@ -191,15 +194,17 @@ runAlex' input (Alex f) =
             , alex_scd   = 0
             }
 
-alexError' :: AlexPosn -> Char -> Alex()
-alexError' pos char = modifyUserState $ \st -> 
-                         st { errors = errors st |> 
-                            (LexicalError (toPosition pos) char)}
+tellLError :: Position -> LexerError -> Alex ()
+tellLError posn err = modifyUserState $ \st -> st { errors = errors st |> (LError posn err) }
 
-modifyUserState :: (AlexUserState -> AlexUserState) -> Alex ()
-modifyUserState f = Alex $ \s -> 
-                    let st = alex_ust s 
-                    in Right(s {alex_ust = f st},())
+tellPError :: Position -> ParseError -> Alex ()
+tellPError posn err = modifyUserState $ \st -> st { errors = errors st |> (PError posn err) }
+
+alexError' :: AlexPosn -> Char -> Alex()
+alexError' pos char = modifyUserState $ \st -> st { errors = errors st |> (lerror pos char) }
+    where
+        lerror :: AlexPosn -> Char -> Error
+        lerror pos char = LError (toPosition pos) (LexerError ("'" ++ [char] ++ "'"))
 
 extractInput :: (Byte, AlexInput) -> AlexInput
 extractInput (_,input) = input

@@ -15,8 +15,9 @@ instance Ord Position where
 
 instance Show Position where
     show (Posn tuple) = case tuple of
-        (r,0) -> "línea " ++ show r
-        (r,c) -> "línea " ++ show r ++ ", columna " ++ show c
+        (0,0) -> "en el lenguaje Trinity"
+        (r,0) -> "linea " ++ show r
+        (r,c) -> "linea " ++ show r ++ ", columna " ++ show c
 
 defaultPosn :: Position
 defaultPosn = Posn (0,0)

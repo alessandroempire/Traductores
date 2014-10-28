@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Declaration
     ( Declaration(..)
     , DeclarationSeq
@@ -18,11 +20,12 @@ data Declaration
     | DclParam (Lexeme DataType) (Lexeme Identifier)
 
 instance Show Declaration where
-    show dcl = case dcl of
-         Dcl tL idL          -> "Declaracción: tipo " ++ show (lexInfo tL)
+    show = \case
+         Dcl tL idL          -> "Declaraccion: tipo " ++ show (lexInfo tL)
                                  ++ " identificador " ++ lexInfo idL
-         DclInit tL idL expL -> "Declaracción: tipo " ++ show (lexInfo tL) 
+         DclInit tL idL expL -> "Declaraccion: tipo " ++ show (lexInfo tL) 
                                  ++ " identificador " ++ lexInfo idL 
-                                 ++ " inicialización " ++ show (lexInfo expL)
+                                 ++ " inicializacion " ++ show (lexInfo expL)
          DclParam tL idL     -> "Parametro: tipo " ++ show (lexInfo tL)
                                  ++ " identificador " ++ lexInfo idL
+

@@ -1,6 +1,8 @@
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverlappingInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module SymbolTable
     ( SymbolTable
@@ -22,9 +24,10 @@ module SymbolTable
     , Width
     , SymbolCategory(..)
     , symbolCategory
+    , module Stack
+    , module Scope
     ) where
 
-import          Lexeme
 import          Program
 import          Scope
 import          Stack

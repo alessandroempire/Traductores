@@ -4,7 +4,7 @@ module Parser
     ) 
     where
 
-
+import          Error
 import          Lexer
 import          Program
 
@@ -294,10 +294,10 @@ lexWrap :: (Lexeme Token -> Alex a) -> Alex a
 lexWrap = (alexMonadScanTokens >>=)
 
 parseError :: Lexeme Token -> Alex a
-parseError (Lex t p) = fail $ "Error de Sintaxis, Token: " ++ 
+parseError (Lex t p) = fail $ "Parse Error: Token " ++ 
                             show t ++ " " ++ show p ++ "\n"
 
-parseProgram :: String ->  (Seq LexicalError, Program)
+parseProgram :: String ->  (Seq Error, Program)
 parseProgram input = runAlex' input parse
 
 }

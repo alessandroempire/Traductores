@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Expression
     ( Expression(..)
     , Access(..)
@@ -29,7 +31,7 @@ data Expression
     deriving (Eq, Ord)
 
 instance Show Expression where
-    show exp = case exp of
+    show = \case
         LitNumber vL        -> "Literal numérico: " ++ show (lexInfo vL)
         LitBool vL          -> "Literal booleano: " ++ show (lexInfo vL)
         LitString strL      -> "Literal string: "   ++ show (lexInfo strL)
@@ -45,9 +47,10 @@ instance Show Expression where
 data Access 
     = VariableAccess (Lexeme Identifier)
     | MatrixAccess (Lexeme Identifier) (Seq (Lexeme Expression))
+    deriving (Eq, Ord)
 
 instance Show Access where
-    show acc = case acc of
+    show = \case
         VariableAccess idnL     -> lexInfo idnL
         MatrixAccess idnL expLs -> lexInfo idnL ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"
 
@@ -60,7 +63,7 @@ data Binary
     deriving (Eq, Ord)
 
 instance Show Binary where
-    show bexp = case bexp of
+    show = \case
         OpSum        -> "+"
         OpDiff       -> "-"
         OpMul        -> "*"
@@ -89,14 +92,14 @@ binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperation op dts = snd <$> find ((dts==) . fst) (binaryOperator op)
 
 binaryOperator :: Binary -> Seq ((DataType, DataType), DataType)
-binaryOperator op = case op of
-    OpSum -> fromList arithmetic
-    OpDiff -> fromList arithmetic
-    OpMul -> fromList arithmetic
-    OpDivEnt -> fromList numeric
-    OpModEnt -> fromList numeric
-    OpDiv -> fromList numeric
-    OpMod -> fromList numeric
+binaryOperator = fromList . \case
+    OpSum -> arithmetic
+    OpDiff -> arithmetic
+    OpMul -> arithmetic
+    OpDivEnt -> numeric
+    OpModEnt -> numeric
+    OpDiv -> numeric
+    OpMod -> numeric
 --    OpCruzSum ->
 --    OpCruzDiff ->
 --    OpCruzMul ->
@@ -104,14 +107,14 @@ binaryOperator op = case op of
 --    OpCruzModEnt ->
 --    OpCruzDiv ->
 --    OpCruzMod ->
-    OpEqual -> fromList everythingCompare
-    OpUnequal -> fromList everythingCompare
-    OpLess -> fromList arithmeticCompare
-    OpLessEq -> fromList arithmeticCompare
-    OpGreat -> fromList arithmeticCompare
-    OpGreatEq -> fromList arithmeticCompare
-    OpOr -> fromList boolean
-    OpAnd -> fromList boolean
+    OpEqual -> everythingCompare
+    OpUnequal -> everythingCompare
+    OpLess -> arithmeticCompare
+    OpLessEq -> arithmeticCompare
+    OpGreat -> arithmeticCompare
+    OpGreatEq -> arithmeticCompare
+    OpOr -> boolean
+    OpAnd -> boolean
     where
       numeric = [((Double, Double), Double)]
       arithmetic = numeric -- ++ Rows, Cols, Matrix....
@@ -126,7 +129,7 @@ data Unary
     deriving (Eq, Ord)
 
 instance Show Unary where
-    show uexp = case uexp of
+    show = \case
         OpNegative   -> "-"
         OpNot        -> "not"
         OpTranspose  -> "transpose"
@@ -135,9 +138,9 @@ unaryOperation :: Unary -> DataType -> Maybe DataType
 unaryOperation op dt = snd <$> find ((dt==) . fst) (unaryOperator op)
 
 unaryOperator :: Unary -> Seq (DataType, DataType)
-unaryOperator op = case op of
-    OpNegative -> fromList [(Double, Double)] -- ++ Row, Cols, Matrix
-    OpNot -> fromList [(Bool, Bool)]
+unaryOperator = fromList . \case
+    OpNegative -> [(Double, Double)] -- ++ Row, Cols, Matrix
+    OpNot -> [(Bool, Bool)]
  -- OpTranspose -> 
 
 isComparable :: Binary -> Bool

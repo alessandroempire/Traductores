@@ -1,6 +1,6 @@
 import          Lexer
 import          Parser
-import          Printer
+import          Program
 
 import          System.Environment as SE
 import          Data.Sequence      as DS (null)

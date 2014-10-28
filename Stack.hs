@@ -29,14 +29,14 @@ instance Foldable Stack where
     foldr f b (Stack s) = P.foldr f b s
 
 top :: Stack a -> a
-top (Stack [])       = error "Stack.top: Empty stack"
+top (Stack [])       = error "Stack.top: Pila vacia"
 top (Stack (x : _ )) = x
 
 push :: a -> Stack a -> Stack a
 push element (Stack s) = Stack $ element : s
 
 pop :: Stack a -> Stack a
-pop (Stack [])      = error "Stack.pop: Empty stack"
+pop (Stack [])      = error "Stack.pop: Pila vacia"
 pop (Stack (_ : s)) = Stack s
 
 modifyStack :: (a -> a) -> Stack a -> Stack a

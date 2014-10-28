@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Token
     ( Token(..)
     ) where
@@ -51,8 +53,7 @@ data Token =
     deriving (Eq)
 
 instance Show Token where
-    show tk = case tk of 
-
+    show = \case 
         TkProgram       -> "'program'"
         TkBegin         -> "'begin'"
         TkEnd           -> "'end'"

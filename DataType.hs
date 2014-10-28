@@ -1,8 +1,12 @@
+{-# LANGUAGE LambdaCase #-}
+
 module DataType
     ( DataType(..)
+    , toIdentifier
     ) where
 
 import          Lexeme
+import          Identifier
 
 import          Data.Function (on)
 
@@ -13,9 +17,10 @@ data DataType
     | Row (Lexeme Double)
     | Col (Lexeme Double)
     | Void
+    deriving (Ord)
 
 instance Show DataType where
-    show t = case t of
+    show = \case
         Bool            -> "Bool"
         Double          -> "Number"
         Matrix sizeR sizeC -> "Matrix" ++ show (lexInfo sizeR) 
@@ -28,11 +33,21 @@ instance Eq DataType where
     a == b = case (a,b) of
         (Bool, Bool)                           -> True
         (Double, Double)                       -> True
-        (Matrix rowA colA, Matrix rowB colB)   -> (check rowA rowB) && (check colA colB)
-        (Row sizeA, Row sizeB)                 -> check sizeA sizeB
-        (Col sizeA, Col sizeB)                 -> check sizeA sizeB
+        (Matrix rowA colA, Matrix rowB colB)   -> (comp rowA rowB) && (comp colA colB)
+        (Row sizeA, Row sizeB)                 -> comp sizeA sizeB
+        (Col sizeA, Col sizeB)                 -> comp sizeA sizeB
+--      (Row sizeR, Matrix sizeM _)            -> comp sizeR sizeM
         _                                      -> False
         where
-            check :: Eq a => Lexeme a -> Lexeme a -> Bool
-            check = (==) `on` lexInfo       
+            comp :: Eq a => Lexeme a -> Lexeme a -> Bool
+            comp = (==) `on` lexInfo       
+
+toIdentifier :: DataType -> Identifier
+toIdentifier dt = case dt of
+    Bool -> "Bool"
+    Double -> "Double"
+    Matrix _ _ -> "Matrix"
+    Row _ -> "Row"
+    Col _ -> "Col"
+    Void -> "Void"
 
