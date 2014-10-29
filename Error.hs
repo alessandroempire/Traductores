@@ -7,13 +7,12 @@ module Error
     , StaticError(..)
     ) where
 
-import          Program
-import          SymbolTable
+import           Program
+import           SymbolTable
 
 import           Data.Foldable                 (toList)
 import           Data.Function                 (on)
 import           Data.List                     (intercalate)
-import           Data.Sequence                 (Seq)
 
 data Error
     = LError Position LexerError
@@ -22,7 +21,7 @@ data Error
 
 instance Show Error where
     show = \case
-        LError p e -> "Lexer Error: "   ++ show e ++ "\n\t" ++ show p ++ "\n"
+        LError p e -> "Lexer Error: token '" ++ show e ++ "'\n\t" ++ show p ++ "\n" 
         PError p e -> "Parse Error: " ++ show e ++ "\n\t" ++ show p ++ "\n"
         SError p e -> "Static Error: "  ++ show e ++ "\n\t" ++ show p ++ "\n"
 
@@ -47,8 +46,7 @@ instance Show ParseError where
         ParseError msg      -> msg
         UnexpectedToken tok -> "Token inesperado '" ++ show tok ++ "'"
 
-data StaticError
-    = StaticError String
+data StaticError = StaticError String
 
 instance Show StaticError where
     show = \case
@@ -56,7 +54,6 @@ instance Show StaticError where
 
 errorPos :: Error -> Position
 errorPos error = case error of
-    LError p _ -> p
     PError p _ -> p
     SError p _ -> p
 

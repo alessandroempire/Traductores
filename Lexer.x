@@ -5,7 +5,7 @@ module Lexer
     , Lexeme(..)
     , Position(..)
     , tellLError
-    , tellPError
+--    , tellPError
     , runAlex'
     , alexMonadScanTokens
     ) 
@@ -194,17 +194,8 @@ runAlex' input (Alex f) =
             , alex_scd   = 0
             }
 
-tellLError :: Position -> LexerError -> Alex ()
-tellLError posn err = modifyUserState $ \st -> st { errors = errors st |> (LError posn err) }
-
-tellPError :: Position -> ParseError -> Alex ()
-tellPError posn err = modifyUserState $ \st -> st { errors = errors st |> (PError posn err) }
-
-alexError' :: AlexPosn -> Char -> Alex()
-alexError' pos char = modifyUserState $ \st -> st { errors = errors st |> (lerror pos char) }
-    where
-        lerror :: AlexPosn -> Char -> Error
-        lerror pos char = LError (toPosition pos) (LexerError ("'" ++ [char] ++ "'"))
+tellLError :: Position -> LexerError -> Alex()
+tellLError pos err = modifyUserState $ \st -> st { errors = errors st |> (LError pos err) }   
 
 extractInput :: (Byte, AlexInput) -> AlexInput
 extractInput (_,input) = input
@@ -222,11 +213,12 @@ alexMonadScanTokens = do
   case alexScan inp sc of
     AlexEOF -> alexEOF
     AlexError inp' -> do
-        let pos    = extractPos inp'
+        let alexpos    = extractPos inp'
+            pos = toPosition alexpos
             newInp = extractInput $ fromJust $ alexGetByte $ 
                        ignorePendingBytes inp'
             char   = extractChar newInp
-        alexError' pos char
+        tellLError pos (LexerError [char])
         alexSetInput newInp
         alexMonadScan
     AlexSkip  inp' len -> do
