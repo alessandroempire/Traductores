@@ -2706,14 +2706,26 @@ expandStatement stL = case lexInfo stL of
     StPrintList exps -> fmap (\exp -> StPrint exp <$ stL) exps
     _ -> singleton stL
 
+---------------------------------------------------------------------
+-- Parser
 lexWrap :: (Lexeme Token -> Alex a) -> Alex a
-lexWrap = (alexMonadScanTokens >>=)
+lexWrap cont = do
+    t <- alexMonadScan
+    case t of 
+        Lex (TkError c) pos    -> do
+            tellLError pos (UnexpectedChar c)
+            lexWrap cont
+        Lex (TkErrorS str) pos -> do
+            tellLError pos (StringError str)
+            cont $ TkString str <$ t
+        --Cualquier otro Token es parte del lenguaje
+        _  -> cont t
 
 parseError :: Lexeme Token -> Alex a
-parseError (Lex t p) = fail $ "Parse Error: Token " ++ 
-                            show t ++ " " ++ show p ++ "\n"
+parseError (Lex t p) = fail $ "Parse Error: token '" ++ 
+                            show t ++ "\n"
 
-parseProgram :: String ->  (Seq Error, Program)
+parseProgram :: String ->  (Program, Seq Error)
 parseProgram input = runAlex' input parse
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 {-# LINE 1 "templates/GenericTemplate.hs" #-}

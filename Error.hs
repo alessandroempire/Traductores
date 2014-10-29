@@ -21,7 +21,8 @@ data Error
 
 instance Show Error where
     show = \case
-        LError p e -> "Lexer Error: token '" ++ show e ++ "'\n\t" ++ show p ++ "\n" 
+        LError p e -> "Lexical Error: token '" ++ show e 
+                       ++ "'\n\t" ++ show p ++ "\n" 
         PError p e -> "Parse Error: " ++ show e ++ "\n\t" ++ show p ++ "\n"
         SError p e -> "Static Error: "  ++ show e ++ "\n\t" ++ show p ++ "\n"
 
@@ -31,12 +32,20 @@ instance Eq Error where
 instance Ord Error where
     compare = compare `on` errorPos
 
-data LexerError = LexerError String
+---------------------------------------------------------------------
+data LexerError  
+   = LexerError     String
+   | UnexpectedChar Char 
+   | StringError    String
 
 instance Show LexerError where
     show = \case
-        LexerError msg -> msg
+        LexerError msg   -> msg
+        UnexpectedChar c -> "Error: Caracter inesperado '" ++ [c] ++ "'"
+        StringError str  -> "Error: falta comilla en expresion string " 
+                             ++ show str
 
+---------------------------------------------------------------------
 data ParseError
     = ParseError String
     | UnexpectedToken String
@@ -46,14 +55,15 @@ instance Show ParseError where
         ParseError msg      -> msg
         UnexpectedToken tok -> "Token inesperado '" ++ show tok ++ "'"
 
+---------------------------------------------------------------------
 data StaticError = StaticError String
 
 instance Show StaticError where
     show = \case
         StaticError msg -> msg
 
+---------------------------------------------------------------------
 errorPos :: Error -> Position
 errorPos error = case error of
     PError p _ -> p
     SError p _ -> p
-

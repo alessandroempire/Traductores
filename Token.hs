@@ -40,15 +40,19 @@ data Token =
     | TkAssign | TkUse | TkIn | TkSet
 
     --Expresiones literales
-    | TkNumber  { unTkNumber :: Double }
-    | TkBoolean { unTkBoolean :: Bool } 
-    | TkString  { unTkString :: String }
+    | TkNumber  { unTkNumber  :: Double }
+    | TkBoolean { unTkBoolean :: Bool   } 
+    | TkString  { unTkString  :: String }
 
     --Identificadores
     | TkId { unTkId :: String }
 
     --Compilador
     | TkEOF
+
+    --Error
+    | TkError   { unTkError  :: Char }
+    | TkErrorS  { unTkErrorS :: String }
 
     deriving (Eq)
 
@@ -111,7 +115,8 @@ instance Show Token where
         TkCruzMod       -> "'.mod.'"
         TkEOF           -> "'EOF'"
         TkNumber n      -> "literal 'Number' " ++ show n
-        TkBoolean b      -> "literal 'Bool' " ++ show b
+        TkBoolean b     -> "literal 'Bool' " ++ show b
         TkString s      -> "literal 'String' " ++ s
         TkId i          -> "identificador de variable " ++ i
-
+        TkError e       -> "Error en caracter " ++ show e
+        TkErrorS s      -> "Error en String " ++ s

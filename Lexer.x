@@ -7,7 +7,7 @@ module Lexer
     , tellLError
 --    , tellPError
     , runAlex'
-    , alexMonadScanTokens
+    , alexMonadScan
     ) 
     where
 
@@ -16,10 +16,11 @@ import          Lexeme
 import          Token
 import          TrinityMonad (initialWriter)
 
-import          Control.Monad (liftM)
-import          Data.Maybe    (fromJust)
-import          Data.Sequence (Seq, empty, (|>))
-import          Prelude       hiding (lex)
+import          Control.Monad    (liftM)
+import          Data.Maybe       (fromJust)
+import          Data.Sequence    (Seq, empty, (|>))
+import          Data.List        (intercalate, foldl')
+import          Data.List.Split  (splitOn)
 
 }
 
@@ -31,21 +32,17 @@ import          Prelude       hiding (lex)
 
 $digit = 0-9  --Dígitos
 
-$alpha = [a-zA-Z] --Caracteres alfabeticos
-
-$sliteral = [$printable \n \\ \"]  --Strings literales
-
+$alpha       = [a-zA-Z] --Caracteres alfabeticos
+$sliteral    = [$printable \n \\ \"]  --Strings literales
 $identifiers = [$alpha $digit _]  --Identificadores
-
-$backlash = ["\\n] --Backslash
+$backlash    = ["\\n] --Backslash
 
 @num = $digit+(\.$digit+)?
 
 @inside_string = ($printable # ["\\] | \\$backlash)
-
-@string = \"@inside_string*\"
-
-@id = $alpha $identifiers*
+@string        = \"@inside_string*\"
+@id            = $alpha $identifiers*
+@string_error  = \"@inside_string*
 
 --------------------------------------------------------
 -- Expresiones Regulares
@@ -58,89 +55,93 @@ tokens :-
     "#".*                 ;
 
     --Lenguaje
-    "program"             { lex' TkProgram         }
-    "begin"               { lex' TkBegin           }
-    "end"                 { lex' TkEnd             }
-    "function"            { lex' TkFunction        } 
-    "return"              { lex' TkReturn          }
-    ";"                   { lex' TkSemicolon       }
-    ","                   { lex' TkComma           }
-    ":"                   { lex' TkDoublePoint     }
+    "program"             { tok' TkProgram         }
+    "begin"               { tok' TkBegin           }
+    "end"                 { tok' TkEnd             }
+    "function"            { tok' TkFunction        } 
+    "return"              { tok' TkReturn          }
+    ";"                   { tok' TkSemicolon       }
+    ","                   { tok' TkComma           }
+    ":"                   { tok' TkDoublePoint     }
 
     --Tipos
-    "boolean"             { lex' TkBooleanType     }
-    "number"              { lex' TkNumberType      }
-    "matrix"              { lex' TkMatrixType      }             
-    "row"                 { lex' TkRowType         }
-    "col"                 { lex' TkColType         }
+    "boolean"             { tok' TkBooleanType     }
+    "number"              { tok' TkNumberType      }
+    "matrix"              { tok' TkMatrixType      }             
+    "row"                 { tok' TkRowType         }
+    "col"                 { tok' TkColType         }
 
     --Brackets
-    "("                   { lex' TkLParen          }
-    ")"                   { lex' TkRParen          }
-    "{"                   { lex' TkLLlaves         }
-    "}"                   { lex' TkRLlaves         }
-    "["                   { lex' TkLCorche         }
-    "]"                   { lex' TkRCorche         }
+    "("                   { tok' TkLParen          }
+    ")"                   { tok' TkRParen          }
+    "{"                   { tok' TkLLlaves         }
+    "}"                   { tok' TkRLlaves         }
+    "["                   { tok' TkLCorche         }
+    "]"                   { tok' TkRCorche         }
 
     --Condicionales
-    "if"                  { lex' TkIf              }
-    "else"                { lex' TkElse            }
-    "then"                { lex' TkThen            }
+    "if"                  { tok' TkIf              }
+    "else"                { tok' TkElse            }
+    "then"                { tok' TkThen            }
 
     --Loops
-    "for"                 { lex' TkFor             }
-    "do"                  { lex' TkDo              }
-    "while"               { lex' TkWhile           }
+    "for"                 { tok' TkFor             }
+    "do"                  { tok' TkDo              }
+    "while"               { tok' TkWhile           }
 
     --Entrada/Salida
-    "print"               { lex' TkPrint           }
-    "read"                { lex' TkRead            }
+    "print"               { tok' TkPrint           }
+    "read"                { tok' TkRead            }
 
     --Operadores Booleanos
-    "&"                   { lex' TkAnd             }
-    "|"                   { lex' TkOr              }
-    "not"                 { lex' TkNot             }
+    "&"                   { tok' TkAnd             }
+    "|"                   { tok' TkOr              }
+    "not"                 { tok' TkNot             }
 
-    "=="                  { lex' TkEqual           }
-    "/="                  { lex' TkUnequal         }
-    "<="                  { lex' TkLessEq          }
-    "<"                   { lex' TkLess            }
-    ">="                  { lex' TkGreatEq         }
-    ">"                   { lex' TkGreat           }
+    "=="                  { tok' TkEqual           }
+    "/="                  { tok' TkUnequal         }
+    "<="                  { tok' TkLessEq          }
+    "<"                   { tok' TkLess            }
+    ">="                  { tok' TkGreatEq         }
+    ">"                   { tok' TkGreat           }
 
     --Operadores Aritméticos
-    "+"                   { lex' TkSum             }
-    "-"                   { lex' TkDiff            }
-    "*"                   { lex' TkMul             }
-    "/"                   { lex' TkDivEnt          }
-    "%"                   { lex' TkModEnt          }
-    "div"                 { lex' TkDiv             }
-    "mod"                 { lex' TkMod             }
-    "'"                   { lex' TkTrans           }
+    "+"                   { tok' TkSum             }
+    "-"                   { tok' TkDiff            }
+    "*"                   { tok' TkMul             }
+    "/"                   { tok' TkDivEnt          }
+    "%"                   { tok' TkModEnt          }
+    "div"                 { tok' TkDiv             }
+    "mod"                 { tok' TkMod             }
+    "'"                   { tok' TkTrans           }
 
     --Operadores Cruzados 
-    ".+."                 { lex' TkCruzSum         }
-    ".-."                 { lex' TkCruzDiff        }
-    ".*."                 { lex' TkCruzMul         }
-    "./."                 { lex' TkCruzDivEnt      }
-    ".%."                 { lex' TkCruzModEnt      }
-    ".div."               { lex' TkCruzDiv         }
-    ".mod."               { lex' TkCruzMod         }
+    ".+."                 { tok' TkCruzSum         }
+    ".-."                 { tok' TkCruzDiff        }
+    ".*."                 { tok' TkCruzMul         }
+    "./."                 { tok' TkCruzDivEnt      }
+    ".%."                 { tok' TkCruzModEnt      }
+    ".div."               { tok' TkCruzDiv         }
+    ".mod."               { tok' TkCruzMod         }
 
     --Declaraciones/Asignaciones
-    "="                   { lex' TkAssign          }
-    "use"                 { lex' TkUse             }
-    "in"                  { lex' TkIn              }
-    "set"                 { lex' TkSet             }
+    "="                   { tok' TkAssign          }
+    "use"                 { tok' TkUse             }
+    "in"                  { tok' TkIn              }
+    "set"                 { tok' TkSet             }
 
     --Expresiones literales 
-    @num                  { lex (TkNumber . read)  }
-    "true"                { lex' (TkBoolean True)  }
-    "false"               { lex' (TkBoolean False) }
-    @string               { lex TkString           }
+    @num                  { tok (TkNumber . read)  }
+    "true"                { tok' (TkBoolean True)  }
+    "false"               { tok' (TkBoolean False) }
+    @string               { tok TkString           }
 
     --Identificadores
-    @id                   { lex TkId               }
+    @id                   { tok TkId               }
+
+    --Error
+    .                     { tok (TkError . head)   }
+    @string_error         { tok (TkErrorS . dropQuotationMarks 1 0 . backslash)}
 
 {
 
@@ -171,18 +172,18 @@ toPosition :: AlexPosn -> Position
 toPosition (AlexPn _ r c) = Posn (r, c)
 
 -- Tokens que dependen del input 
-lex :: (String -> Token) -> AlexAction (Lexeme Token)
-lex f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
+tok :: (String -> Token) -> AlexAction (Lexeme Token)
+tok f (p,_,_,str) i = return $ Lex (f (take i str)) (toPosition p)
 
 -- Tokens que no dependen del input
-lex' :: Token -> AlexAction (Lexeme Token)
-lex' = lex . const
+tok' :: Token -> AlexAction (Lexeme Token)
+tok' = tok . const
 
-runAlex' :: String -> Alex a -> (Seq Error, a)
+runAlex' :: String -> Alex a -> (a, Seq Error)
 runAlex' input (Alex f) =
     let Right (st,a) = f state
         ust = errors (alex_ust st)
-    in (ust,a)
+    in (a, ust)
     where
         state :: AlexState
         state = AlexState
@@ -195,37 +196,29 @@ runAlex' input (Alex f) =
             }
 
 tellLError :: Position -> LexerError -> Alex()
-tellLError pos err = modifyUserState $ \st -> st { errors = errors st |> (LError pos err) }   
+tellLError pos err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (LError pos err) }   
 
-extractInput :: (Byte, AlexInput) -> AlexInput
-extractInput (_,input) = input
+{-
+--getTokens :: String -> (Seq Error, [[Lexeme Token]])
+getTokens s = runAlex' s (loop [])
+    where
+      isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
+      loop acc = do
+        tok <- alexMonadScan
+        if isEof tok then return (reverse acc)
+                     else loop ([tok]:acc)
+-}
 
-extractPos :: AlexInput -> AlexPosn
-extractPos (p,_,_,_) = p
+backslash :: String -> String
+backslash str = foldl' (flip replace) str chars
+    where
+        replace :: (Char, Char) -> String -> String
+        replace (new, old) = intercalate [new] . splitOn ['\\', old]
+        chars = [('\a', 'a'), ('\b', 'b'), ('\f', 'f'),
+                 ('\n', 'n'), ('\r', 'r'), ('\t', 't'),
+                 ('\v', 'v'), ('"', '"'), ('\\', '\\')]
 
-extractChar :: AlexInput -> Char
-extractChar (_,c,_,_) = c
-
-alexMonadScanTokens :: Alex (Lexeme Token)
-alexMonadScanTokens = do
-  inp <- alexGetInput
-  sc <- alexGetStartCode
-  case alexScan inp sc of
-    AlexEOF -> alexEOF
-    AlexError inp' -> do
-        let alexpos    = extractPos inp'
-            pos = toPosition alexpos
-            newInp = extractInput $ fromJust $ alexGetByte $ 
-                       ignorePendingBytes inp'
-            char   = extractChar newInp
-        tellLError pos (LexerError [char])
-        alexSetInput newInp
-        alexMonadScan
-    AlexSkip  inp' len -> do
-        alexSetInput inp'
-        alexMonadScan
-    AlexToken inp' len action -> do
-        alexSetInput inp'
-        action (ignorePendingBytes inp) len
-
+dropQuotationMarks :: Int -> Int -> String -> String
+dropQuotationMarks l r = reverse . drop r . reverse . drop l
 }
