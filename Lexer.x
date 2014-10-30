@@ -5,9 +5,10 @@ module Lexer
     , Lexeme(..)
     , Position(..)
     , tellLError
---    , tellPError
+    , tellPError
     , runAlex'
     , alexMonadScan
+    , getTokens
     ) 
     where
 
@@ -199,7 +200,10 @@ tellLError :: Position -> LexerError -> Alex()
 tellLError pos err = modifyUserState $ \st -> 
                       st { errors = errors st |> (LError pos err) }   
 
-{-
+tellPError :: Position -> ParseError -> Alex ()
+tellPError posn err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (PError posn err) }
+
 --getTokens :: String -> (Seq Error, [[Lexeme Token]])
 getTokens s = runAlex' s (loop [])
     where
@@ -208,7 +212,7 @@ getTokens s = runAlex' s (loop [])
         tok <- alexMonadScan
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
--}
+
 
 backslash :: String -> String
 backslash str = foldl' (flip replace) str chars

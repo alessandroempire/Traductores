@@ -14,11 +14,20 @@ main = do
     (fileName : _ ) <- getArgs
     input <- readFile fileName
 
+    let (program, errors) = getTokens input  
+    putStrLn "los bellos errores"
+    print errors
+    putStrLn "los tokens"
+    print program
+    
+    putStrLn "lo tro"
+
+
     let (program, errors) = parseProgram input  
     putStrLn "los bellos errores"
     print errors
     putStrLn "el ast"
-    print program
+    --print program
 
     {-
     if null lpErrors 
