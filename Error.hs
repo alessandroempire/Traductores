@@ -25,7 +25,7 @@ data Error
 instance Show Error where
     show = \case
         LError p e -> "Lexical Error: " ++ show p 
-                       ++ "'\n\t" ++ show e ++ "\n" 
+                       ++ "\n\t" ++ show e ++ "\n" 
         PError p e -> "Parse Error: " ++ show p 
                        ++ "\n\t" ++ show e ++ "\n"
         SError p e -> "Static Error: "  ++ show p 
@@ -73,7 +73,7 @@ data StaticError
 instance Show StaticError where
     show = \case
         StaticError msg -> msg
-        AlreadyDeclared var p  -> "identificador '" ++ var ++ "' fue declarado previamente " ++ show p
+        AlreadyDeclared var p  -> "Identificador '" ++ var ++ "' fue declarado previamente en la " ++ show p
 
 ---------------------------------------------------------------------
 

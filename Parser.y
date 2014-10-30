@@ -306,7 +306,7 @@ lexWrap cont = do
         _  -> cont t
 
 parseError :: Lexeme Token -> Alex a
-parseError (Lex t p) = fail $ "Parse Error: token '" ++ 
+parseError (Lex t p) = fail $ "Parse Error: token " ++ 
                             show t ++ " " ++ show p ++ "\n" 
 
 parseProgram :: String ->  (Program, Seq Error)

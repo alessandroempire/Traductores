@@ -23,10 +23,9 @@ instance Show DataType where
     show = \case
         Bool            -> "Bool"
         Double          -> "Number"
-        Matrix sizeR sizeC -> "Matrix" ++ show (lexInfo sizeR) 
-                            ++ show (lexInfo sizeC)
-        Row size         -> "Row" ++ show (lexInfo size)
-        Col size         -> "Col" ++ show (lexInfo size)
+        Matrix sizeR sizeC -> "Matrix(" ++ show (lexInfo sizeR) ++ "," ++ show (lexInfo sizeC) ++ ")"
+        Row size         -> "Row(" ++ show (lexInfo size) ++ ")"
+        Col size         -> "Col(" ++ show (lexInfo size) ++ ")"
         Void             -> "Void"
 
 instance Eq DataType where
