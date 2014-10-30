@@ -3,9 +3,9 @@
 
 module TrinityMonad where
 
-import          Error
-import          Program
-import          SymbolTable
+import           Error
+import           Program
+import           SymbolTable
 
 import           Control.Monad        (MonadPlus, when, liftM, unless, guard)
 import           Control.Monad.State  (MonadState, gets, modify)
@@ -18,6 +18,11 @@ import           Prelude              hiding (filter)
 
 unlessGuard :: MonadPlus m => Bool -> m () -> m ()
 unlessGuard cond actn = unless cond actn >> guard cond
+
+type TrinityReader = Bool
+
+initialReader :: TrinityReader
+initialReader = False
 
 type TrinityWriter = Seq Error
 
@@ -41,7 +46,7 @@ showTrinityState st = showT ++ showS ++ showA
         showS = "Scope Stack:\n"  ++ show (getStack st) ++ "\n"
         showA = show (getAst st) ++ "\n"
 
-------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 tellLError :: MonadWriter TrinityWriter m => Position -> LexerError -> m ()
 tellLError posn = tell . singleton . LError posn
@@ -52,7 +57,10 @@ tellPError posn = tell . singleton . PError posn
 tellSError :: MonadWriter TrinityWriter m => Position -> StaticError -> m ()
 tellSError posn = tell . singleton . SError posn
 
-------------------------------------------------------------------------
+errors :: TrinityWriter -> Seq Error
+errors = filter isError
+
+---------------------------------------------------------------------
 
 enterScope :: (TrinityState s, MonadState s m) => m ()
 enterScope = do
@@ -65,7 +73,7 @@ exitScope = modify $ \s -> putStack (pop $ getStack s) s
 currentScope :: (TrinityState s, MonadState s m) => m Scope
 currentScope = gets (top . getStack)
 
-------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 addSymbol :: (TrinityState s, MonadState s m) 
           => Identifier -> Symbol -> m ()
@@ -87,7 +95,7 @@ getsSymbolWithStack :: (TrinityState s, MonadState s m)
                     => Identifier -> Stack Scope -> (Symbol -> a) -> m (Maybe a)
 getsSymbolWithStack idn stk f = gets getTable >>= return . fmap f . lookupWithScope idn stk
 
-------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 modifySymbolWithScope :: (TrinityState s, MonadState s m)
                       => Identifier -> Stack Scope -> (Symbol -> Symbol) -> m ()
@@ -102,7 +110,7 @@ modifySymbol idn f = getsSymbol idn scopeStack >>= \case
     Nothing  -> return ()
     Just stk -> modifySymbolWithScope idn stk f
 
-------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 markUsed :: (TrinityState s, MonadState s m)
          => Identifier -> m ()

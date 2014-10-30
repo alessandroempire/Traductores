@@ -7,7 +7,7 @@ module Lexer
     , Lexeme(..)
     , Position(..)
     , tellLError
-    , tellPError
+--    , tellPError
     , runAlex'
     , alexMonadScan
     , getTokens
@@ -385,9 +385,6 @@ tellLError :: Position -> LexerError -> Alex()
 tellLError pos err = modifyUserState $ \st -> 
                       st { errors = errors st |> (LError pos err) }   
 
-tellPError :: Position -> ParseError -> Alex ()
-tellPError posn err = modifyUserState $ \st -> 
-                      st { errors = errors st |> (PError posn err) }
 
 --getTokens :: String -> (Seq Error, [[Lexeme Token]])
 getTokens s = runAlex' s (loop [])

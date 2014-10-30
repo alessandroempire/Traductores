@@ -31,26 +31,28 @@ data Program = Program FunctionSeq StatementSeq
 instance Show Program where
     show = processPrinter
 
+---------------------------------------------------------------------
+
 type Printer a = StateT Tabs (Writer (Seq String)) a
 
-----------------------------------------
+---------------------------------------------------------------------
 -- State
 
 type Tabs = Int
 
-----------------------------------------
+---------------------------------------------------------------------
 -- Initial
    
 initialState :: Tabs
 initialState =  0
 
-----------------------------------------
+---------------------------------------------------------------------
 -- Adding tabs
 
 tabs :: Int -> String
 tabs n = replicate n '\t'
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------
 -- Using the Monad
 
 processPrinter :: Program -> String
@@ -59,13 +61,13 @@ processPrinter = runPrinter . buildPrinter
 runPrinter :: Printer () -> String
 runPrinter = concat . execWriter . flip runStateT initialState
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------
 -- Monad handling
 
 printString :: String -> Printer ()
 printString str = get >>= \t -> tell . singleton $ tabs t ++ str ++ "\n"
 
-----------------------------------------
+---------------------------------------------------------------------
 -- Tabs
 
 raiseTabs :: Printer ()
@@ -74,7 +76,7 @@ raiseTabs = modify succ
 lowerTabs :: Printer ()
 lowerTabs = modify pred
 
--------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 buildPrinter :: Program -> Printer ()
 buildPrinter (Program fun block) = printProgram "Program" fun block

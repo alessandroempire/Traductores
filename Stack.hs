@@ -28,6 +28,8 @@ instance Functor Stack where
 instance Foldable Stack where
     foldr f b (Stack s) = P.foldr f b s
 
+---------------------------------------------------------------------
+
 top :: Stack a -> a
 top (Stack [])       = error "Stack.top: Pila vacia"
 top (Stack (x : _ )) = x

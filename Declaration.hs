@@ -3,6 +3,7 @@
 module Declaration
     ( Declaration(..)
     , DeclarationSeq
+    , toDataType
     ) where
 
 import          Expression
@@ -29,3 +30,8 @@ instance Show Declaration where
          DclParam tL idL     -> "Parametro: tipo " ++ show (lexInfo tL)
                                  ++ " identificador " ++ lexInfo idL
 
+toDataType :: Declaration -> Lexeme DataType
+toDataType dcl = case dcl of
+    Dcl tL idL -> tL
+    DclInit tL idL expL -> tL
+    DclParam tL idL -> tL  

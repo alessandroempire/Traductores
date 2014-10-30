@@ -5,6 +5,8 @@ module Error
     , LexerError(..)
     , ParseError(..)
     , StaticError(..)
+    , Warning(..)
+    , isError
     ) where
 
 import           Program
@@ -18,13 +20,18 @@ data Error
     = LError Position LexerError
     | PError Position ParseError
     | SError Position StaticError
+    | Warn Position Warning
 
 instance Show Error where
     show = \case
-        LError p e -> "Lexical Error: token '" ++ show e 
-                       ++ "'\n\t" ++ show p ++ "\n" 
-        PError p e -> "Parse Error: " ++ show e ++ "\n\t" ++ show p ++ "\n"
-        SError p e -> "Static Error: "  ++ show e ++ "\n\t" ++ show p ++ "\n"
+        LError p e -> "Lexical Error: " ++ show p 
+                       ++ "'\n\t" ++ show e ++ "\n" 
+        PError p e -> "Parse Error: " ++ show p 
+                       ++ "\n\t" ++ show e ++ "\n"
+        SError p e -> "Static Error: "  ++ show p 
+                       ++ "\n\t" ++ show e ++ "\n"
+        Warn p w -> "Warning: " ++ show p 
+                       ++ "\n\t" ++ show w ++ "\n"
 
 instance Eq Error where
     (==) = (==) `on` errorPos
@@ -33,6 +40,7 @@ instance Ord Error where
     compare = compare `on` errorPos
 
 ---------------------------------------------------------------------
+
 data LexerError  
    = LexerError     String
    | UnexpectedChar Char 
@@ -41,11 +49,12 @@ data LexerError
 instance Show LexerError where
     show = \case
         LexerError msg   -> msg
-        UnexpectedChar c -> "Error: Caracter inesperado '" ++ [c] ++ "'"
-        StringError str  -> "Error: falta comilla en expresion string " 
+        UnexpectedChar c -> "Caracter inesperado '" ++ [c] ++ "'"
+        StringError str  -> "Expresion faltante en String " 
                              ++ show str
 
 ---------------------------------------------------------------------
+
 data ParseError
     = ParseError String
     | UnexpectedToken String
@@ -56,14 +65,42 @@ instance Show ParseError where
         UnexpectedToken tok -> "Token inesperado '" ++ show tok ++ "'"
 
 ---------------------------------------------------------------------
-data StaticError = StaticError String
+
+data StaticError 
+    = StaticError String
+    | AlreadyDeclared Identifier Position
 
 instance Show StaticError where
     show = \case
         StaticError msg -> msg
+        AlreadyDeclared var p  -> "identificador '" ++ var ++ "' fue declarado previamente " ++ show p
 
 ---------------------------------------------------------------------
+
+data Warning
+    = Warning String
+    | CaseOfBool
+    | VariableDefinedNotUsed Identifier
+    | FunctionDefinedNotUsed Identifier
+
+instance Show Warning where
+    show = \case
+        Warning msg -> msg
+        CaseOfBool -> "case expression is of type 'Bool', consider using an 'if-then-else' statement"
+        VariableDefinedNotUsed         idn -> "identifier '" ++ idn ++ "' is defined but never used"
+        FunctionDefinedNotUsed idn -> "function '"   ++ idn ++ "' is defined but never used"
+
+---------------------------------------------------------------------
+
+isError :: Error -> Bool
+isError = \case
+    Warn _ _ -> False
+    _        -> True
+
 errorPos :: Error -> Position
 errorPos error = case error of
+    LError p _ -> p
     PError p _ -> p
     SError p _ -> p
+    Warn p _ -> p
+

@@ -44,6 +44,8 @@ instance Show Expression where
         ExpUnary opL expL   -> "Operador Unario: " ++ show (lexInfo opL) ++ " " 
                                 ++ show (lexInfo expL)
 
+---------------------------------------------------------------------
+
 data Access 
     = VariableAccess (Lexeme Identifier)
     | MatrixAccess (Lexeme Identifier) (Seq (Lexeme Expression))
@@ -53,6 +55,8 @@ instance Show Access where
     show = \case
         VariableAccess idnL     -> lexInfo idnL
         MatrixAccess idnL expLs -> lexInfo idnL ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"
+
+---------------------------------------------------------------------
 
 data Binary
     = OpSum | OpDiff | OpMul | OpDivEnt | OpModEnt | OpDiv | OpMod
@@ -122,6 +126,8 @@ binaryOperator = fromList . \case
       arithmeticCompare = [((Double, Double), Bool)] -- ++ Comparacion de rows, cols, matrix...
       everythingCompare = arithmeticCompare ++ boolean
 
+---------------------------------------------------------------------
+
 data Unary 
     = OpNegative
     | OpNot
@@ -142,6 +148,8 @@ unaryOperator = fromList . \case
     OpNegative -> [(Double, Double)] -- ++ Row, Cols, Matrix
     OpNot -> [(Bool, Bool)]
  -- OpTranspose -> 
+
+---------------------------------------------------------------------
 
 isComparable :: Binary -> Bool
 isComparable = flip elem [OpEqual,OpUnequal,OpLess,OpLessEq,OpGreat,OpGreatEq]

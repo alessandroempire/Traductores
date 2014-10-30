@@ -42,6 +42,8 @@ instance Eq DataType where
             comp :: Eq a => Lexeme a -> Lexeme a -> Bool
             comp = (==) `on` lexInfo       
 
+---------------------------------------------------------------------
+
 toIdentifier :: DataType -> Identifier
 toIdentifier dt = case dt of
     Bool -> "Bool"

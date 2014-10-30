@@ -1,6 +1,7 @@
 import          Parser
 import          Lexer
 import          TrinityMonad
+import          Definition
 
 import          System.Environment      (getArgs)
 import          Data.Sequence           (null)
@@ -14,37 +15,16 @@ main = do
     (fileName : _ ) <- getArgs
     input <- readFile fileName
 
-{-
-    let (program, errors) = getTokens input  
-    putStrLn "los bellos errores"
-    print errors
-    putStrLn "los tokens"
-    print program
+    let (program, lpErrors) = parseProgram input  
+    unlessGuard (null $ errors lpErrors) $ errorReport lpErrors
+
+    let (defS, dfErrors) = processDefinition False lpErrors program
+    unlessGuard (null $ errors dfErrors) $ errorReport dfErrors
     
-    putStrLn "lo tro"
--}
-
-    let (program, errors) = parseProgram input  
-    putStrLn "los bellos errores"
-    print errors
-    putStrLn "el ast"
-    --print program
-
-    {-
-    if null lpErrors 
-        then do
-            print program
-            liftIO $ putStrLn "Proceso terminado."
-            exitSuccess
-        else do
-            print lpErrors
-            exitFailure
--}
-
---vaina que tenias ahi
-
-        --    let (defErrors, defState) = processDefinition lpErrors program
-            --if null defErrors
-              --then do
-                  -- let (typeErrors, typeState) = typeCheck...
- 
+    liftIO $ print (getTable defS)
+    liftIO $ putStrLn "Proceso terminado."
+    exitSuccess
+  
+errorReport err = do
+    mapM_ (liftIO . print) err
+    exitFailure

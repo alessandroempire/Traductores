@@ -47,6 +47,8 @@ type SymbolTable = Map.Map Identifier (Map.Map Scope Symbol)
 instance Show SymbolTable where
     show tb = showTable 0 tb
 
+---------------------------------------------------------------------
+
 showTable :: Int -> SymbolTable -> String
 showTable t tab = tabs ++ "Tabla de Simbolos:\n" ++ concatMap (++ ("\n" ++ tabs)) showSymbols
     where
@@ -76,6 +78,8 @@ type Used = Bool
 type Returned = Bool
 type Offset = Int
 type Width = Int
+
+---------------------------------------------------------------------
 
 data Symbol = 
     SymInfo
@@ -114,8 +118,12 @@ instance Show Symbol where
             showW by = show by ++ " bytes"
             showStk  = ("stack: " ++) . show
 
+---------------------------------------------------------------------
+
 scope :: Symbol -> Scope
 scope = top . scopeStack
+
+---------------------------------------------------------------------
 
 data SymbolCategory = CatInfo
                     | CatFunction
@@ -132,6 +140,8 @@ instance Ord SymbolCategory where
         (CatFunction, CatFunction) -> EQ
         (CatInfo    , CatFunction) -> LT
         (CatFunction, CatInfo    ) -> GT
+
+---------------------------------------------------------------------
 
 emptyTable :: SymbolTable
 emptyTable = Map.empty
@@ -156,7 +166,9 @@ emptySymFunction = SymFunction
     , blockWidth = 0
     , paramWidth = 0
     , used = False
-}
+    }
+
+---------------------------------------------------------------------
 
 symbolCategory :: Symbol -> SymbolCategory
 symbolCategory sym = case sym of
@@ -176,6 +188,8 @@ insert id sym tab = if Map.member id tab
             else Map.insert scp sym scpTab
         scp = scope sym
 
+---------------------------------------------------------------------
+
 lookup :: Identifier -> SymbolTable -> Maybe Symbol
 lookup id tab = Map.lookup id tab >>= return . head . Map.elems
 
@@ -183,6 +197,8 @@ lookupWithScope :: Identifier -> Stack Scope -> SymbolTable -> Maybe Symbol
 lookupWithScope id scps tab = do
     scpTab <- Map.lookup id tab
     msum $ P.fmap (flip Map.lookup scpTab) scps
+
+---------------------------------------------------------------------
 
 update :: Identifier -> (Symbol -> Symbol) -> SymbolTable -> SymbolTable
 update id f tab = if Map.member id tab
@@ -197,6 +213,8 @@ updateWithScope id scps f tab = Map.adjust func id tab
                 updateSym scp = Map.adjust f scp scpTab
                 condition scp = Map.member scp scpTab
                 tellError = error "SymbolTable.updateWithScope: Actualizando un simbolo inexistente en la Tabla de Simbolos"
+
+---------------------------------------------------------------------
 
 toSeq :: SymbolTable -> Seq (Identifier, Symbol)
 toSeq = fromList . expand . Map.toList

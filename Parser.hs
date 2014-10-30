@@ -2723,7 +2723,7 @@ lexWrap cont = do
 
 parseError :: Lexeme Token -> Alex a
 parseError (Lex t p) = fail $ "Parse Error: token '" ++ 
-                            show t ++ " " ++ show p ++ "\n" 
+                            show t ++ "\n"
 
 parseProgram :: String ->  (Program, Seq Error)
 parseProgram input = runAlex' input parse

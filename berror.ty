@@ -13,15 +13,16 @@ function
 program
  use
     number x;
- in 
+ in $
     read x;
 
     set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
 
     if x < 18 then
-        print "You can't be here"; 
+        print "You can't be here.";
     else
         print "Oh, ", x, "? come right in.";
     end;
+$
     end;
 end;
