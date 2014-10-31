@@ -5,7 +5,6 @@ module Lexer
     , Lexeme(..)
     , Position(..)
     , tellLError
-    , tellPError
     , runAlex'
     , alexMonadScan
     , getTokens
@@ -163,6 +162,22 @@ modifyUserState f = Alex $ \s ->
 getUserState :: Alex AlexUserState
 getUserState = Alex (\s -> Right (s,alex_ust s))
 
+tellLError :: Position -> LexerError -> Alex()
+tellLError pos err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (LError pos err) }   
+
+backslash :: String -> String
+backslash str = foldl' (flip replace) str chars
+    where
+        replace :: (Char, Char) -> String -> String
+        replace (new, old) = intercalate [new] . splitOn ['\\', old]
+        chars = [('\a', 'a'), ('\b', 'b'), ('\f', 'f'),
+                 ('\n', 'n'), ('\r', 'r'), ('\t', 't'),
+                 ('\v', 'v'), ('"', '"'), ('\\', '\\')]
+
+dropQuotationMarks :: Int -> Int -> String -> String
+dropQuotationMarks l r = reverse . drop r . reverse . drop l
+
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
 
@@ -196,15 +211,8 @@ runAlex' input (Alex f) =
             , alex_scd   = 0
             }
 
-tellLError :: Position -> LexerError -> Alex()
-tellLError pos err = modifyUserState $ \st -> 
-                      st { errors = errors st |> (LError pos err) }   
 
-tellPError :: Position -> ParseError -> Alex ()
-tellPError posn err = modifyUserState $ \st -> 
-                      st { errors = errors st |> (PError posn err) }
-
---getTokens :: String -> (Seq Error, [[Lexeme Token]])
+--------------------------------------------------------------------
 getTokens s = runAlex' s (loop [])
     where
       isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
@@ -212,17 +220,4 @@ getTokens s = runAlex' s (loop [])
         tok <- alexMonadScan
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
-
-
-backslash :: String -> String
-backslash str = foldl' (flip replace) str chars
-    where
-        replace :: (Char, Char) -> String -> String
-        replace (new, old) = intercalate [new] . splitOn ['\\', old]
-        chars = [('\a', 'a'), ('\b', 'b'), ('\f', 'f'),
-                 ('\n', 'n'), ('\r', 'r'), ('\t', 't'),
-                 ('\v', 'v'), ('"', '"'), ('\\', '\\')]
-
-dropQuotationMarks :: Int -> Int -> String -> String
-dropQuotationMarks l r = reverse . drop r . reverse . drop l
 }

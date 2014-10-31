@@ -2708,6 +2708,7 @@ expandStatement stL = case lexInfo stL of
 
 ---------------------------------------------------------------------
 -- Parser
+
 lexWrap :: (Lexeme Token -> Alex a) -> Alex a
 lexWrap cont = do
     t <- alexMonadScan
@@ -2717,13 +2718,13 @@ lexWrap cont = do
             lexWrap cont
         Lex (TkErrorS str) pos -> do
             tellLError pos (StringError str)
-            cont $ TkString str <$ t
+            lexWrap cont
         --Cualquier otro Token es parte del lenguaje
-        _  -> cont t
+        Lex _ pos -> cont t
 
 parseError :: Lexeme Token -> Alex a
-parseError (Lex t p) = fail $ "Parse Error: token '" ++ 
-                            show t ++ "\n"
+parseError (Lex t p) = fail $ "Parse Error: token " ++ 
+                            show t ++ " " ++ show p ++ "\n" 
 
 parseProgram :: String ->  (Program, Seq Error)
 parseProgram input = runAlex' input parse

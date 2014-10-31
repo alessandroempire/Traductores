@@ -50,7 +50,7 @@ instance Show LexerError where
     show = \case
         LexerError msg   -> msg
         UnexpectedChar c -> "Caracter inesperado '" ++ [c] ++ "'"
-        StringError str  -> "Expresion faltante en String " 
+        StringError str  -> "Falta de una comilla en el String " 
                              ++ show str
 
 ---------------------------------------------------------------------

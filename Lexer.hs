@@ -7,7 +7,6 @@ module Lexer
     , Lexeme(..)
     , Position(..)
     , tellLError
---    , tellPError
     , runAlex'
     , alexMonadScan
     , getTokens
@@ -328,7 +327,7 @@ alex_deflt :: AlexAddr
 alex_deflt = AlexA# "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x0f\x00\x0f\x00\x11\x00\x11\x00\x15\x00\x15\x00\x1a\x00\x1a\x00\x1d\x00\x1d\x00\xff\xff\xff\xff\x28\x00\x28\x00\xb0\x00\xff\xff\xb0\x00\xb0\x00\xae\x00\xae\x00\xae\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x2a\x00\x2a\x00\x2a\x00\xff\xff\x2a\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 alex_accept = listArray (0::Int,176) [AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccNone,AlexAccSkip,AlexAccSkip,AlexAcc (alex_action_2),AlexAcc (alex_action_3),AlexAcc (alex_action_4),AlexAcc (alex_action_5),AlexAcc (alex_action_6),AlexAcc (alex_action_7),AlexAcc (alex_action_8),AlexAcc (alex_action_9),AlexAcc (alex_action_10),AlexAcc (alex_action_11),AlexAcc (alex_action_12),AlexAcc (alex_action_13),AlexAcc (alex_action_14),AlexAcc (alex_action_15),AlexAcc (alex_action_16),AlexAcc (alex_action_17),AlexAcc (alex_action_18),AlexAcc (alex_action_19),AlexAcc (alex_action_20),AlexAcc (alex_action_21),AlexAcc (alex_action_22),AlexAcc (alex_action_23),AlexAcc (alex_action_24),AlexAcc (alex_action_25),AlexAcc (alex_action_26),AlexAcc (alex_action_27),AlexAcc (alex_action_28),AlexAcc (alex_action_29),AlexAcc (alex_action_30),AlexAcc (alex_action_31),AlexAcc (alex_action_32),AlexAcc (alex_action_33),AlexAcc (alex_action_34),AlexAcc (alex_action_35),AlexAcc (alex_action_36),AlexAcc (alex_action_37),AlexAcc (alex_action_38),AlexAcc (alex_action_39),AlexAcc (alex_action_40),AlexAcc (alex_action_41),AlexAcc (alex_action_42),AlexAcc (alex_action_43),AlexAcc (alex_action_44),AlexAcc (alex_action_45),AlexAcc (alex_action_46),AlexAcc (alex_action_47),AlexAcc (alex_action_48),AlexAcc (alex_action_49),AlexAcc (alex_action_50),AlexAcc (alex_action_51),AlexAcc (alex_action_52),AlexAcc (alex_action_53),AlexAcc (alex_action_54),AlexAcc (alex_action_55),AlexAcc (alex_action_56),AlexAcc (alex_action_57),AlexAcc (alex_action_57),AlexAcc (alex_action_58),AlexAcc (alex_action_59),AlexAcc (alex_action_60),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_61),AlexAcc (alex_action_62),AlexAcc (alex_action_62),AlexAcc (alex_action_62),AlexAcc (alex_action_63)]
-{-# LINE 147 "Lexer.x" #-}
+{-# LINE 146 "Lexer.x" #-}
 
 
 --------------------------------------------------------
@@ -347,6 +346,22 @@ modifyUserState f = Alex $ \s ->
 
 getUserState :: Alex AlexUserState
 getUserState = Alex (\s -> Right (s,alex_ust s))
+
+tellLError :: Position -> LexerError -> Alex()
+tellLError pos err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (LError pos err) }   
+
+backslash :: String -> String
+backslash str = foldl' (flip replace) str chars
+    where
+        replace :: (Char, Char) -> String -> String
+        replace (new, old) = intercalate [new] . splitOn ['\\', old]
+        chars = [('\a', 'a'), ('\b', 'b'), ('\f', 'f'),
+                 ('\n', 'n'), ('\r', 'r'), ('\t', 't'),
+                 ('\v', 'v'), ('"', '"'), ('\\', '\\')]
+
+dropQuotationMarks :: Int -> Int -> String -> String
+dropQuotationMarks l r = reverse . drop r . reverse . drop l
 
 alexEOF :: Alex (Lexeme Token)
 alexEOF = liftM (Lex TkEOF) alexGetPosition
@@ -381,12 +396,8 @@ runAlex' input (Alex f) =
             , alex_scd   = 0
             }
 
-tellLError :: Position -> LexerError -> Alex()
-tellLError pos err = modifyUserState $ \st -> 
-                      st { errors = errors st |> (LError pos err) }   
 
-
---getTokens :: String -> (Seq Error, [[Lexeme Token]])
+--------------------------------------------------------------------
 getTokens s = runAlex' s (loop [])
     where
       isEof x  = case x of {  Lex TkEOF _ -> True; _ -> False }
@@ -394,19 +405,6 @@ getTokens s = runAlex' s (loop [])
         tok <- alexMonadScan
         if isEof tok then return (reverse acc)
                      else loop ([tok]:acc)
-
-
-backslash :: String -> String
-backslash str = foldl' (flip replace) str chars
-    where
-        replace :: (Char, Char) -> String -> String
-        replace (new, old) = intercalate [new] . splitOn ['\\', old]
-        chars = [('\a', 'a'), ('\b', 'b'), ('\f', 'f'),
-                 ('\n', 'n'), ('\r', 'r'), ('\t', 't'),
-                 ('\v', 'v'), ('"', '"'), ('\\', '\\')]
-
-dropQuotationMarks :: Int -> Int -> String -> String
-dropQuotationMarks l r = reverse . drop r . reverse . drop l
 
 alex_action_2 =  tok' TkProgram         
 alex_action_3 =  tok' TkBegin           
