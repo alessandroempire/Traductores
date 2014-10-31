@@ -17,8 +17,6 @@ main = do
 
     let (program, lpErrors) = parseProgram input  
     unlessGuard (null $ errors lpErrors) $ errorReport lpErrors
-    print program
-{-
 
     let (defS, dfErrors) = processDefinition False lpErrors program
     unlessGuard (null $ errors dfErrors) $ errorReport dfErrors
@@ -26,8 +24,7 @@ main = do
     liftIO $ print (getTable defS)
     liftIO $ putStrLn "Proceso terminado."
     exitSuccess
--}  
+  
 errorReport err = do
     mapM_ (liftIO . print) err
     exitFailure
-

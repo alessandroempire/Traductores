@@ -48,13 +48,16 @@ instance Show Expression where
 
 data Access 
     = VariableAccess (Lexeme Identifier)
-    | MatrixAccess (Lexeme Identifier) (Seq (Lexeme Expression))
+    | MatrixAccess (Lexeme Identifier) (Lexeme Expression) (Lexeme Expression)
+    | RCAccess (Lexeme Identifier) (Lexeme Expression)
     deriving (Eq, Ord)
 
 instance Show Access where
     show = \case
         VariableAccess idnL     -> lexInfo idnL
-        MatrixAccess idnL expLs -> lexInfo idnL ++ "[" ++ concatMap (show . lexInfo) expLs ++ "]"
+        MatrixAccess idnL sizeR sizeC -> lexInfo idnL ++ "[" ++ show (lexInfo sizeR) 
+                                   ++ "," ++ show (lexInfo sizeC) ++ "]"
+        RCAccess idnL expL -> lexInfo idnL ++ "[" ++ show (lexInfo expL) ++ "]"
 
 ---------------------------------------------------------------------
 

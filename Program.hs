@@ -244,11 +244,19 @@ printAccess :: Lexeme Access -> Printer ()
 printAccess (Lex st posn )= case st of
     VariableAccess id -> printString $ "Variable asignada " ++ show (lexInfo id)
     
-    MatrixAccess id exp -> do
+    MatrixAccess id sizeR sizeC -> do
         printString $ "Variable asignada (matriz) "
         raiseTabs
         printString $ "Identificador " ++ show id
-        mapM_ printExpression exp
+        printExpression sizeR
+        printExpression sizeC
+        lowerTabs
+
+    RCAccess id size -> do
+        printString $ "Variable asignada (row-col) "
+        raiseTabs
+        printString $ "Identificador " ++ show id
+        printExpression size
         lowerTabs
 
 printDataType :: Lexeme DataType -> Printer ()

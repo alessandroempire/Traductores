@@ -50,8 +50,7 @@ instance Show LexerError where
     show = \case
         LexerError msg   -> msg
         UnexpectedChar c -> "Caracter inesperado '" ++ [c] ++ "'"
-        StringError str  -> "Falta de una comilla en el String " 
-                             ++ show str
+        StringError str  -> "Expresion faltante en String " ++ show str
 
 ---------------------------------------------------------------------
 
@@ -69,12 +68,28 @@ instance Show ParseError where
 data StaticError 
     = StaticError String
     | AlreadyDeclared Identifier Position
+    | InvalidAssignType Identifier DataType DataType
+    | WrongCategory Identifier SymbolCategory SymbolCategory
+    | ReturnType DataType DataType Identifier
+    | NotDefined Identifier
+    | ReadNonReadable DataType Identifier
+    | PrintNonPrintable DataType
+    | ConditionDataType DataType
+    | ForInDataType DataType
 
 instance Show StaticError where
     show = \case
         StaticError msg -> msg
         AlreadyDeclared var p  -> "Identificador '" ++ var ++ "' fue declarado previamente en la " ++ show p
-
+        InvalidAssignType var vt et -> "Asignando '" ++ show et ++ "' a variable '" ++ var ++ "' de tipo '" ++ show vt ++ "'"
+        WrongCategory id cat g -> "Usando '" ++ id ++ "' como " ++ show cat ++ ", pero es una " ++ show g
+        ReturnType e g fname -> "Tipo de retorno invalido '" ++ show e ++ "' para funcion '" ++ fname ++ "', de tipo '" ++ show g ++ "'"
+        NotDefined iden -> "Identificador '" ++ iden ++ "' no ha sido definido"
+        ReadNonReadable dt id -> "Variable '" ++ id ++ "' de tipo '" ++ show dt ++ "' no puede ser usada en instrucciones 'read'"
+        PrintNonPrintable dt -> "Instruccion 'print' para tipo '" ++ show dt ++ "' no soportada"
+        ConditionDataType dt -> "Condicion debe ser de tipo 'Bool', pero tiene tipo '" ++ show dt ++ "'"
+        ForInDataType dt -> "Instruccion 'for' debe iterar sobre expresiones de tipo 'Matrix(r,c)', pero tiene tipo '" ++ show dt ++ "'"
+       
 ---------------------------------------------------------------------
 
 data Warning
@@ -86,9 +101,9 @@ data Warning
 instance Show Warning where
     show = \case
         Warning msg -> msg
-        CaseOfBool -> "case expression is of type 'Bool', consider using an 'if-then-else' statement"
-        VariableDefinedNotUsed         idn -> "identifier '" ++ idn ++ "' is defined but never used"
-        FunctionDefinedNotUsed idn -> "function '"   ++ idn ++ "' is defined but never used"
+--        CaseOfBool -> "case expression is of type 'Bool', consider using an 'if-then-else' statement"
+        VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definida pero no usada"
+        FunctionDefinedNotUsed id -> "Funcion '"   ++ id ++ "' definida pero no usada"
 
 ---------------------------------------------------------------------
 

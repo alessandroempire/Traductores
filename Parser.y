@@ -266,7 +266,8 @@ String :: { Lexeme String }
 
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
-  | Id "[" ExpressionList "]"    { MatrixAccess $1 $3 <$ $1 }
+  | Id "[" Expression "," Expression "]"    { MatrixAccess $1 $3 $5 <$ $1 }
+  | Id "[" Expression "]"    { RCAccess $1 $3 <$ $1 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -292,7 +293,6 @@ expandStatement stL = case lexInfo stL of
 
 ---------------------------------------------------------------------
 -- Parser
-
 lexWrap :: (Lexeme Token -> Alex a) -> Alex a
 lexWrap cont = do
     t <- alexMonadScan
@@ -302,14 +302,15 @@ lexWrap cont = do
             lexWrap cont
         Lex (TkErrorS str) pos -> do
             tellLError pos (StringError str)
-            lexWrap cont
+            cont $ TkString str <$ t
         --Cualquier otro Token es parte del lenguaje
-        Lex _ pos -> cont t
+        _  -> cont t
 
 parseError :: Lexeme Token -> Alex a
 parseError (Lex t p) = fail $ "Parse Error: token " ++ 
                             show t ++ " " ++ show p ++ "\n" 
 
-parseProgram :: String ->  (Program, Seq Error)
+parseProgram :: String -> (Program, Seq Error)
 parseProgram input = runAlex' input parse
+
 }
