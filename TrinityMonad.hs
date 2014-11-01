@@ -57,6 +57,9 @@ tellPError posn = tell . singleton . PError posn
 tellSError :: MonadWriter TrinityWriter m => Position -> StaticError -> m ()
 tellSError posn = tell . singleton . SError posn
 
+tellWarn :: MonadWriter TrinityWriter m => Position -> Warning -> m ()
+tellWarn posn = tell . singleton . Warn posn
+
 errors :: TrinityWriter -> Seq Error
 errors = filter isError
 

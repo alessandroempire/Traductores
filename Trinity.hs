@@ -2,6 +2,7 @@ import          Parser
 import          Lexer
 import          TrinityMonad
 import          Definition
+import          TypeChecker
 
 import          System.Environment      (getArgs)
 import          Data.Sequence           (null)
@@ -20,6 +21,9 @@ main = do
 
     let (defS, dfErrors) = processDefinition False lpErrors program
     unlessGuard (null $ errors dfErrors) $ errorReport dfErrors
+
+    let (typS, tpErrors) = processTypeChecker False dfErrors (getTable defS) program
+    unlessGuard (null $ errors tpErrors) $ mapM_ (liftIO . print) tpErrors
     
     liftIO $ print (getTable defS)
     liftIO $ putStrLn "Proceso terminado."

@@ -7,6 +7,7 @@ module DataType
     , isMatrix
     , isRow
     , isCol
+    , isValid
     ) where
 
 import          Lexeme
@@ -21,6 +22,7 @@ data DataType
     | Matrix (Lexeme Double) (Lexeme Double)
     | Row (Lexeme Double)
     | Col (Lexeme Double)
+    | TypeError
     deriving (Ord)
 
 instance Show DataType where
@@ -31,6 +33,7 @@ instance Show DataType where
         Matrix sizeR sizeC -> "Matrix(" ++ show (lexInfo sizeR) ++ "," ++ show (lexInfo sizeC) ++ ")"
         Row size        -> "Row(" ++ show (lexInfo size) ++ ")"
         Col size        -> "Col(" ++ show (lexInfo size) ++ ")"
+        TypeError       -> error "DataType: TypeError"
 
 instance Eq DataType where
     a == b = case (a,b) of
@@ -40,11 +43,13 @@ instance Eq DataType where
         (Matrix rowA colA, Matrix rowB colB)   -> (comp rowA rowB) && (comp colA colB)
         (Row sizeA, Row sizeB)                 -> comp sizeA sizeB
         (Col sizeA, Col sizeB)                 -> comp sizeA sizeB
---      (Row sizeR, Matrix sizeM _)            -> comp sizeR sizeM
+        (Row sizeC, Matrix rowM colM)          -> (comp sizeC rowM) && ((lexInfo colM) == 1) 
+        (Col sizeR, Matrix rowM colM)          -> (comp sizeR colM) && ((lexInfo rowM) == 1)
+        (TypeError, TypeError)                 -> True
         _                                      -> False
         where
             comp :: Eq a => Lexeme a -> Lexeme a -> Bool
-            comp = (==) `on` lexInfo       
+            comp = (==) `on` lexInfo
 
 ---------------------------------------------------------------------
 
@@ -56,6 +61,7 @@ toIdentifier dt = case dt of
     Matrix _ _ -> "Matrix"
     Row _ -> "Row"
     Col _ -> "Col"
+    TypeError -> "Error"
 
 isScalar :: DataType -> Bool
 isScalar = flip elem [Double, Bool]
@@ -74,4 +80,7 @@ isCol :: DataType -> Bool
 isCol = \case
     Col _ -> True
     _ -> False
+
+isValid :: DataType -> Bool
+isValid = (/= TypeError)
 

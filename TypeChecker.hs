@@ -65,7 +65,7 @@ buildTypeChecker :: TrinityWriter -> SymbolTable -> Program -> TypeChecker ()
 buildTypeChecker w tab program@(Program fun block) = do
     modify $ \s -> s { table = tab, ast = program }
     tell w
---    typeCheckFunctions fun
+    void $ typeCheckFunctions fun
     void $ typeCheckStatements block
 
     syms <- liftM toSeq $ gets table
@@ -74,9 +74,9 @@ buildTypeChecker w tab program@(Program fun block) = do
 ---------------------------------------------------------------------
 
 checkTable :: Seq (Identifier, Symbol) -> TypeChecker ()
-checkTable syms = forM_ syms $ \(idn, sym) -> case symbolCategory sym of
-    CatInfo -> unless (used sym) $ tellWarn (defPosn sym) (VariableDefinedNotUsed idn)
-    CatFunction -> unless (used sym) $ tellWarn (defPosn sym) (FunctionDefinedNotUsed idn)
+checkTable syms = forM_ syms $ \(id, sym) -> case symbolCategory sym of
+    CatInfo -> unless (used sym) $ tellWarn (defPosn sym) (VariableDefinedNotUsed id)
+    CatFunction -> unless (used sym) $ tellWarn (defPosn sym) (FunctionDefinedNotUsed id)
 
 ---------------------------------------------------------------------
 -- Using the Monad
@@ -107,7 +107,19 @@ buildExpressionChecker st expL = do
 ---------------------------------------------------------------------
 -- Access
 
--- Falta agregar...
+processAccessChecker :: TrinityState s => s -> Lexeme Access -> DataType
+processAccessChecker st = evalAccessChecker . buildAccessChecker st
+
+evalAccessChecker :: TypeChecker DataType -> DataType
+evalAccessChecker = fst . flip (flip evalRWS initialReader) initialState
+
+buildAccessChecker :: TrinityState s => s -> Lexeme Access -> TypeChecker DataType
+buildAccessChecker st accL = do
+    modify $ putTable   (getTable   st)
+    modify $ putStack   (getStack   st)
+    modify $ putScopeId (getScopeId st)
+    modify $ putAst     (getAst     st)
+    liftM (snd . fromJust) . runMaybeT $ accessDataType accL
 
 --------------------------------------------------------------------------------
 -- Monad handling
@@ -124,6 +136,26 @@ currentFunction :: TypeChecker (Identifier, DataType, Scope)
 currentFunction = gets (top . funcStack)
 
 --------------------------------------------------------------------------------
+-- Functions
+
+typeCheckFunctions :: FunctionSeq -> TypeChecker Returned
+typeCheckFunctions = liftM or . mapM typeCheckFunction
+
+typeCheckFunction (Lex fun posn) = case fun of
+
+    Function idL _ dtL block -> do
+        let id = lexInfo idL
+            dt = lexInfo dtL
+        enterScope
+        enterFunction id dt
+        ret <- typeCheckStatements block
+        exitFunction
+        exitScope
+
+        unless (ret) $ tellSError posn (NoReturn id)
+        return False
+
+--------------------------------------------------------------------------------
 -- Statements
 
 typeCheckStatements :: StatementSeq -> TypeChecker Returned
@@ -134,102 +166,167 @@ typeCheckStatement (Lex st posn) = case st of
 
     StAssign accL expL -> flip (>>) (return False) . runMaybeT $ do
         expDt <- lift $ typeCheckExpression expL
--- accessDataType: HAY QUE EDITARLA...
         (accId, accDt) <- accessDataType accL
+
+        guard (isValid accDt)
+        guard (isValid expDt)
         unless (accDt == expDt) $ tellSError posn (InvalidAssignType accId accDt expDt)
 
     StReturn expL -> flip (>>) (return True) . runMaybeT $ do
         expDt <- lift $ typeCheckExpression expL
         (id, retDt, _) <- lift currentFunction
+        
+        guard (isValid expDt)
         unlessGuard (retDt == expDt) $ tellSError posn (ReturnType retDt expDt id)
 
-    StFunctionCall idL expLs -> flip (>>) (return False) $ checkArguments idL expLs False
-
--- Esto hay que moverlo a una nueva funcion: typeCheckFunctions. Similar a lo que hice en Definition.hs
-
---StFunctionDef (Lex idn _) _ block -> do
---dt <- liftM (lexInfo . fromJust) $ getsSymbol idn returnType
---enterScope
---enterFunction idn dt
---ret <- typeCheckStatements block
---exitFunction
---exitScope
--- When is a function and it wasn't properly returned
---unless (isVoid dt || ret) $ tellSError posn (NoReturn idn)
---return False
+    StFunctionCall idL expLs -> flip (>>) (return False) $ checkArguments idL expLs
 
     StRead idL -> flip (>>) (return False) . runMaybeT $ do
         let id = lexInfo idL
         maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
+
         unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (NotDefined id)
         unlessGuard (cat == CatInfo) $ tellSError (lexPosn idL) (WrongCategory id CatInfo cat)
+        guard (isValid dt)
         unless (isScalar dt) $ tellSError (lexPosn idL) (ReadNonReadable dt id)
 
     StPrint exprL -> flip (>>) (return False) . runMaybeT $ do
         dt <- lift $ typeCheckExpression exprL
-        unless (dt ==String || isScalar dt) $ tellSError posn (PrintNonPrintable dt)
+
+        guard (isValid dt)
+        unless (dt == String || isScalar dt) $ tellSError posn (PrintNonPrintable dt)
 
     StIf expL trueBlock falseBlock -> do
         expDt <- typeCheckExpression expL
         void . runMaybeT $ do
-        when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
+            guard (isValid expDt)
+            when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
+
         enterScope
         trueRet <- typeCheckStatements trueBlock
         exitScope
+
         enterScope
         falseRet <- typeCheckStatements falseBlock
         exitScope
+
         return $ trueRet && falseRet
 
     StFor _ expL block -> do
         expDt <- typeCheckExpression expL
         void . runMaybeT $ do
-        unless (isMatrix expDt) $ tellSError posn (ForInDataType expDt)
+            unless (isMatrix expDt) $ tellSError posn (ForInDataType expDt)
+        
         enterScope
         void $ typeCheckStatements block
         exitScope
+        
         return False
 
     StWhile expL block -> do
         expDt <- typeCheckExpression expL
         void . runMaybeT $ do
-        when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
+            guard (isValid expDt)
+            when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
+
         enterScope
---Ojo, podria necesitarse el valor de retorno...
         void $ typeCheckStatements block
         exitScope
         return False
 
     _ -> return False
 
--- ESTO ES LO QUE HAY QUE EDITAR...
-typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
-typeCheckExpression = undefined
 
 --------------------------------------------------------------------------------
-checkArguments :: Lexeme Identifier -> Seq (Lexeme Expression) -> Bool -> TypeChecker (Maybe DataType)
-checkArguments = undefined
+-- Expressions
 
+typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
+typeCheckExpression (Lex exp posn) = case exp of
 
+    LitNumber _ -> return Double
+
+    LitBool _ -> return Bool
+
+    LitString _ -> return String
+
+    VariableId idL -> liftM (fromMaybe TypeError) $ runMaybeT $ do
+        let id = lexInfo idL
+        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
+        let (dt, cat) = fromJust maySymI
+
+        markUsed id
+        return dt
+
+--COMPLETAR>>>
+
+--------------------------------------------------------------------------------
+
+checkArguments :: Lexeme Identifier -> Seq (Lexeme Expression) -> TypeChecker (Maybe DataType)
+checkArguments (Lex id posn) args = runMaybeT $ do
+    maySymI <- getsSymbol id (\sym -> (symbolCategory sym, lexInfo $ returnType sym, paramTypes sym))
+    let (cat, dt, prms) = fromJust maySymI
+
+    unlessGuard (isJust maySymI) $ tellSError posn (FunctionNotDefined id)
+    unlessGuard (cat == CatFunction) $ tellSError posn (WrongCategory id CatFunction cat)
+    markUsed id
+    
+    aDts <- lift $ mapM typeCheckExpression args
+    let pDts = fmap lexInfo prms
+    
+    unlessGuard (length args == length pDts) $ tellSError posn (FunctionArguments id pDts aDts)
+    guard (all isValid aDts)
+    unlessGuard (and $ zipWith (==) pDts aDts) $ tellSError posn (FunctionArguments id pDts aDts)
+    
+    return dt
+
+--------------------------------------------------------------------------------
 
 accessDataType :: Lexeme Access -> MaybeT TypeChecker (Identifier, DataType)
 accessDataType (Lex acc posn) = case acc of
 
     VariableAccess idL -> do
         let id = lexInfo idL
-        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
+        maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
-        unlessGuard (isJust maySymI) $ tellSError (lexPosn deepIdnL) (NotDefined deepIdn)
-        unlessGuard (cat == CatInfo) $ tellSError (lexPosn accL) (WrongCategory deepIdn CatInfo cat)
+
+        unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
+        unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
+
         return (id, dt)
 
-    -- Nota: Ellos usan esta funcion para calcular tipos de arreglos o structs (internos) ...
-    -- Para nosotros, solo hay 3 casos: Variables id (ellos usan Variables access), MatrixAccess y RCAccess
-    -- Es mas sencillo en nuestro caso, porque en cuanto a variables no debemos calcular accesos internos
-    -- solo buscar el id en la tabla y devolver su tipo.
+    MatrixAccess idL explL exprL -> do
+        let id = lexInfo idL
+        maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
+        let (dt, cat) = fromJust maySymI
 
-----------------------------------------
-constructDataType :: Lexeme Identifier -> AccessZipper -> DataType -> MaybeT TypeChecker DataType
-constructDataType = undefined
+        unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
+        unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
+        unless (isMatrix dt) $ tellSError posn (InvalidAccess id dt)
+
+        explDt <- lift $ typeCheckExpression explL
+        exprDt <- lift $ typeCheckExpression exprL
+    
+        guard (isValid explDt)
+        guard (isValid exprDt)
+        unless (explDt == Double) $ tellSError posn (IndexAssignType explDt id)
+        unless (exprDt == Double) $ tellSError posn (IndexAssignType exprDt id)
+
+        return (id, Double)
+
+    RCAccess idL expL -> do
+        let id = lexInfo idL
+        maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
+        let (dt, cat) = fromJust maySymI
+
+        unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
+        unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
+        unless (isRow dt || isCol dt) $ tellSError posn (InvalidAccess id dt)
+
+        expDt <- lift $ typeCheckExpression expL
+    
+        guard (isValid expDt)
+        unless (expDt == Double) $ tellSError posn (IndexAssignType expDt id)
+
+        return (id, Double)
 

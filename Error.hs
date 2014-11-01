@@ -15,6 +15,7 @@ import           SymbolTable
 import           Data.Foldable                 (toList)
 import           Data.Function                 (on)
 import           Data.List                     (intercalate)
+import           Data.Sequence                 (Seq)
 
 data Error
     = LError Position LexerError
@@ -76,6 +77,11 @@ data StaticError
     | PrintNonPrintable DataType
     | ConditionDataType DataType
     | ForInDataType DataType
+    | InvalidAccess Identifier DataType
+    | IndexAssignType DataType Identifier
+    | FunctionNotDefined Identifier
+    | FunctionArguments Identifier (Seq DataType) (Seq DataType)
+    | NoReturn Identifier
 
 instance Show StaticError where
     show = \case
@@ -83,12 +89,21 @@ instance Show StaticError where
         AlreadyDeclared var p  -> "Identificador '" ++ var ++ "' fue declarado previamente en la " ++ show p
         InvalidAssignType var vt et -> "Asignando '" ++ show et ++ "' a variable '" ++ var ++ "' de tipo '" ++ show vt ++ "'"
         WrongCategory id cat g -> "Usando '" ++ id ++ "' como " ++ show cat ++ ", pero es una " ++ show g
-        ReturnType e g fname -> "Tipo de retorno invalido '" ++ show e ++ "' para funcion '" ++ fname ++ "', de tipo '" ++ show g ++ "'"
+        ReturnType e g fname -> "Tipo de retorno invalido '" ++ show e ++ "' para funcion '" ++ fname ++ "' de tipo '" ++ show g ++ "'"
         NotDefined iden -> "Identificador '" ++ iden ++ "' no ha sido definido"
         ReadNonReadable dt id -> "Variable '" ++ id ++ "' de tipo '" ++ show dt ++ "' no puede ser usada en instrucciones 'read'"
         PrintNonPrintable dt -> "Instruccion 'print' para tipo '" ++ show dt ++ "' no soportada"
         ConditionDataType dt -> "Condicion debe ser de tipo 'Bool', pero tiene tipo '" ++ show dt ++ "'"
         ForInDataType dt -> "Instruccion 'for' debe iterar sobre expresiones de tipo 'Matrix(r,c)', pero tiene tipo '" ++ show dt ++ "'"
+        InvalidAccess id dt -> "Intentando accesar al identificador '" ++ show id ++ "' de tipo '" ++ show dt ++ "'"
+        IndexAssignType dt id -> "Indice de acceso a '" ++ show id ++ "' debe ser entero, pero tiene tipo '" ++ show dt ++ "'"
+        FunctionNotDefined fname -> "Funcion '" ++ fname ++ "' no ha sido definida"
+        FunctionArguments fname e g -> "Funcion '" ++ fname ++ "' espera argumentos (" ++ showSign e ++ 
+                                    "), pero recibio (" ++ showSign g ++ ")"
+            where
+                showSign = intercalate ", " . map show . toList
+        NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
+        
        
 ---------------------------------------------------------------------
 

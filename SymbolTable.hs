@@ -20,6 +20,7 @@ module SymbolTable
     , emptySymInfo
     , emptySymFunction
     , Used
+    , Returned
     , Offset
     , Width
     , SymbolCategory(..)
@@ -93,6 +94,7 @@ data Symbol =
     | SymFunction
         { paramTypes :: Seq (Lexeme DataType)
         , returnType :: Lexeme DataType
+        , returned   :: Returned
         , body       :: StatementSeq
         , scopeStack :: Stack Scope
         , defPosn    :: Position
@@ -108,7 +110,7 @@ instance Show Symbol where
                 showC = show CatInfo
                 showDT  = show $ lexInfo dt
                 showOff = "offset: " ++ show off
-        SymFunction param rt _ stk pos bBy pBy u -> intercalate ", " [showP pos, showC, showSign, showU u, showW bBy, showW pBy, showStk stk]
+        SymFunction param rt _ _ stk pos bBy pBy u -> intercalate ", " [showP pos, showC, showSign, showU u, showW bBy, showW pBy, showStk stk]
             where
                 showC = show CatFunction
                 showSign = "(" ++ intercalate "," (map (show . lexInfo) $ toList param) ++ ") return " ++ show (lexInfo rt)
@@ -160,6 +162,7 @@ emptySymFunction :: Symbol
 emptySymFunction = SymFunction
     { paramTypes = empty
     , returnType = fillLex Bool
+    , returned = False
     , body = empty
     , scopeStack = globalStack
     , defPosn = defaultPosn
