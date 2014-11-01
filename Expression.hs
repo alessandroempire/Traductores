@@ -94,41 +94,57 @@ instance Show Binary where
         OpOr         -> "|"
         OpAnd        -> "&"
 
---Comparacion de matrices? Rows? Cols?
 binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperation op dts = snd <$> find ((dts==) . fst) (binaryOperator op)
 
 binaryOperator :: Binary -> Seq ((DataType, DataType), DataType)
 binaryOperator = fromList . \case
-    OpSum -> arithmetic
-    OpDiff -> arithmetic
-    OpMul -> arithmetic
-    OpDivEnt -> numeric
-    OpModEnt -> numeric
-    OpDiv -> numeric
-    OpMod -> numeric
---    OpCruzSum ->
---    OpCruzDiff ->
---    OpCruzMul ->
---    OpCruzDivEnt -> 
---    OpCruzModEnt ->
---    OpCruzDiv ->
---    OpCruzMod ->
-    OpEqual -> everythingCompare
-    OpUnequal -> everythingCompare
-    OpLess -> arithmeticCompare
-    OpLessEq -> arithmeticCompare
-    OpGreat -> arithmeticCompare
-    OpGreatEq -> arithmeticCompare
-    OpOr -> boolean
-    OpAnd -> boolean
-    where
-      numeric = [((Double, Double), Double)]
-      arithmetic = numeric -- ++ Rows, Cols, Matrix....
-      boolean = [((Bool, Bool), Bool)]
-      arithmeticCompare = [((Double, Double), Bool)] -- ++ Comparacion de rows, cols, matrix...
-      everythingCompare = arithmeticCompare ++ boolean
+    OpSum        -> arithmetic
+    OpDiff       -> arithmetic
+    OpMul        -> arithmetic
+    OpDivEnt     -> numeric
+    OpModEnt     -> numeric
+    OpDiv        -> numeric
+    OpMod        -> numeric
+    OpCruzSum    -> cruzado
+    OpCruzDiff   -> cruzado
+    OpCruzMul    -> cruzado
+    OpCruzDivEnt -> cruzado
+    OpCruzModEnt -> cruzado
+    OpCruzDiv    -> cruzado
+    OpCruzMod    -> cruzado
+    OpEqual      -> everythingCompare
+    OpUnequal    -> everythingCompare
+    OpLess       -> arithmeticCompare
+    OpLessEq     -> arithmeticCompare
+    OpGreat      -> arithmeticCompare
+    OpGreatEq    -> arithmeticCompare
+    OpOr         -> boolean
+    OpAnd        -> boolean
 
+    where    
+        numeric           = [((Double, Double), Double)]
+        arithmetic        = numeric ++ matrixArithmetic
+        matrixArithmetic  = [((Matrix lexD lexD, Matrix lexD lexD),
+                               Matrix lexD lexD),
+                             ((Col lexD, Col lexD), Col lexD),
+                             ((Row lexD, Row lexD), Row lexD)]
+        boolean           = [((Bool, Bool), Bool)]
+        arithmeticCompare = [((Double, Double), Bool)]
+        cruzado           = cruzadoM1 ++ cruzadoC2 ++ cruzadoC1 ++ cruzadoC2 ++
+                            cruzadoR1 ++ cruzadoR2
+        cruzadoM1         = [((Matrix lexD lexD, Double), Matrix lexD lexD)] 
+        cruzadoM2         = [((Double, Matrix lexD lexD), Matrix lexD lexD)]
+        cruzadoC1         = [((Col lexD, Double), Col lexD)]
+        cruzadoC2         = [((Double, Col lexD), Col lexD)] 
+        cruzadoR1         = [((Double, Row lexD), Row lexD)]
+        cruzadoR2         = [((Row lexD, Double), Row lexD)]
+        everythingCompare = arithmeticCompare ++ boolean ++ matrixCompare
+        matrixCompare     = [((Matrix lexD lexD, Matrix lexD lexD), Bool),
+                             ((Col lexD, Col lexD), Bool), ((Row lexD, Row lexD), Bool)]
+
+lexD :: Lexeme Double                         
+lexD = Lex 0.0 defaultPosn
 ---------------------------------------------------------------------
 
 data Unary 
@@ -148,9 +164,12 @@ unaryOperation op dt = snd <$> find ((dt==) . fst) (unaryOperator op)
 
 unaryOperator :: Unary -> Seq (DataType, DataType)
 unaryOperator = fromList . \case
-    OpNegative -> [(Double, Double)] -- ++ Row, Cols, Matrix
-    OpNot -> [(Bool, Bool)]
- -- OpTranspose -> 
+    OpNegative  -> [(Double, Double)] ++ matrixes
+    OpNot       -> [(Bool, Bool)]
+    OpTranspose -> matrixes
+    where 
+        matrixes = [(Matrix lexD lexD, Matrix lexD lexD),
+                   (Row lexD, Row lexD), (Col lexD, Col lexD)]
 
 ---------------------------------------------------------------------
 

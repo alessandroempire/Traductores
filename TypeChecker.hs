@@ -240,13 +240,12 @@ typeCheckStatement (Lex st posn) = case st of
 
 --------------------------------------------------------------------------------
 -- Expressions
-
 typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
 typeCheckExpression (Lex exp posn) = case exp of
 
     LitNumber _ -> return Double
 
-    LitBool _ -> return Bool
+    LitBool _   -> return Bool
 
     LitString _ -> return String
 
@@ -257,8 +256,34 @@ typeCheckExpression (Lex exp posn) = case exp of
 
         markUsed id
         return dt
+    --LitMatrix (seq:seqs) ->
 
---COMPLETAR>>>
+    --Proy exp1 seqExp ->
+
+    ExpBinary (Lex op _) lExp rExp -> liftM (fromMaybe TypeError) $ 
+                                      runMaybeT $ do
+        lDt <- lift $ typeCheckExpression lExp
+        rDt <- lift $ typeCheckExpression rExp
+        let expDt = binaryOperation op (lDt, rDt)
+
+        -- Checking for TypeErrors
+        guard (isValid lDt)
+        guard (isValid rDt)
+
+        unlessGuard (isJust expDt) $ tellSError pos (BinaryTypes op (lDt, rDt))
+
+        return (fromJust expDt)
+
+    ExpUnary (Lex op _) exp -> liftM (fromMaybe TypeError) $ runMaybeT $ do
+        dt <- lift $ typeCheckExpression exp
+        let expDt = unaryOperation op dt
+
+        -- Checking for TypeError
+        guard (isValid dt)
+
+        unlessGuard (isJust expDt) $ tellSError pos (UnaryTypes op dt)
+
+        return (fromJust expDt)
 
 --------------------------------------------------------------------------------
 
