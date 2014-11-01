@@ -82,6 +82,8 @@ data StaticError
     | FunctionNotDefined Identifier
     | FunctionArguments Identifier (Seq DataType) (Seq DataType)
     | NoReturn Identifier
+    | BinaryTypes Binary (DataType, DataType)
+    | UnaryTypes Unary DataType
 
 instance Show StaticError where
     show = \case
@@ -103,7 +105,12 @@ instance Show StaticError where
             where
                 showSign = intercalate ", " . map show . toList
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
-        
+        --Operadores
+        BinaryTypes op (dl, dr) -> "el operador '" ++ show op ++
+                                   "' no funciona con los operandos (" ++ 
+                                   show dl ++ ", " ++ show dr  ++ ")"
+        UnaryTypes op dt -> "el operador '" ++ show op ++ 
+                            "' no funcion con el operador (" ++ show dt ++ ")"
        
 ---------------------------------------------------------------------
 
