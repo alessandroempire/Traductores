@@ -73,7 +73,6 @@ printProgram str fun block = do
 
 printStatement :: Lexeme Statement -> Printer ()
 printStatement (Lex st posn) = case st of
---    StNoop ->
 
     StAssign acc exp -> do
         printString $ "Asignación "
