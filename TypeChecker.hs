@@ -291,7 +291,7 @@ typeCheckExpression (Lex exp posn) = case exp of
         dt <- lift $ map typeCheckExpression exps
 
         --check for typeError
-        unlessGuard ( foldl (\acc x -> acc && x) True (map isValid dt) ) $ 
+        unlessGuard ( foldl (\acc x -> acc && x) True (map isDouble dt) ) $ 
          tellSError pos (LitMatrixType)
 
         return Matrix
