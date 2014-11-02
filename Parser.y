@@ -155,8 +155,7 @@ Function :: { Lexeme Function }
   : "function" Id "(" MaybeSignature ")" "return" DataType "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
 
 StatementSeq :: { StatementSeq }
-  :    { empty }
-  | StatementList ";"   { $1 }
+  : StatementList ";"   { $1 }
 
 StatementList :: { StatementSeq }
   : Statement    { expandStatement $1 }
