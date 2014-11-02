@@ -286,8 +286,6 @@ typeCheckExpression (Lex exp posn) = case exp of
         markUsed id
         return dt
 
-    --LitMatrix (seq:seqs) ->
-
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
         -- Faltaria chequear el tipo de expL, que es un literal matricial xD
@@ -314,7 +312,7 @@ typeCheckExpression (Lex exp posn) = case exp of
         return Number
 
 
-    ExpBinary (Lex op _) lExp rExp -> liftM (fromMaybe TypeError) $ 
+    ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe TypeError) $ 
                                       runMaybeT $ do
         lDt <- lift $ typeCheckExpression lExp
         rDt <- lift $ typeCheckExpression rExp
@@ -326,7 +324,7 @@ typeCheckExpression (Lex exp posn) = case exp of
 
         return (fromJust expDt)
 
-    ExpUnary (Lex op _) exp -> liftM (fromMaybe TypeError) $ runMaybeT $ do
+    ExpUnary (Lex op pos) exp -> liftM (fromMaybe TypeError) $ runMaybeT $ do
         dt <- lift $ typeCheckExpression exp
         let expDt = unaryOperation op dt
 

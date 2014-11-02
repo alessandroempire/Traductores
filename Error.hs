@@ -109,7 +109,6 @@ instance Show StaticError where
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
         BinaryTypes op (dl,dr) -> "Operador '" ++ show op ++ "' no funciona con operandos de tipo (" ++ show dl ++ ", " ++ show dr ++ ")"
         UnaryTypes op dt -> "Operador '" ++ show op ++ "' no funciona con el tipo (" ++ show dt ++ ")"
-        
        
 ---------------------------------------------------------------------
 
