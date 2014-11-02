@@ -204,11 +204,6 @@ typeCheckStatement (Lex st posn) = case st of
 
     StFunctionCall idL expLs -> flip (>>) (return False) $ checkArguments idL expLs
 
-    StRead id -> flip (>>) (return False) . runMaybeT $ do
-        (accIdn, accDt) <- idDataType id
-        guard (isValid accDt)
-        unless (isScalar accDt) $ tellSError posn (ReadNonReadable accDt accIdn)
-{-
     StRead idL -> flip (>>) (return False) . runMaybeT $ do
         let id = lexInfo idL
         maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
@@ -218,7 +213,7 @@ typeCheckStatement (Lex st posn) = case st of
         unlessGuard (cat == CatInfo) $ tellSError (lexPosn idL) (WrongCategory id CatInfo cat)
         guard (isValid dt)
         unless (isScalar dt) $ tellSError (lexPosn idL) (ReadNonReadable dt id)
--}
+
     StPrint exprL -> flip (>>) (return False) . runMaybeT $ do
         dt <- lift $ typeCheckExpression exprL
 
@@ -273,17 +268,6 @@ typeCheckStatement (Lex st posn) = case st of
     _ -> return False
 
 
-idDataType :: Lexeme Identifier -> MaybeT TypeChecker (Identifier, DataType)
-idDataType id = do
-    let idL = lexInfo id 
-    maySymI <- getsSymbol idL ((lexInfo . dataType) &&& symbolCategory)
-    let (dt, cat) = fromJust maySymI
-    
-    unlessGuard (isJust maySymI) $ tellSError (lexPosn id) (Loco idL)
-    --
-    return (idL, Number)
-
-
 --------------------------------------------------------------------------------
 -- Expressions
 typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
@@ -304,25 +288,14 @@ typeCheckExpression (Lex exp posn) = case exp of
         return dt
     
      --not working LitMatrix [Seq (Lexeme Expression)]
-    LitMatrix exps -> liftM (fromMaybe TypeError) $ runMaybeT $ do
-        --exps es un arreglo de seq
+    LitMatrix exps -> liftM (fromMaybe TypeError ) $ runMaybeT $ do
 
         aDts <- lift $ mapM (mapM typeCheckExpression) exps
         unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
          tellSError defaultPosn (Loco "sitrng")
 
         --Checking for TypeErrors
-        --guard (all isNumber aDts)
-        return Matrix
-        {-
-        dt <- lift $ map typeCheckExpression exps
-
-        --check for typeError
-        unlessGuard ( foldl (\acc x -> acc && x) True (map isDouble dt) ) $ 
-         tellSError pos (LitMatrixType)
-
-        return Matrix
-        -}
+        return (Matrix (Lex 0.0 defaultPosn) (Lex 0.0 defaultPosn)) 
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do

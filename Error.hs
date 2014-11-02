@@ -86,6 +86,7 @@ data StaticError
     | BinaryTypes Binary (DataType, DataType)
     | UnaryTypes Unary DataType
     | Loco Identifier
+    | LitMatricial 
 
 instance Show StaticError where
     show = \case
@@ -115,6 +116,8 @@ instance Show StaticError where
                             "' no funcion con el operador (" ++ show dt ++ ")"
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
         Loco id -> "loco " ++ id
+        -- Literal Matricial
+        LitMatricial -> "Error en las expresiones del literal matricial"
 
        
 ---------------------------------------------------------------------
