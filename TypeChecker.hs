@@ -18,11 +18,12 @@ import            Control.Monad.RWS (RWS, evalRWS, execRWS, lift)
 import            Control.Monad.State (gets, modify)
 import            Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import            Control.Monad.Writer (tell)
-import            Data.Foldable (all, and, forM_, or)
+import            Data.Foldable (all, and, forM_, or, toList)
 import            Data.Functor ((<$>))
 import            Data.Maybe (fromJust, fromMaybe, isJust)
 import            Data.Sequence (Seq, empty, length, zipWith)
 import            Data.Traversable (forM, mapM)
+import qualified  Data.List as L (and)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, null, or, zipWith)
 
 type TypeChecker = RWS TrinityReader TrinityWriter TypeState
@@ -203,16 +204,21 @@ typeCheckStatement (Lex st posn) = case st of
 
     StFunctionCall idL expLs -> flip (>>) (return False) $ checkArguments idL expLs
 
+    StRead id -> flip (>>) (return False) . runMaybeT $ do
+        (accIdn, accDt) <- idDataType id
+        guard (isValid accDt)
+        unless (isScalar accDt) $ tellSError posn (ReadNonReadable accDt accIdn)
+{-
     StRead idL -> flip (>>) (return False) . runMaybeT $ do
         let id = lexInfo idL
-        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
+        maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
 
-        unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (NotDefined id)
+        unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (Loco id)
         unlessGuard (cat == CatInfo) $ tellSError (lexPosn idL) (WrongCategory id CatInfo cat)
         guard (isValid dt)
         unless (isScalar dt) $ tellSError (lexPosn idL) (ReadNonReadable dt id)
-
+-}
     StPrint exprL -> flip (>>) (return False) . runMaybeT $ do
         dt <- lift $ typeCheckExpression exprL
 
@@ -267,6 +273,17 @@ typeCheckStatement (Lex st posn) = case st of
     _ -> return False
 
 
+idDataType :: Lexeme Identifier -> MaybeT TypeChecker (Identifier, DataType)
+idDataType id = do
+    let idL = lexInfo id 
+    maySymI <- getsSymbol idL ((lexInfo . dataType) &&& symbolCategory)
+    let (dt, cat) = fromJust maySymI
+    
+    unlessGuard (isJust maySymI) $ tellSError (lexPosn id) (Loco idL)
+    --
+    return (idL, Number)
+
+
 --------------------------------------------------------------------------------
 -- Expressions
 typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
@@ -286,8 +303,18 @@ typeCheckExpression (Lex exp posn) = case exp of
         markUsed id
         return dt
     
-{-    --not working
-     LitMatrix (Lex exps pos) -> liftM (fromMaybe TypeError) $ runMaybeT $ do
+     --not working LitMatrix [Seq (Lexeme Expression)]
+    LitMatrix exps -> liftM (fromMaybe TypeError) $ runMaybeT $ do
+        --exps es un arreglo de seq
+
+        aDts <- lift $ mapM (mapM typeCheckExpression) exps
+        unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
+         tellSError defaultPosn (Loco "sitrng")
+
+        --Checking for TypeErrors
+        --guard (all isNumber aDts)
+        return Matrix
+        {-
         dt <- lift $ map typeCheckExpression exps
 
         --check for typeError
@@ -295,7 +322,8 @@ typeCheckExpression (Lex exp posn) = case exp of
          tellSError pos (LitMatrixType)
 
         return Matrix
--}
+        -}
+
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
         -- Faltaria chequear el tipo de expL, que es un literal matricial xD

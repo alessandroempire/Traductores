@@ -385,6 +385,9 @@ tellLError :: Position -> LexerError -> Alex()
 tellLError pos err = modifyUserState $ \st -> 
                       st { errors = errors st |> (LError pos err) }   
 
+tellPError :: Position -> ParseError -> Alex ()
+tellPError posn err = modifyUserState $ \st -> 
+                      st { errors = errors st |> (PError posn err) }
 
 --getTokens :: String -> (Seq Error, [[Lexeme Token]])
 getTokens s = runAlex' s (loop [])
@@ -407,6 +410,7 @@ backslash str = foldl' (flip replace) str chars
 
 dropQuotationMarks :: Int -> Int -> String -> String
 dropQuotationMarks l r = reverse . drop r . reverse . drop l
+
 
 alex_action_2 =  tok' TkProgram         
 alex_action_3 =  tok' TkBegin           

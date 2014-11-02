@@ -85,6 +85,7 @@ data StaticError
     | NoReturn Identifier
     | BinaryTypes Binary (DataType, DataType)
     | UnaryTypes Unary DataType
+    | Loco Identifier
 
 instance Show StaticError where
     show = \case
@@ -113,6 +114,7 @@ instance Show StaticError where
         UnaryTypes op dt -> "el operador '" ++ show op ++ 
                             "' no funcion con el operador (" ++ show dt ++ ")"
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
+        Loco id -> "loco " ++ id
 
        
 ---------------------------------------------------------------------

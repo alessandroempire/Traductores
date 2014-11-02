@@ -9,6 +9,7 @@ module DataType
     , isRow
     , isCol
     , isValid
+    , isNumber
     ) where
 
 import          Lexeme

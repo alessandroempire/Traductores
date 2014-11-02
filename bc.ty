@@ -1,0 +1,23 @@
+function
+  doubleit(number s)
+  return number
+  begin
+    return s;
+ end;
+function sum(number y)
+  return number
+  begin
+    return y;
+end;
+program
+ use
+    number x;
+ in
+    read x;
+  end;
+ use
+    number x;
+ in 
+    read x;
+ end;
+end;
