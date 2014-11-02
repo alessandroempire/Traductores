@@ -286,7 +286,7 @@ typeCheckExpression (Lex exp posn) = case exp of
         markUsed id
         return dt
     
-    --not working
+{-    --not working
      LitMatrix (Lex exps pos) -> liftM (fromMaybe TypeError) $ runMaybeT $ do
         dt <- lift $ map typeCheckExpression exps
 
@@ -295,7 +295,7 @@ typeCheckExpression (Lex exp posn) = case exp of
          tellSError pos (LitMatrixType)
 
         return Matrix
-
+-}
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
         -- Faltaria chequear el tipo de expL, que es un literal matricial xD

@@ -104,14 +104,14 @@ instance Show StaticError where
         FunctionNotDefined fname -> "Funcion '" ++ fname ++ "' no ha sido definida"
         FunctionArguments fname e g -> "Funcion '" ++ fname ++ "' espera argumentos (" ++ showSign e ++ 
                                     "), pero recibio (" ++ showSign g ++ ")"
+            where
+                showSign = intercalate ", " . map show . toList
         --Operadores
         BinaryTypes op (dl, dr) -> "el operador '" ++ show op ++
                                    "' no funciona con los operandos (" ++ 
                                    show dl ++ ", " ++ show dr  ++ ")"
         UnaryTypes op dt -> "el operador '" ++ show op ++ 
                             "' no funcion con el operador (" ++ show dt ++ ")"
-            where
-                showSign = intercalate ", " . map show . toList
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
 
        
