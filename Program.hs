@@ -211,11 +211,19 @@ printExpression (Lex st posn )= case st of
         mapM_ (mapM_ printExpression) exp
         lowerTabs
     
-    Proy exp1 exp2 -> do
+    ProyM exp indexL indexR -> do
         printString $ "Proyeccion de componentes "
         raiseTabs
-        printExpression exp1
-        mapM_ printExpression exp2
+        printExpression exp
+        printExpression indexL
+        printExpression indexR
+        lowerTabs
+
+    ProyRC exp index -> do
+        printString $ "Proyeccion de componentes "
+        raiseTabs
+        printExpression exp
+        printExpression index
         lowerTabs
 
     ExpBinary op e1 e2 -> do
@@ -262,7 +270,7 @@ printAccess (Lex st posn )= case st of
 printDataType :: Lexeme DataType -> Printer ()
 printDataType (Lex st posn) = case st of
     Bool   -> printString $ "Tipo Bool "
-    Double -> printString $ "Tipo Number "
+    Number -> printString $ "Tipo Number "
 
     Matrix sizeR sizeC -> do
         printString $ "Tipo Matrix "

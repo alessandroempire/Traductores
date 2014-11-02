@@ -79,9 +79,12 @@ data StaticError
     | ForInDataType DataType
     | InvalidAccess Identifier DataType
     | IndexAssignType DataType Identifier
+    | ProyIndexDataType DataType
     | FunctionNotDefined Identifier
     | FunctionArguments Identifier (Seq DataType) (Seq DataType)
     | NoReturn Identifier
+    | BinaryTypes Binary (DataType, DataType)
+    | UnaryTypes Unary DataType
 
 instance Show StaticError where
     show = \case
@@ -97,12 +100,15 @@ instance Show StaticError where
         ForInDataType dt -> "Instruccion 'for' debe iterar sobre expresiones de tipo 'Matrix(r,c)', pero tiene tipo '" ++ show dt ++ "'"
         InvalidAccess id dt -> "Intentando accesar al identificador '" ++ show id ++ "' de tipo '" ++ show dt ++ "'"
         IndexAssignType dt id -> "Indice de acceso a '" ++ show id ++ "' debe ser entero, pero tiene tipo '" ++ show dt ++ "'"
+        ProyIndexDataType dt -> "Indice de proyeccion matricial debe ser entero, pero tiene tipo '" ++ show dt ++ "'"
         FunctionNotDefined fname -> "Funcion '" ++ fname ++ "' no ha sido definida"
         FunctionArguments fname e g -> "Funcion '" ++ fname ++ "' espera argumentos (" ++ showSign e ++ 
                                     "), pero recibio (" ++ showSign g ++ ")"
             where
                 showSign = intercalate ", " . map show . toList
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
+        BinaryTypes op (dl,dr) -> "Operador '" ++ show op ++ "' no funciona con operandos de tipo (" ++ show dl ++ ", " ++ show dr ++ ")"
+        UnaryTypes op dt -> "Operador '" ++ show op ++ "' no funciona con el tipo (" ++ show dt ++ ")"
         
        
 ---------------------------------------------------------------------

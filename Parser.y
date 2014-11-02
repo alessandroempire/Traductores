@@ -250,11 +250,12 @@ Expression :: { Lexeme Expression }
   | Expression ">=" Expression    { ExpBinary (OpGreatEq <$ $2) $1 $3 <$ $1 } 
   | Expression "'"    { ExpUnary (OpTranspose <$ $2) $1 <$ $1 }
   | "-" Expression %prec NEG     { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
-  | Expression "[" ExpressionList "]" %prec MAX    { Proy $1 $3 <$ $1 }
+  | Expression "[" Expression "," Expression "]" %prec MAX    { ProyM $1 $3 $5 <$ $1 }
+  | Expression "[" Expression "]" %prec MAX    { ProyRC $1 $3 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
 
-Number :: { Lexeme Double }
+Number :: { Lexeme Number }
   : num    { unTkNumber `fmap` $1 }
 
 Bool :: { Lexeme Bool } 
@@ -274,7 +275,7 @@ Id :: { Lexeme Identifier }
 
 DataType :: { Lexeme DataType }
   : "boolean"    { Bool <$ $1 }
-  | "number"    { Double <$ $1 }
+  | "number"    { Number <$ $1 }
   | "matrix" "(" Number "," Number ")"    { Matrix $3 $5 <$ $1 }             
   | "row" "(" Number ")"    { Row $3 <$ $1 }
   | "col" "(" Number ")"    { Col $3 <$ $1 }

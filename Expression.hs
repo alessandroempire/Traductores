@@ -20,12 +20,13 @@ import          Data.Foldable (concatMap, find)
 import          Prelude       hiding (concatMap)
 
 data Expression
-    = LitNumber (Lexeme Double)
+    = LitNumber (Lexeme Number)
     | LitBool (Lexeme Bool)
     | LitString (Lexeme String)
     | VariableId (Lexeme Identifier)
     | LitMatrix [Seq (Lexeme Expression)]
-    | Proy (Lexeme Expression) (Seq (Lexeme Expression))
+    | ProyM (Lexeme Expression) (Lexeme Expression) (Lexeme Expression)
+    | ProyRC (Lexeme Expression) (Lexeme Expression)
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
     | ExpUnary (Lexeme Unary) (Lexeme Expression)
     deriving (Eq, Ord)
@@ -37,8 +38,9 @@ instance Show Expression where
         LitString strL      -> "Literal string: "   ++ show (lexInfo strL)
         VariableId accL     -> "Identificador de variable: " ++ show (lexInfo accL)
         LitMatrix expS      -> "Literal Matricial: { " ++ " }"
-        Proy expL expLs     -> "Proyección: " ++ show (lexInfo expL) ++ "[" 
-                                ++ concatMap ( show . lexInfo) expLs ++ "]"        
+        ProyM expL indexlL indexrL -> "Proyección: " ++ show (lexInfo expL) ++ "[" 
+                                ++ show (lexInfo indexlL) ++ "," ++ show (lexInfo indexrL) ++ "]"
+        ProyRC expL indexL  -> "Proyección: " ++ show (lexInfo expL) ++ "[" ++ show (lexInfo indexL) ++ "]"                
         ExpBinary opL lL rL -> "Operador Binario: " ++ show (lexInfo lL) ++ " " 
                                 ++ show (lexInfo opL) ++ " " ++ show (lexInfo rL)
         ExpUnary opL expL   -> "Operador Unario: " ++ show (lexInfo opL) ++ " " 
@@ -123,27 +125,27 @@ binaryOperator = fromList . \case
     OpAnd        -> boolean
 
     where    
-        numeric           = [((Double, Double), Double)]
+        numeric           = [((Number, Number), Number)]
         arithmetic        = numeric ++ matrixArithmetic
         matrixArithmetic  = [((Matrix lexD lexD, Matrix lexD lexD),
                                Matrix lexD lexD),
                              ((Col lexD, Col lexD), Col lexD),
                              ((Row lexD, Row lexD), Row lexD)]
         boolean           = [((Bool, Bool), Bool)]
-        arithmeticCompare = [((Double, Double), Bool)]
+        arithmeticCompare = [((Number, Number), Bool)]
         cruzado           = cruzadoM1 ++ cruzadoC2 ++ cruzadoC1 ++ cruzadoC2 ++
                             cruzadoR1 ++ cruzadoR2
-        cruzadoM1         = [((Matrix lexD lexD, Double), Matrix lexD lexD)] 
-        cruzadoM2         = [((Double, Matrix lexD lexD), Matrix lexD lexD)]
-        cruzadoC1         = [((Col lexD, Double), Col lexD)]
-        cruzadoC2         = [((Double, Col lexD), Col lexD)] 
-        cruzadoR1         = [((Double, Row lexD), Row lexD)]
-        cruzadoR2         = [((Row lexD, Double), Row lexD)]
+        cruzadoM1         = [((Matrix lexD lexD, Number), Matrix lexD lexD)] 
+        cruzadoM2         = [((Number, Matrix lexD lexD), Matrix lexD lexD)]
+        cruzadoC1         = [((Col lexD, Number), Col lexD)]
+        cruzadoC2         = [((Number, Col lexD), Col lexD)] 
+        cruzadoR1         = [((Number, Row lexD), Row lexD)]
+        cruzadoR2         = [((Row lexD, Number), Row lexD)]
         everythingCompare = arithmeticCompare ++ boolean ++ matrixCompare
         matrixCompare     = [((Matrix lexD lexD, Matrix lexD lexD), Bool),
                              ((Col lexD, Col lexD), Bool), ((Row lexD, Row lexD), Bool)]
 
-lexD :: Lexeme Double                         
+lexD :: Lexeme Number
 lexD = Lex 0.0 defaultPosn
 ---------------------------------------------------------------------
 
@@ -164,7 +166,7 @@ unaryOperation op dt = snd <$> find ((dt==) . fst) (unaryOperator op)
 
 unaryOperator :: Unary -> Seq (DataType, DataType)
 unaryOperator = fromList . \case
-    OpNegative  -> [(Double, Double)] ++ matrixes
+    OpNegative  -> [(Number, Number)] ++ matrixes
     OpNot       -> [(Bool, Bool)]
     OpTranspose -> matrixes
     where 

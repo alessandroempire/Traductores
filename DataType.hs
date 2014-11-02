@@ -2,6 +2,7 @@
 
 module DataType
     ( DataType(..)
+    , Number
     , toIdentifier
     , isScalar
     , isMatrix
@@ -15,9 +16,11 @@ import          Identifier
 
 import          Data.Function (on)
 
+type Number = Double
+
 data DataType 
     = Bool 
-    | Double
+    | Number
     | String
     | Matrix (Lexeme Double) (Lexeme Double)
     | Row (Lexeme Double)
@@ -28,7 +31,7 @@ data DataType
 instance Show DataType where
     show = \case
         Bool            -> "Bool"
-        Double          -> "Number"
+        Number          -> "Number"
         String          -> "String"
         Matrix sizeR sizeC -> "Matrix(" ++ show (lexInfo sizeR) ++ "," ++ show (lexInfo sizeC) ++ ")"
         Row size        -> "Row(" ++ show (lexInfo size) ++ ")"
@@ -38,7 +41,7 @@ instance Show DataType where
 instance Eq DataType where
     a == b = case (a,b) of
         (Bool, Bool)                           -> True
-        (Double, Double)                       -> True
+        (Number, Number)                       -> True
         (String, String)                       -> True
         (Matrix rowA colA, Matrix rowB colB)   -> (comp rowA rowB) && (comp colA colB)
         (Row sizeA, Row sizeB)                 -> comp sizeA sizeB
@@ -56,7 +59,7 @@ instance Eq DataType where
 toIdentifier :: DataType -> Identifier
 toIdentifier dt = case dt of
     Bool -> "Bool"
-    Double -> "Double"
+    Number -> "Number"
     String -> "String"
     Matrix _ _ -> "Matrix"
     Row _ -> "Row"
@@ -64,7 +67,7 @@ toIdentifier dt = case dt of
     TypeError -> "Error"
 
 isScalar :: DataType -> Bool
-isScalar = flip elem [Double, Bool]
+isScalar = flip elem [Number, Bool]
 
 isMatrix :: DataType -> Bool
 isMatrix = \case

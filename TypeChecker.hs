@@ -146,6 +146,7 @@ typeCheckFunction (Lex fun posn) = case fun of
     Function idL _ dtL block -> do
         let id = lexInfo idL
             dt = lexInfo dtL
+
         enterScope
         enterFunction id dt
         ret <- typeCheckStatements block
@@ -154,6 +155,27 @@ typeCheckFunction (Lex fun posn) = case fun of
 
         unless (ret) $ tellSError posn (NoReturn id)
         return False
+
+---------------------------------------------------------------------
+-- Declaration
+
+typeCheckDeclarations :: DeclarationSeq -> TypeChecker Returned
+typeCheckDeclarations = liftM or . mapM typeCheckDeclaration
+
+typeCheckDeclaration :: Lexeme Declaration -> TypeChecker Returned
+typeCheckDeclaration (Lex dcl posn) = case dcl of
+
+    DclInit dtL idL expL -> flip (>>) (return False) . runMaybeT $ do
+        let dt = lexInfo dtL
+            id = lexInfo idL
+
+        expDt <- lift $ typeCheckExpression expL
+
+        guard (isValid expDt)
+        unless (dt == expDt) $ tellSError posn (InvalidAssignType id dt expDt)
+
+    _ -> return False
+
 
 --------------------------------------------------------------------------------
 -- Statements
@@ -235,6 +257,13 @@ typeCheckStatement (Lex st posn) = case st of
         exitScope
         return False
 
+    StBlock dclS block -> do
+        typeCheckDeclarations dclS
+        void $ typeCheckStatements block
+
+        return False
+        
+
     _ -> return False
 
 
@@ -243,7 +272,7 @@ typeCheckStatement (Lex st posn) = case st of
 typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
 typeCheckExpression (Lex exp posn) = case exp of
 
-    LitNumber _ -> return Double
+    LitNumber _ -> return Number
 
     LitBool _   -> return Bool
 
@@ -256,9 +285,34 @@ typeCheckExpression (Lex exp posn) = case exp of
 
         markUsed id
         return dt
+
     --LitMatrix (seq:seqs) ->
 
-    --Proy exp1 seqExp ->
+    ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
+                                  runMaybeT $ do
+        -- Faltaria chequear el tipo de expL, que es un literal matricial xD
+     
+        lDt <- lift $ typeCheckExpression indexlL
+        rDt <- lift $ typeCheckExpression indexrL
+
+        guard (isValid lDt)
+        guard (isValid rDt)
+        unless (lDt == Number) $ tellSError posn (ProyIndexDataType lDt)
+        unless (rDt == Number) $ tellSError posn (ProyIndexDataType rDt)
+
+        return Number
+
+    ProyRC expL indexL -> liftM (fromMaybe TypeError) $
+                                  runMaybeT $ do
+        -- Faltaria chequear el tipo de expL, que es un literal matricial xD
+     
+        dt <- lift $ typeCheckExpression indexL
+
+        guard (isValid dt)
+        unless (dt == Number) $ tellSError posn (ProyIndexDataType dt)
+
+        return Number
+
 
     ExpBinary (Lex op _) lExp rExp -> liftM (fromMaybe TypeError) $ 
                                       runMaybeT $ do
@@ -266,11 +320,9 @@ typeCheckExpression (Lex exp posn) = case exp of
         rDt <- lift $ typeCheckExpression rExp
         let expDt = binaryOperation op (lDt, rDt)
 
-        -- Checking for TypeErrors
         guard (isValid lDt)
         guard (isValid rDt)
-
-        unlessGuard (isJust expDt) $ tellSError pos (BinaryTypes op (lDt, rDt))
+        unlessGuard (isJust expDt) $ tellSError posn (BinaryTypes op (lDt, rDt))
 
         return (fromJust expDt)
 
@@ -278,10 +330,8 @@ typeCheckExpression (Lex exp posn) = case exp of
         dt <- lift $ typeCheckExpression exp
         let expDt = unaryOperation op dt
 
-        -- Checking for TypeError
         guard (isValid dt)
-
-        unlessGuard (isJust expDt) $ tellSError pos (UnaryTypes op dt)
+        unlessGuard (isJust expDt) $ tellSError posn (UnaryTypes op dt)
 
         return (fromJust expDt)
 
@@ -327,17 +377,17 @@ accessDataType (Lex acc posn) = case acc of
 
         unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
         unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
-        unless (isMatrix dt) $ tellSError posn (InvalidAccess id dt)
+        unlessGuard (isMatrix dt) $ tellSError posn (InvalidAccess id dt)
 
         explDt <- lift $ typeCheckExpression explL
         exprDt <- lift $ typeCheckExpression exprL
     
         guard (isValid explDt)
         guard (isValid exprDt)
-        unless (explDt == Double) $ tellSError posn (IndexAssignType explDt id)
-        unless (exprDt == Double) $ tellSError posn (IndexAssignType exprDt id)
+        unless (explDt == Number) $ tellSError posn (IndexAssignType explDt id)
+        unless (exprDt == Number) $ tellSError posn (IndexAssignType exprDt id)
 
-        return (id, Double)
+        return (id, Number)
 
     RCAccess idL expL -> do
         let id = lexInfo idL
@@ -346,12 +396,12 @@ accessDataType (Lex acc posn) = case acc of
 
         unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
         unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
-        unless (isRow dt || isCol dt) $ tellSError posn (InvalidAccess id dt)
+        unlessGuard (isRow dt || isCol dt) $ tellSError posn (InvalidAccess id dt)
 
         expDt <- lift $ typeCheckExpression expL
     
         guard (isValid expDt)
-        unless (expDt == Double) $ tellSError posn (IndexAssignType expDt id)
+        unless (expDt == Number) $ tellSError posn (IndexAssignType expDt id)
 
-        return (id, Double)
+        return (id, Number)
 
