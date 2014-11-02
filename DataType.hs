@@ -58,31 +58,36 @@ instance Eq DataType where
 
 toIdentifier :: DataType -> Identifier
 toIdentifier dt = case dt of
-    Bool -> "Bool"
-    Number -> "Number"
-    String -> "String"
+    Bool       -> "Bool"
+    Double     -> "Double"
+    String     -> "String"
     Matrix _ _ -> "Matrix"
-    Row _ -> "Row"
-    Col _ -> "Col"
-    TypeError -> "Error"
+    Row _      -> "Row"
+    Col _      -> "Col"
+    TypeError  -> "Error"
+
+isDouble :: DataType -> Bool
+isDouble = \case
+    Double -> True
+    _      -> False
 
 isScalar :: DataType -> Bool
-isScalar = flip elem [Number, Bool]
+isScalar = flip elem [Double, Bool]
 
 isMatrix :: DataType -> Bool
 isMatrix = \case
     Matrix _ _ -> True
-    _ -> False
+    _          -> False
 
 isRow :: DataType -> Bool
 isRow = \case
     Row _ -> True
-    _ -> False
+    _     -> False
 
 isCol :: DataType -> Bool
 isCol = \case
     Col _ -> True
-    _ -> False
+    _     -> False
 
 isValid :: DataType -> Bool
 isValid = (/= TypeError)
