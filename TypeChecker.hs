@@ -292,7 +292,7 @@ typeCheckExpression (Lex exp posn) = case exp of
 
         aDts <- lift $ mapM (mapM typeCheckExpression) exps
         unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
-         tellSError defaultPosn (Loco "sitrng")
+         tellSError posn (LitMatricial)
 
         --Checking for TypeErrors
         return (Matrix (Lex 0.0 defaultPosn) (Lex 0.0 defaultPosn)) 
