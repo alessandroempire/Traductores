@@ -154,13 +154,10 @@ definitionStatement (Lex st posn) = case st of
         definitionStatements falseBlock
 
     StFor idL _ block -> do
-        let dcl = Dcl (pure Number) idL <$ idL
+--        let dcl = Dcl (pure Number) idL <$ idL
 
---      New Scope or Not? idL donde va?
---        enterScope >> enterLoop
-        processDeclaration dcl
+--        processDeclaration dcl
         definitionStatements block
---        exitLoop >> exitScope
 
     StWhile _ block -> do
         definitionStatements block

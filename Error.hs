@@ -130,7 +130,7 @@ data Warning
 instance Show Warning where
     show = \case
         Warning msg -> msg
-        VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definida pero no usada"
+        VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definido pero no usado"
         FunctionDefinedNotUsed id -> "Funcion '"   ++ id ++ "' definida pero no usada"
 
 ---------------------------------------------------------------------
