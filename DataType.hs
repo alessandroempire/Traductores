@@ -5,11 +5,11 @@ module DataType
     , Number
     , toIdentifier
     , isScalar
+    , isNumber
     , isMatrix
     , isRow
     , isCol
     , isValid
-    , isNumber
     ) where
 
 import          Lexeme
@@ -67,13 +67,13 @@ toIdentifier dt = case dt of
     Col _      -> "Col"
     TypeError  -> "Error"
 
+isScalar :: DataType -> Bool
+isScalar = flip elem [Number, Bool]
+
 isNumber :: DataType -> Bool
 isNumber = \case
     Number -> True
     _      -> False
-
-isScalar :: DataType -> Bool
-isScalar = flip elem [Number, Bool]
 
 isMatrix :: DataType -> Bool
 isMatrix = \case

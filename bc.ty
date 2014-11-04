@@ -14,10 +14,10 @@ program
     number x;
  in
     read x;
- end;
+  end;
  use
-    number x;
+    number y;
  in 
-    read x;
+    read y;
  end;
 end;

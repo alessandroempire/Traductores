@@ -154,9 +154,13 @@ definitionStatement (Lex st posn) = case st of
         definitionStatements falseBlock
 
     StFor idL _ block -> do
---        let dcl = Dcl idL (DataType (pure "Int") <$ idnL) CatVariable <$ idnL
---        processDeclaration dcl
+        let dcl = Dcl (pure Number) idL <$ idL
+
+--      New Scope or Not? idL donde va?
+--        enterScope >> enterLoop
+        processDeclaration dcl
         definitionStatements block
+--        exitLoop >> exitScope
 
     StWhile _ block -> do
         definitionStatements block
@@ -199,3 +203,4 @@ definitionFunction (Lex st posn) = case st of
         mapM_ processDeclaration prms
         definitionStatements block
         exitScope
+

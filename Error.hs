@@ -86,6 +86,8 @@ data StaticError
     | BinaryTypes Binary (DataType, DataType)
     | UnaryTypes Unary DataType
     | LitMatricial 
+    | ProyMatrixExpression DataType
+    | ProyRCExpression DataType
 
 instance Show StaticError where
     show = \case
@@ -107,16 +109,15 @@ instance Show StaticError where
                                     "), pero recibio (" ++ showSign g ++ ")"
             where
                 showSign = intercalate ", " . map show . toList
-        --Operadores
-        BinaryTypes op (dl, dr) -> "el operador '" ++ show op ++
-                                   "' no funciona con los operandos (" ++ 
+        BinaryTypes op (dl, dr) -> "Operador binario '" ++ show op ++
+                                   "' no funciona con los operandos de tipo (" ++ 
                                    show dl ++ ", " ++ show dr  ++ ")"
-        UnaryTypes op dt -> "el operador '" ++ show op ++ 
-                            "' no funcion con el operador (" ++ show dt ++ ")"
+        UnaryTypes op dt -> "Operador unario '" ++ show op ++ 
+                            "' no funciona con el operando de tipo (" ++ show dt ++ ")"
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
-        -- Literal Matricial
         LitMatricial -> "Error en las expresiones del literal matricial"
-
+        ProyMatrixExpression dt -> "Expresion de proyeccion matricial tiene tipo '" ++ show dt ++ "'"
+        ProyRCExpression dt -> "Expresion de proyeccion vectorial tiene tipo '" ++ show dt ++ "'"
        
 ---------------------------------------------------------------------
 
@@ -129,7 +130,6 @@ data Warning
 instance Show Warning where
     show = \case
         Warning msg -> msg
---        CaseOfBool -> "case expression is of type 'Bool', consider using an 'if-then-else' statement"
         VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definida pero no usada"
         FunctionDefinedNotUsed id -> "Funcion '"   ++ id ++ "' definida pero no usada"
 

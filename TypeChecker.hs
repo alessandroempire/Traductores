@@ -286,12 +286,12 @@ typeCheckExpression (Lex exp posn) = case exp of
         unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
          tellSError posn (LitMatricial)
 
-        --Checking for TypeErrors
         return (Matrix (Lex 0.0 defaultPosn) (Lex 0.0 defaultPosn)) 
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
-        -- Faltaria chequear el tipo de expL, que es un literal matricial xD
+        expDt <- lift $ typeCheckExpression expL
+        unlessGuard (isMatrix expDt) $ tellSError posn (ProyMatrixExpression expDt)
      
         lDt <- lift $ typeCheckExpression indexlL
         rDt <- lift $ typeCheckExpression indexrL
@@ -305,7 +305,8 @@ typeCheckExpression (Lex exp posn) = case exp of
 
     ProyRC expL indexL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
-        -- Faltaria chequear el tipo de expL, que es un literal matricial xD
+        expDt <- lift $ typeCheckExpression expL
+        unlessGuard (isRow expDt || isCol expDt) $ tellSError posn (ProyRCExpression expDt)
      
         dt <- lift $ typeCheckExpression indexL
 

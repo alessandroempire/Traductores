@@ -25,6 +25,7 @@ instance Applicative Lexeme where
     (Lex f p) <*> (Lex a _) = Lex (f a) p
 
 ---------------------------------------------------------------------
+
 fillLex :: a -> Lexeme a
 fillLex lex = Lex lex defaultPosn
 

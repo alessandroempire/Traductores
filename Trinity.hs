@@ -25,7 +25,7 @@ main = do
     let (typS, tpErrors) = processTypeChecker False dfErrors (getTable defS) program
     unlessGuard (null $ errors tpErrors) $ mapM_ (liftIO . print) tpErrors
     
-    liftIO $ print (getTable defS)
+    liftIO $ print (getTable typS)
     liftIO $ putStrLn "Proceso terminado."
     exitSuccess
   

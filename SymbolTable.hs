@@ -150,7 +150,7 @@ emptyTable = Map.empty
 
 emptySymInfo :: Symbol
 emptySymInfo = SymInfo
-    { dataType = fillLex Bool
+    { dataType = pure Bool
     , scopeStack = globalStack
     , defPosn = defaultPosn
     , offset = 0
@@ -161,7 +161,7 @@ emptySymInfo = SymInfo
 emptySymFunction :: Symbol
 emptySymFunction = SymFunction
     { paramTypes = empty
-    , returnType = fillLex Bool
+    , returnType = pure Bool
     , returned = False
     , body = empty
     , scopeStack = globalStack
