@@ -149,31 +149,21 @@ definitionStatement :: Lexeme Statement -> Definition ()
 definitionStatement (Lex st posn) = case st of
 
     StIf _ trueBlock falseBlock -> do
-        enterScope
         definitionStatements trueBlock
-        exitScope
 
-        enterScope
         definitionStatements falseBlock
-        exitScope
 
     StFor idL _ block -> do
 --        let dcl = Dcl idL (DataType (pure "Int") <$ idnL) CatVariable <$ idnL
-        enterScope >> enterLoop
 --        processDeclaration dcl
         definitionStatements block
-        exitLoop >> exitScope
 
     StWhile _ block -> do
-        enterScope
         definitionStatements block
-        exitScope
 
     StBlock dclS stS -> do
-        enterScope
         definitionDeclaration dclS
         definitionStatements stS
-        exitScope
 
     _ -> return ()
 
@@ -207,4 +197,3 @@ definitionFunction (Lex st posn) = case st of
         mapM_ processDeclaration prms
         definitionStatements block
         exitScope
-

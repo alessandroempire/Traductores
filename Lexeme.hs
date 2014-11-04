@@ -3,9 +3,12 @@ module Lexeme
     , Position(..)
     , defaultPosn
     , fillLex
+    , pure
     ) where
 
 import          Position
+
+import          Control.Applicative        (Applicative, pure, (<*>))
 
 data Lexeme a = Lex { lexInfo :: a
                     , lexPosn :: Position 
@@ -17,6 +20,11 @@ instance Show a => Show (Lexeme a) where
 instance Functor Lexeme where
     fmap f (Lex a p) = Lex (f a) p
 
+instance Applicative Lexeme where
+    pure = fillLex
+    (Lex f p) <*> (Lex a _) = Lex (f a) p
+
+---------------------------------------------------------------------
 fillLex :: a -> Lexeme a
 fillLex lex = Lex lex defaultPosn
 

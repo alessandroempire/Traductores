@@ -85,7 +85,6 @@ data StaticError
     | NoReturn Identifier
     | BinaryTypes Binary (DataType, DataType)
     | UnaryTypes Unary DataType
-    | Loco Identifier
     | LitMatricial 
 
 instance Show StaticError where
@@ -115,7 +114,6 @@ instance Show StaticError where
         UnaryTypes op dt -> "el operador '" ++ show op ++ 
                             "' no funcion con el operador (" ++ show dt ++ ")"
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
-        Loco id -> "loco " ++ id
         -- Literal Matricial
         LitMatricial -> "Error en las expresiones del literal matricial"
 

@@ -209,7 +209,7 @@ typeCheckStatement (Lex st posn) = case st of
         maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
 
-        unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (Loco id)
+        unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (NotDefined id)
         unlessGuard (cat == CatInfo) $ tellSError (lexPosn idL) (WrongCategory id CatInfo cat)
         guard (isValid dt)
         unless (isScalar dt) $ tellSError (lexPosn idL) (ReadNonReadable dt id)
@@ -226,13 +226,9 @@ typeCheckStatement (Lex st posn) = case st of
             guard (isValid expDt)
             when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
 
-        enterScope
         trueRet <- typeCheckStatements trueBlock
-        exitScope
 
-        enterScope
         falseRet <- typeCheckStatements falseBlock
-        exitScope
 
         return $ trueRet && falseRet
 
@@ -241,9 +237,7 @@ typeCheckStatement (Lex st posn) = case st of
         void . runMaybeT $ do
             unless (isMatrix expDt) $ tellSError posn (ForInDataType expDt)
         
-        enterScope
         void $ typeCheckStatements block
-        exitScope
         
         return False
 
@@ -253,17 +247,13 @@ typeCheckStatement (Lex st posn) = case st of
             guard (isValid expDt)
             when (expDt /= Bool) $ tellSError posn (ConditionDataType expDt)
 
-        enterScope
         void $ typeCheckStatements block
-        exitScope
         return False
 
     StBlock dclS block -> do
         typeCheckDeclarations dclS
         void $ typeCheckStatements block
-
         return False
-        
 
     _ -> return False
 
@@ -413,4 +403,3 @@ accessDataType (Lex acc posn) = case acc of
         unless (expDt == Number) $ tellSError posn (IndexAssignType expDt id)
 
         return (id, Number)
-
