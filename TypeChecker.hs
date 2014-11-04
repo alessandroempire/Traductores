@@ -251,8 +251,10 @@ typeCheckStatement (Lex st posn) = case st of
         return False
 
     StBlock dclS block -> do
+        enterScope
         typeCheckDeclarations dclS
         void $ typeCheckStatements block
+        exitScope
         return False
 
     _ -> return False

@@ -14,7 +14,7 @@ program
     number x;
  in
     read x;
-  end;
+ end;
  use
     number x;
  in 

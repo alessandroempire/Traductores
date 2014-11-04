@@ -162,8 +162,10 @@ definitionStatement (Lex st posn) = case st of
         definitionStatements block
 
     StBlock dclS stS -> do
+        enterScope
         definitionDeclaration dclS
         definitionStatements stS
+        exitScope
 
     _ -> return ()
 
