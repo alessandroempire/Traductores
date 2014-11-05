@@ -3,3 +3,6 @@
 *.o
 *.*.swp
 *.*.*.swp
+Lexer.hs
+Parser.hs
+Trinity
