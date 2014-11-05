@@ -209,10 +209,10 @@ typeCheckStatement (Lex st posn) = case st of
         maySymI <- getsSymbol id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
 
-        unlessGuard (isJust maySymI) $ tellSError (lexPosn idL) (NotDefined id)
-        unlessGuard (cat == CatInfo) $ tellSError (lexPosn idL) (WrongCategory id CatInfo cat)
+        unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
+        unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
         guard (isValid dt)
-        unless (isScalar dt) $ tellSError (lexPosn idL) (ReadNonReadable dt id)
+        unless (isScalar dt) $ tellSError posn (ReadNonReadable dt id)
 
     StPrint exprL -> flip (>>) (return False) . runMaybeT $ do
         dt <- lift $ typeCheckExpression exprL
@@ -232,7 +232,14 @@ typeCheckStatement (Lex st posn) = case st of
 
         return $ trueRet && falseRet
 
-    StFor _ expL block -> do
+    StFor idL expL block -> do
+        let id = lexInfo idL
+        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
+        let (dt, cat) = fromJust maySymI
+
+        unless (isJust maySymI) $ tellSError posn (NotDefined id)
+        unless (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
+        
         expDt <- typeCheckExpression expL
         void . runMaybeT $ do
             unless (isMatrix expDt) $ tellSError posn (ForInDataType expDt)
@@ -275,6 +282,9 @@ typeCheckExpression (Lex exp posn) = case exp of
         let id = lexInfo idL
         maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
         let (dt, cat) = fromJust maySymI
+
+        unlessGuard (isJust maySymI) $ tellSError posn (NotDefined id)
+        unlessGuard (cat == CatInfo) $ tellSError posn (WrongCategory id CatInfo cat)
 
         markUsed id
         return dt
