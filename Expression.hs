@@ -95,9 +95,33 @@ instance Show Binary where
         OpGreatEq    -> ">="
         OpOr         -> "|"
         OpAnd        -> "&"
+  
 
 binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
-binaryOperation op dts = snd <$> find ((dts==) . fst) (binaryOperator op)
+binaryOperation op dts = snd <$> find ((dts `tcmp`) . fst) (binaryOperator op)
+
+tcmp :: (DataType, DataType) -> (DataType, DataType) -> Bool
+tcmp (a,b) (c,d) 
+    | 
+    | otherwise = a == c && b == d
+
+
+{-
+binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperation op (dtL, dtR) = case (dtL, dtR) of 
+    (Matrix l1 l2, Matrix l3 l4) ->  b
+    (Row l1, Number) -> b
+    (_ , _) -> b 
+    where 
+        b =  snd <$> find (((dtL, dtR) ==) . fst) (binaryOperator op)
+
+--binaryOperatorMatrix :: Binary -> 
+binaryOperatorMatrix op lex = fromList . \case
+    OpSum        -> matrixArithmetic lex1 lex2 lex3 lex4 
+    where 
+        matrixArithmetic lex = [((Matrix lexD lexD, Matrix lexD lexD),
+                                  Matrix lexD lexD)]
+-}
 
 binaryOperator :: Binary -> Seq ((DataType, DataType), DataType)
 binaryOperator = fromList . \case
