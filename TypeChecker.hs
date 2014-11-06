@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DoAndIfThenElse#-}
 
 module TypeChecker
     ( TypeState
@@ -317,6 +318,8 @@ typeCheckExpression (Lex exp posn) = case exp of
                       tellSError posn (NumElemMatrix)
                      return $ Row (Lex column posn)
                      return $ Matrix (Lex rows posn) (Lex column posn) 
+
+    FunctionCall idL expLs -> liftM (fromMaybe TypeError) $ checkArguments idL expLs
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do

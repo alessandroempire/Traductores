@@ -25,6 +25,7 @@ data Expression
     | LitString (Lexeme String)
     | VariableId (Lexeme Identifier)
     | LitMatrix [Seq (Lexeme Expression)]
+    | FunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | ProyM (Lexeme Expression) (Lexeme Expression) (Lexeme Expression)
     | ProyRC (Lexeme Expression) (Lexeme Expression)
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
@@ -38,6 +39,7 @@ instance Show Expression where
         LitString strL      -> "Literal string: "   ++ show (lexInfo strL)
         VariableId accL     -> "Identificador de variable: " ++ show (lexInfo accL)
         LitMatrix expS      -> "Literal Matricial: { " ++ " }"
+        FunctionCall idL expLs   -> lexInfo idL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
         ProyM expL indexlL indexrL -> "Proyección: " ++ show (lexInfo expL) ++ "[" 
                                 ++ show (lexInfo indexlL) ++ "," ++ show (lexInfo indexrL) ++ "]"
         ProyRC expL indexL  -> "Proyección: " ++ show (lexInfo expL) ++ "[" ++ show (lexInfo indexL) ++ "]"                

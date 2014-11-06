@@ -225,6 +225,7 @@ Expression :: { Lexeme Expression }
   | String    { LitString $1 <$ $1 }
   | Id    { VariableId $1 <$ $1 }
   | "{" MatrixList "}"    { LitMatrix $2 <$ $1 }
+  | Id "(" MaybeExpressionList ")"    { FunctionCall $1 $3 <$ $1 }
   | Expression "+" Expression    { ExpBinary (OpSum <$ $2) $1 $3 <$ $1 }
   | Expression "-" Expression    { ExpBinary (OpDiff <$ $2) $1 $3 <$ $1 }
   | Expression "*" Expression    { ExpBinary (OpMul <$ $2) $1 $3 <$ $1 }

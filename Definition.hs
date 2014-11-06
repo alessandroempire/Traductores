@@ -154,9 +154,6 @@ definitionStatement (Lex st posn) = case st of
         definitionStatements falseBlock
 
     StFor idL _ block -> do
---        let dcl = Dcl (pure Number) idL <$ idL
-
---        processDeclaration dcl
         definitionStatements block
 
     StWhile _ block -> do
