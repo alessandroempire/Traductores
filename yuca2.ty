@@ -1,0 +1,17 @@
+program
+ use
+  number x; # inicializado en 0
+  number y; # inicializado en 0
+ in
+  use
+   row(3) x;
+   col(3) y;
+   matrix(3,2) z;
+  in
+   set x = { 1 , 2 , 3 };
+   set y = { 1 : 2 : 3 , 4 };
+   set z = { 4 , 5: 6, 7: 8 , 9 , 10 , 4};
+   print "Print 1", x; # x es del tipo especificado por matrix(1, 3)
+  end;
+ end;
+end;

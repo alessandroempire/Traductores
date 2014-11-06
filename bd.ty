@@ -16,7 +16,7 @@ program
  in
     read x;
 
-    set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
+    set m = { 1, 2 : 3, 4 }[1 + True, 2 - 1];
 
     if x < 18 then
     

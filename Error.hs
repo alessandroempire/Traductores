@@ -88,6 +88,8 @@ data StaticError
     | LitMatricial 
     | ProyMatrixExpression DataType
     | ProyRCExpression DataType
+    | NumElemCol
+    | NumElemMatrix
 
 instance Show StaticError where
     show = \case
@@ -106,18 +108,20 @@ instance Show StaticError where
         ProyIndexDataType dt -> "Indice de proyeccion matricial debe ser entero, pero tiene tipo '" ++ show dt ++ "'"
         FunctionNotDefined fname -> "Funcion '" ++ fname ++ "' no ha sido definida"
         FunctionArguments fname e g -> "Funcion '" ++ fname ++ "' espera argumentos (" ++ showSign e ++ 
-                                    "), pero recibio (" ++ showSign g ++ ")"
-            where
-                showSign = intercalate ", " . map show . toList
-        BinaryTypes op (dl, dr) -> "Operador binario '" ++ show op ++
-                                   "' no funciona con los operandos de tipo (" ++ 
-                                   show dl ++ ", " ++ show dr  ++ ")"
+                                       "), pero recibio (" ++ showSign g ++ ")"
+        BinaryTypes op (dl, dr) -> "Operador binario '" ++ show op ++ "' no funciona con los operandos de tipo (" ++ 
+                                    show dl ++ ", " ++ show dr  ++ ")"
         UnaryTypes op dt -> "Operador unario '" ++ show op ++ 
                             "' no funciona con el operando de tipo (" ++ show dt ++ ")"
         NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
-        LitMatricial -> "Error en las expresiones del literal matricial"
+        LitMatricial -> "No son expresiones numericas los elementos de la literal matricial "
         ProyMatrixExpression dt -> "Expresion de proyeccion matricial tiene tipo '" ++ show dt ++ "'"
         ProyRCExpression dt -> "Expresion de proyeccion vectorial tiene tipo '" ++ show dt ++ "'"
+        NumElemCol -> "Error en el numero de elementos de la columna " 
+        NumElemMatrix -> "Error en el numero de elementos de la matriz "
+
+showSign :: Seq DataType -> [Char]
+showSign = intercalate ", " . map show . toList
        
 ---------------------------------------------------------------------
 

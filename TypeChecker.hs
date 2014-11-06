@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module TypeChecker
     ( TypeState
     , TypeChecker
@@ -23,7 +25,7 @@ import            Data.Functor ((<$>))
 import            Data.Maybe (fromJust, fromMaybe, isJust)
 import            Data.Sequence (Seq, empty, length, zipWith)
 import            Data.Traversable (forM, mapM)
-import qualified  Data.List as L (and)
+import qualified  Data.List as L (and, length)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, null, or, zipWith)
 
 type TypeChecker = RWS TrinityReader TrinityWriter TypeState
@@ -289,14 +291,32 @@ typeCheckExpression (Lex exp posn) = case exp of
         markUsed id
         return dt
     
-     --not working LitMatrix [Seq (Lexeme Expression)]
+     --LitMatrix [Seq (Lexeme Expression)]
     LitMatrix exps -> liftM (fromMaybe TypeError ) $ runMaybeT $ do
 
         aDts <- lift $ mapM (mapM typeCheckExpression) exps
         unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
          tellSError posn (LitMatricial)
 
-        return (Matrix (Lex 0.0 defaultPosn) (Lex 0.0 defaultPosn)) 
+        -- tengo casos.... 
+        -- debo verificar si es matrix o col o row
+        -- si es matrix que tenga el mismo numero
+        let rows   = fromIntegral $ L.length exps
+            column = fromIntegral $ length $ head exps
+            --pDts = fmap lexInfo 
+
+        if rows /= 1 && column == 1 
+        then return $ Col (Lex rows posn)
+        else if rows == 1 && column /= 1 
+             then do let lenExps = map length exps
+                     unlessGuard (L.and $ map (== 1) lenExps) $
+                      tellSError posn (NumElemCol)
+                     return $ Row (Lex column posn)
+             else do let lenExps = map length exps
+                     unlessGuard (L.and $ map (== (truncate column)) lenExps) $
+                      tellSError posn (NumElemMatrix)
+                     return $ Row (Lex column posn)
+                     return $ Matrix (Lex rows posn) (Lex column posn) 
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe TypeError) $
                                   runMaybeT $ do
