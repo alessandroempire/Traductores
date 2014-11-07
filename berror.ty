@@ -1,6 +1,6 @@
 function
-  prueba(matrix(3,2) a, matrix(2,3) b)
-  return matrix(3,3)
+  prueba(matrix(2,2) a, matrix(2,2) b)
+  return matrix(2,2)
   begin
      return a * b;
   end;

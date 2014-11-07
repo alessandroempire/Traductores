@@ -136,7 +136,8 @@ binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) =
             OpDiff    -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
             OpEqual   -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
             OpUnequal -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
-            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
+            _         -> [((TypeError, TypeError),TypeError)] 
+                         --cualquier otro caso fallara
 
 --operaciones sobre col
 binaryOperationCol :: Binary -> (DataType, DataType) -> Maybe DataType
@@ -148,7 +149,8 @@ binaryOperationCol op dts@(Col l1, Col l2) =
             OpDiff    -> [((Col l1, Col l2), Col l1)]
             OpEqual   -> [((Col l1, Col l2), Bool)]
             OpUnequal -> [((Col l1, Col l2), Bool)]
-            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
+            _         -> [((TypeError, TypeError),TypeError)] 
+                         --cualquier otro caso fallara
 
 --operaciones sobre row
 binaryOperationRow :: Binary -> (DataType, DataType) -> Maybe DataType
@@ -160,7 +162,8 @@ binaryOperationRow op dts@(Row l1, Row l2) =
             OpDiff    -> [((Row l1, Row l2), Row l1)]
             OpEqual   -> [((Row l1, Row l2), Bool)]
             OpUnequal -> [((Row l1, Row l2), Bool)]
-            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
+            _         -> [((TypeError, TypeError),TypeError)]
+                         --cualquier otro caso fallara
 
 --cruzados
 binaryOperationMC :: Binary -> (DataType, DataType) -> Maybe DataType
@@ -176,6 +179,8 @@ binaryOperationMC op dts@(Matrix l1 l2, Number) =
                 OpCruzModEnt -> cruzado
                 OpCruzDiv    -> cruzado
                 OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
 
 --El resto de las operaciones que no son con matrices
 binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
@@ -198,7 +203,8 @@ binaryOperator = fromList . \case
     OpGreatEq    -> arithmeticCompare
     OpOr         -> boolean
     OpAnd        -> boolean
-    _            -> [((Col lexD, Col lexD), Col lexD)] --obligo a fallar
+    _            -> [((TypeError, TypeError),TypeError)] 
+                    --cualquier otro caso falla
 
     where    
         numeric           = [((Number, Number), Number)]
