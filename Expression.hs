@@ -109,7 +109,7 @@ instance Show Binary where
 --NO BORRAR: (fmap (+) l1) <*> l3) ((fmap (+) l2) <*> l4)
 -- siendo l1 y l3 Lex Double 
 
---multiplicacion es un caso particular...fucker... 
+--multiplicacion es un caso particular 
 binaryMatrixMul :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryMatrixMul op dts@(Matrix l1 l2, Matrix l3 l4) = 
     snd <$> find ((dts ==) . fst) (mul op)
