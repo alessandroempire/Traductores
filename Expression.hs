@@ -109,7 +109,7 @@ instance Show Binary where
 --NO BORRAR: (fmap (+) l1) <*> l3) ((fmap (+) l2) <*> l4)
 -- siendo l1 y l3 Lex Double 
 
---multiplicacion es un caso particular 
+--multiplicacion de matrices
 binaryMatrixMul :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryMatrixMul op dts@(Matrix l1 l2, Matrix l3 l4) = 
     snd <$> find ((dts ==) . fst) (mul op)
@@ -117,6 +117,7 @@ binaryMatrixMul op dts@(Matrix l1 l2, Matrix l3 l4) =
         mul = fromList . \case
             OpMul -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l4)]
 
+--multiplicacion de rows y col
 binaryRCMul :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryRCMul op dts@(Col l1, Row l2) = 
     snd <$> find ((dts ==) . fst) (mul op)
@@ -125,7 +126,7 @@ binaryRCMul op dts@(Col l1, Row l2) =
             OpMul -> [((Col l1, Row l2), 
                       Matrix (Lex 1.0 defaultPosn) (Lex 1.0 defaultPosn))]
 
-
+--operaciones sobre matrices
 binaryOperationMatrix :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) = 
     snd <$> find ((dts ==) . fst) (matrixOperator op)
@@ -133,11 +134,11 @@ binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) =
         matrixOperator = fromList . \case
             OpSum     -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
             OpDiff    -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
-            OpMul     -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
             OpEqual   -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
             OpUnequal -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
             _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
+--operaciones sobre col
 binaryOperationCol :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationCol op dts@(Col l1, Col l2) = 
     snd <$> find ((dts ==) . fst) (colOperator op)
@@ -149,6 +150,7 @@ binaryOperationCol op dts@(Col l1, Col l2) =
             OpUnequal -> [((Col l1, Col l2), Bool)]
             _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
+--operaciones sobre row
 binaryOperationRow :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationRow op dts@(Row l1, Row l2) = 
     snd <$> find ((dts ==) . fst) (rowOperator op)
@@ -160,6 +162,7 @@ binaryOperationRow op dts@(Row l1, Row l2) =
             OpUnequal -> [((Row l1, Row l2), Bool)]
             _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
+--cruzados
 binaryOperationMC :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationMC op dts@(Matrix l1 l2, Number) = 
     snd <$> find ((dts ==) . fst) (cruzOperator op)
@@ -174,6 +177,7 @@ binaryOperationMC op dts@(Matrix l1 l2, Number) =
                 OpCruzDiv    -> cruzado
                 OpCruzMod    -> cruzado
 
+--El resto de las operaciones que no son con matrices
 binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperation op dts = snd <$> find ((dts ==) . fst) (binaryOperator op)
 
