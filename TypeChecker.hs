@@ -370,18 +370,30 @@ typeCheckExpression (Lex exp posn) = case exp of
 
 
 --checkBinaryType :: Binary -> (DataType, DataType) -> Maybe DataType
-checkBinaryType op (Matrix l1 l2, Matrix l3 l4) = do
-        unlessGuard((lexInfo l1) == (lexInfo l3)) $ tellSError (lexPosn l1) (OperacionesRow op l1 l3)
-        unlessGuard((lexInfo l2) == (lexInfo l4)) $ tellSError (lexPosn l2) (OperacionesCol op l2 l4)
-        return $ binaryOperationMatrix op (Matrix l1 l2, Matrix l3 l4)
+checkBinaryType OpMul mat@(Matrix l1 l2, Matrix l3 l4) = do
+    unlessGuard(lexInfo l2 == lexInfo l3) $ tellSError (lexPosn l2) (MulMatrix l1 l3)
+    return $ binaryMatrixMul OpMul mat
 
-checkBinaryType op (Col l1, Col l2) = do
-        unlessGuard((lexInfo l1) == (lexInfo l2)) $ tellSError (lexPosn l1) (OperacionesCol op l1 l2)
-        return $ binaryOperationCol op (Col l1, Col l2)
+checkBinaryType OpMul rc@(Col l1, Row l2) = do
+    unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (MulRC l1 l2)
+    return $ binaryRCMul OpMul rc
 
-checkBinaryType op (Row l1, Row l2) = do
-        unlessGuard((lexInfo l1) == (lexInfo l2)) $ tellSError (lexPosn l1) (OperacionesRow op l1 l2)
-        return $ binaryOperationRow op (Row l1, Row l2)
+checkBinaryType OpMul (Row l1, Col l2) = do
+    unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (MulRC l1 l2)
+    return $ binaryRCMul OpMul (Col l2, Row l1)
+
+checkBinaryType op mat@(Matrix l1 l2, Matrix l3 l4) = do
+        unlessGuard(lexInfo l1 == lexInfo l3) $ tellSError (lexPosn l1) (OperacionesRow op l1 l3)
+        unlessGuard(lexInfo l2 == lexInfo l4) $ tellSError (lexPosn l2) (OperacionesCol op l2 l4)
+        return $ binaryOperationMatrix op mat
+
+checkBinaryType op col@(Col l1, Col l2) = do
+        unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (OperacionesCol op l1 l2)
+        return $ binaryOperationCol op col
+
+checkBinaryType op row@(Row l1, Row l2) = do
+        unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (OperacionesRow op l1 l2)
+        return $ binaryOperationRow op row
  
 checkBinaryType op (Matrix l1 l2, dtR) = do
     return $ binaryOperationMC op (Matrix l1 l2, dtR)

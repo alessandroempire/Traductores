@@ -10,6 +10,8 @@ module Expression
     , binaryOperationRow
     , binaryOperationCol
     , binaryOperationMC
+    , binaryMatrixMul
+    , binaryRCMul
     , unaryOperation
     , isComparable
     ) where
@@ -102,13 +104,27 @@ instance Show Binary where
         OpAnd        -> "&"
   
   
-binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
-binaryOperation op dts = snd <$> find ((dts ==) . fst) (binaryOperator op)
 
 
 --NO BORRAR: (fmap (+) l1) <*> l3) ((fmap (+) l2) <*> l4)
 -- siendo l1 y l3 Lex Double 
+
 --multiplicacion es un caso particular...fucker... 
+binaryMatrixMul :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryMatrixMul op dts@(Matrix l1 l2, Matrix l3 l4) = 
+    snd <$> find ((dts ==) . fst) (mul op)
+    where 
+        mul = fromList . \case
+            OpMul -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l4)]
+
+binaryRCMul :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryRCMul op dts@(Col l1, Row l2) = 
+    snd <$> find ((dts ==) . fst) (mul op)
+    where 
+        mul = fromList . \case
+            OpMul -> [((Col l1, Row l2), 
+                      Matrix (Lex 1.0 defaultPosn) (Lex 1.0 defaultPosn))]
+
 
 binaryOperationMatrix :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) = 
@@ -120,6 +136,7 @@ binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) =
             OpMul     -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
             OpEqual   -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
             OpUnequal -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
+            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
 binaryOperationCol :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationCol op dts@(Col l1, Col l2) = 
@@ -130,6 +147,7 @@ binaryOperationCol op dts@(Col l1, Col l2) =
             OpDiff    -> [((Col l1, Col l2), Col l1)]
             OpEqual   -> [((Col l1, Col l2), Bool)]
             OpUnequal -> [((Col l1, Col l2), Bool)]
+            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
 binaryOperationRow :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationRow op dts@(Row l1, Row l2) = 
@@ -140,6 +158,7 @@ binaryOperationRow op dts@(Row l1, Row l2) =
             OpDiff    -> [((Row l1, Row l2), Row l1)]
             OpEqual   -> [((Row l1, Row l2), Bool)]
             OpUnequal -> [((Row l1, Row l2), Bool)]
+            _         -> [((Bool, Bool), Bool)] --cualquier otro caso fallara
 
 binaryOperationMC :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationMC op dts@(Matrix l1 l2, Number) = 
@@ -154,6 +173,9 @@ binaryOperationMC op dts@(Matrix l1 l2, Number) =
                 OpCruzModEnt -> cruzado
                 OpCruzDiv    -> cruzado
                 OpCruzMod    -> cruzado
+
+binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperation op dts = snd <$> find ((dts ==) . fst) (binaryOperator op)
 
 binaryOperator :: Binary -> Seq ((DataType, DataType), DataType)
 binaryOperator = fromList . \case
@@ -172,6 +194,7 @@ binaryOperator = fromList . \case
     OpGreatEq    -> arithmeticCompare
     OpOr         -> boolean
     OpAnd        -> boolean
+    _            -> [((Col lexD, Col lexD), Col lexD)] --obligo a fallar
 
     where    
         numeric           = [((Number, Number), Number)]

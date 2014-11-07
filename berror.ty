@@ -1,9 +1,23 @@
 function
-  prueba(matrix(2,2) a, number b)
-  return matrix(2,2)
+  prueba(matrix(3,2) a, matrix(2,3) b)
+  return matrix(3,3)
   begin
-     return a .*. b;
+     return a * b;
   end;
+
+function
+  prueba2(col(3) a, row(3) b)
+  return matrix(1,1)
+  begin
+     return a * b;
+  end;  
+
+function
+  prueba3(row(3) a, col(3) b)
+  return matrix(1,1)
+  begin
+     return a * b;
+  end; 
 
 function
   scale(number s, row(3) r)

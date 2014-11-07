@@ -92,6 +92,8 @@ data StaticError
     | NumElemMatrix
     | OperacionesCol Binary (Lexeme Double) (Lexeme Double)
     | OperacionesRow Binary (Lexeme Double) (Lexeme Double)
+    | MulMatrix (Lexeme Double) (Lexeme Double)
+    | MulRC (Lexeme Double) (Lexeme Double)
 
 instance Show StaticError where
     show = \case
@@ -127,6 +129,10 @@ instance Show StaticError where
         OperacionesRow op l1 l2 -> "Error en la operacion aritmetica '" ++ show op ++ 
             "' debido a que hay un numero incorrecto de elementos en la fila de la matriz (" 
             ++ show l1 ++ " , _) y (" ++ show l2 ++ " , _)"
+        MulMatrix l1 l2 -> "Error en la multiplicacion de matrices ya que no coinciden (_, " ++ 
+            show l1 ++ ") con (" ++ show l2 ++ " ,_)"
+        MulRC l1 l2 -> "Error en la multiplicacion de Rows y Col ya que no coinciden (" ++ 
+            show l1 ++ ") con (" ++ show l2 ++ ")"
 
 
 
