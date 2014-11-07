@@ -1,8 +1,8 @@
 function
-  prueba(matrix(2,2) a, matrix(2,2) b)
+  prueba(matrix(2,2) a, number b)
   return matrix(2,2)
   begin
-     return a + b;
+     return a .*. b;
   end;
 
 function
@@ -21,8 +21,11 @@ program
  use
     number x;
     row(2) z;
+    matrix(2,2) a;
  in 
     read x;
+    #read { 1,2 : 3,4} + {1,2 : 3,4};
+    set a = { 1,2 : 3,4} + {1,2 : 3,4};
     #set z = { 1, 2 } + { 2, 1 };
     set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
 

@@ -350,7 +350,8 @@ typeCheckExpression (Lex exp posn) = case exp of
                                       runMaybeT $ do
         lDt <- lift $ typeCheckExpression lExp
         rDt <- lift $ typeCheckExpression rExp
-        let expDt = binaryOperation op (lDt, rDt)
+
+        expDt <- checkBinaryType op (lDt, rDt)
 
         guard (isValid lDt)
         guard (isValid rDt)
@@ -366,6 +367,32 @@ typeCheckExpression (Lex exp posn) = case exp of
         unlessGuard (isJust expDt) $ tellSError posn (UnaryTypes op dt)
 
         return (fromJust expDt)
+
+
+--checkBinaryType :: Binary -> (DataType, DataType) -> Maybe DataType
+checkBinaryType op (Matrix l1 l2, Matrix l3 l4) = do
+        unlessGuard((lexInfo l1) == (lexInfo l3)) $ tellSError (lexPosn l1) (OperacionesRow op l1 l3)
+        unlessGuard((lexInfo l2) == (lexInfo l4)) $ tellSError (lexPosn l2) (OperacionesCol op l2 l4)
+        return $ binaryOperationMatrix op (Matrix l1 l2, Matrix l3 l4)
+
+checkBinaryType op (Col l1, Col l2) = do
+        unlessGuard((lexInfo l1) == (lexInfo l2)) $ tellSError (lexPosn l1) (OperacionesCol op l1 l2)
+        return $ binaryOperationCol op (Col l1, Col l2)
+
+checkBinaryType op (Row l1, Row l2) = do
+        unlessGuard((lexInfo l1) == (lexInfo l2)) $ tellSError (lexPosn l1) (OperacionesRow op l1 l2)
+        return $ binaryOperationRow op (Row l1, Row l2)
+ 
+checkBinaryType op (Matrix l1 l2, dtR) = do
+    return $ binaryOperationMC op (Matrix l1 l2, dtR)
+
+checkBinaryType op (dtL, Matrix l1 l2) = do 
+    return $ binaryOperationMC op (Matrix l1 l2, dtL) 
+        
+checkBinaryType op (dtL, dtR) = do
+        return $ binaryOperation op (dtL, dtR)
+
+
 
 --------------------------------------------------------------------------------
 
