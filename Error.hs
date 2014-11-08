@@ -134,10 +134,6 @@ instance Show StaticError where
         MulRC l1 l2 -> "Error en la multiplicacion de Rows y Col ya que no coinciden (" ++ 
             show l1 ++ ") con (" ++ show l2 ++ ")"
 
-
-
-
-
 showSign :: Seq DataType -> [Char]
 showSign = intercalate ", " . map show . toList
        
@@ -167,5 +163,5 @@ errorPos error = case error of
     LError p _ -> p
     PError p _ -> p
     SError p _ -> p
-    Warn p _ -> p
+    Warn p _   -> p
 

@@ -299,12 +299,8 @@ typeCheckExpression (Lex exp posn) = case exp of
         unlessGuard ( L.and $ concat $ (map (map isNumber) (map toList aDts))) $ 
          tellSError posn (LitMatricial)
 
-        -- tengo casos.... 
-        -- debo verificar si es matrix o col o row
-        -- si es matrix que tenga el mismo numero
         let rows   = fromIntegral $ L.length exps
             column = fromIntegral $ length $ head exps
-            --pDts = fmap lexInfo 
 
         if rows /= 1 && column == 1 
         then return $ Col (Lex rows posn)
@@ -347,7 +343,6 @@ typeCheckExpression (Lex exp posn) = case exp of
         unless (dt == Number) $ tellSError posn (ProyIndexDataType dt)
 
         return Number
-
 
     ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe TypeError) $ 
                                       runMaybeT $ do
@@ -443,8 +438,6 @@ checkBinaryType op (dtL, Row l1) = do
 --Todos los casos que no son matrices       
 checkBinaryType op (dtL, dtR) = do
         return $ binaryOperation op (dtL, dtR)
-
-
 
 --------------------------------------------------------------------------------
 

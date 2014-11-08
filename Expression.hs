@@ -110,9 +110,6 @@ instance Show Binary where
         OpOr         -> "|"
         OpAnd        -> "&"
   
-  
-
-
 --NO BORRAR: (fmap (+) l1) <*> l3) ((fmap (+) l2) <*> l4)
 -- siendo l1 y l3 Lex Double 
 
@@ -244,23 +241,11 @@ binaryOperator = fromList . \case
     OpAnd        -> boolean
     _            -> [((TypeError, TypeError),TypeError)] 
                     --cualquier otro caso falla
-
     where    
         numeric           = [((Number, Number), Number)]
         boolean           = [((Bool, Bool), Bool)]
         arithmeticCompare = [((Number, Number), Bool)]
         everythingCompare = arithmeticCompare ++ boolean
-{-
-        cruzado           = cruzadoM1 ++ cruzadoC2 ++ cruzadoC1 ++ cruzadoC2 ++
-                            cruzadoR1 ++ cruzadoR2
-        cruzadoM1         = [((Matrix lexD lexD, Number), Matrix lexD lexD)] 
-        cruzadoM2         = [((Number, Matrix lexD lexD), Matrix lexD lexD)]
-        cruzadoC1         = [((Col lexD, Number), Col lexD)]
-        cruzadoC2         = [((Number, Col lexD), Col lexD)] 
-        cruzadoR1         = [((Number, Row lexD), Row lexD)]
-        cruzadoR2         = [((Row lexD, Number), Row lexD)]
-
--}
 
 ---------------------------------------------------------------------
 
@@ -294,7 +279,6 @@ unaryMatrix op dt@(Matrix l1 l2) = snd <$> find ((dt==) . fst) (unOp op)
             OpTranspose -> [(Matrix l1 l2, Matrix l2 l1)]
             _           -> [(TypeError, TypeError)] 
 
-
 unaryCol :: Unary -> DataType -> Maybe DataType
 unaryCol op dt@(Col l1) = snd <$> find ((dt==) . fst) (unOp op)
     where 
@@ -302,7 +286,6 @@ unaryCol op dt@(Col l1) = snd <$> find ((dt==) . fst) (unOp op)
             OpNegative  -> [(Col l1, Col l1)]
             OpTranspose -> [(Col l1, Row l1)]
             _           -> [(TypeError, TypeError)] 
-
 
 unaryRow :: Unary -> DataType -> Maybe DataType
 unaryRow op dt@(Row l1) = snd <$> find ((dt==) . fst) (unOp op)
