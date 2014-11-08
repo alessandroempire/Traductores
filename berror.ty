@@ -20,6 +20,13 @@ function
   end;  
 
 function
+  prueba5(number b, matrix(3,2) a)
+  return matrix(3,2)
+  begin
+     return a .*. b;
+  end;  
+
+function
   prueba3(row(3) a, col(3) b)
   return matrix(1,1)
   begin

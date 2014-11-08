@@ -10,6 +10,8 @@ module Expression
     , binaryOperationRow
     , binaryOperationCol
     , binaryOperationMC
+    , binaryOperationRC
+    , binaryOperationCC
     , binaryMatrixMul
     , binaryRCMul
     , unaryOperation
@@ -173,7 +175,39 @@ binaryOperationMC :: Binary -> (DataType, DataType) -> Maybe DataType
 binaryOperationMC op dts@(Matrix l1 l2, Number) = 
     snd <$> find ((dts ==) . fst) (cruzOperator op)
     where 
-        cruzado = [((Matrix l1 l2, Number), Matrix l1 l2)]
+        cruzado      = [((Matrix l1 l2, Number), Matrix l1 l2)]
+        cruzOperator = fromList . \case
+                OpCruzSum    -> cruzado
+                OpCruzDiff   -> cruzado
+                OpCruzMul    -> cruzado
+                OpCruzDivEnt -> cruzado
+                OpCruzModEnt -> cruzado
+                OpCruzDiv    -> cruzado
+                OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
+
+binaryOperationRC :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationRC op dts@(Row l1, Number) = 
+    snd <$> find ((dts ==) . fst) (cruzOperator op)
+    where 
+        cruzado      = [((Row l1, Number), Row l1)]
+        cruzOperator = fromList . \case
+                OpCruzSum    -> cruzado
+                OpCruzDiff   -> cruzado
+                OpCruzMul    -> cruzado
+                OpCruzDivEnt -> cruzado
+                OpCruzModEnt -> cruzado
+                OpCruzDiv    -> cruzado
+                OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
+
+binaryOperationCC :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationCC op dts@(Col l1, Number) = 
+    snd <$> find ((dts ==) . fst) (cruzOperator op)
+    where 
+        cruzado      = [((Col l1, Number), Col l1)]
         cruzOperator = fromList . \case
                 OpCruzSum    -> cruzado
                 OpCruzDiff   -> cruzado
