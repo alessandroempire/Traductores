@@ -1,4 +1,39 @@
 function
+  prueba(matrix(2,2) a, matrix(2,2) b)
+  return matrix(2,2)
+  begin
+     return a * b;
+  end;
+
+function
+  prueba2(col(3) a, row(3) b)
+  return matrix(1,1)
+  begin
+     return a * b;
+  end;  
+
+function
+  prueba4(matrix(3,2) a)
+  return matrix(2,3)
+  begin
+     return a';
+  end;  
+
+function
+  prueba5(number b, matrix(3,2) a)
+  return matrix(3,2)
+  begin
+     return a .*. b;
+  end;  
+
+function
+  prueba3(row(3) a, col(3) b)
+  return matrix(1,1)
+  begin
+     return a * b;
+  end; 
+
+function
   scale(number s, row(3) r)
   return row(3)
   begin
@@ -13,9 +48,13 @@ function
 program
  use
     number x;
+    row(2) z;
+    matrix(2,2) a;
  in 
     read x;
-
+    #read { 1,2 : 3,4} + {1,2 : 3,4};
+    set a = { 1,2 : 3,4} + {1,2 : 3,4};
+    #set z = { 1, 2 } + { 2, 1 };
     set m = { 1, 2 : 3, 4 }[1 + 1, 2 - 1];
 
     if x < 18 then

@@ -6,7 +6,18 @@ module Expression
     , Binary(..)
     , Unary(..)
     , binaryOperation
+    , binaryOperationMatrix
+    , binaryOperationRow
+    , binaryOperationCol
+    , binaryOperationMC
+    , binaryOperationRC
+    , binaryOperationCC
+    , binaryMatrixMul
+    , binaryRCMul
     , unaryOperation
+    , unaryMatrix
+    , unaryCol
+    , unaryRow
     , isComparable
     ) where
 
@@ -17,6 +28,7 @@ import          Lexeme
 import          Data.Sequence (Seq, fromList)
 import          Data.Functor ((<$), (<$>))
 import          Data.Foldable (concatMap, find)
+import          Control.Applicative
 import          Prelude       hiding (concatMap)
 
 data Expression
@@ -97,26 +109,131 @@ instance Show Binary where
         OpGreatEq    -> ">="
         OpOr         -> "|"
         OpAnd        -> "&"
+  
+  
 
+
+--NO BORRAR: (fmap (+) l1) <*> l3) ((fmap (+) l2) <*> l4)
+-- siendo l1 y l3 Lex Double 
+
+--multiplicacion de matrices
+binaryMatrixMul :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryMatrixMul op dts@(Matrix l1 l2, Matrix l3 l4) = 
+    snd <$> find ((dts ==) . fst) (mul op)
+    where 
+        mul = fromList . \case
+            OpMul -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l4)]
+
+--multiplicacion de rows y col
+binaryRCMul :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryRCMul op dts@(Col l1, Row l2) = 
+    snd <$> find ((dts ==) . fst) (mul op)
+    where 
+        mul = fromList . \case
+            OpMul -> [((Col l1, Row l2), 
+                      Matrix (Lex 1.0 defaultPosn) (Lex 1.0 defaultPosn))]
+
+--operaciones sobre matrices
+binaryOperationMatrix :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationMatrix op dts@(Matrix l1 l2, Matrix l3 l4) = 
+    snd <$> find ((dts ==) . fst) (matrixOperator op)
+    where 
+        matrixOperator = fromList . \case
+            OpSum     -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
+            OpDiff    -> [((Matrix l1 l2, Matrix l3 l4), Matrix l1 l2)]
+            OpEqual   -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
+            OpUnequal -> [((Matrix l1 l2, Matrix l3 l4), Bool)]
+            _         -> [((TypeError, TypeError),TypeError)] 
+                         --cualquier otro caso fallara
+
+--operaciones sobre col
+binaryOperationCol :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationCol op dts@(Col l1, Col l2) = 
+    snd <$> find ((dts ==) . fst) (colOperator op)
+    where 
+        colOperator = fromList . \case
+            OpSum     -> [((Col l1, Col l2), Col l1)]
+            OpDiff    -> [((Col l1, Col l2), Col l1)]
+            OpEqual   -> [((Col l1, Col l2), Bool)]
+            OpUnequal -> [((Col l1, Col l2), Bool)]
+            _         -> [((TypeError, TypeError),TypeError)] 
+                         --cualquier otro caso fallara
+
+--operaciones sobre row
+binaryOperationRow :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationRow op dts@(Row l1, Row l2) = 
+    snd <$> find ((dts ==) . fst) (rowOperator op)
+    where 
+        rowOperator = fromList . \case
+            OpSum     -> [((Row l1, Row l2), Row l1)]
+            OpDiff    -> [((Row l1, Row l2), Row l1)]
+            OpEqual   -> [((Row l1, Row l2), Bool)]
+            OpUnequal -> [((Row l1, Row l2), Bool)]
+            _         -> [((TypeError, TypeError),TypeError)]
+                         --cualquier otro caso fallara
+
+--cruzados
+binaryOperationMC :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationMC op dts@(Matrix l1 l2, Number) = 
+    snd <$> find ((dts ==) . fst) (cruzOperator op)
+    where 
+        cruzado      = [((Matrix l1 l2, Number), Matrix l1 l2)]
+        cruzOperator = fromList . \case
+                OpCruzSum    -> cruzado
+                OpCruzDiff   -> cruzado
+                OpCruzMul    -> cruzado
+                OpCruzDivEnt -> cruzado
+                OpCruzModEnt -> cruzado
+                OpCruzDiv    -> cruzado
+                OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
+
+binaryOperationRC :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationRC op dts@(Row l1, Number) = 
+    snd <$> find ((dts ==) . fst) (cruzOperator op)
+    where 
+        cruzado      = [((Row l1, Number), Row l1)]
+        cruzOperator = fromList . \case
+                OpCruzSum    -> cruzado
+                OpCruzDiff   -> cruzado
+                OpCruzMul    -> cruzado
+                OpCruzDivEnt -> cruzado
+                OpCruzModEnt -> cruzado
+                OpCruzDiv    -> cruzado
+                OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
+
+binaryOperationCC :: Binary -> (DataType, DataType) -> Maybe DataType
+binaryOperationCC op dts@(Col l1, Number) = 
+    snd <$> find ((dts ==) . fst) (cruzOperator op)
+    where 
+        cruzado      = [((Col l1, Number), Col l1)]
+        cruzOperator = fromList . \case
+                OpCruzSum    -> cruzado
+                OpCruzDiff   -> cruzado
+                OpCruzMul    -> cruzado
+                OpCruzDivEnt -> cruzado
+                OpCruzModEnt -> cruzado
+                OpCruzDiv    -> cruzado
+                OpCruzMod    -> cruzado
+                _            -> [((TypeError, TypeError),TypeError)] 
+                                --cualquier otro caso fallara
+
+--El resto de las operaciones que no son con matrices
 binaryOperation :: Binary -> (DataType, DataType) -> Maybe DataType
-binaryOperation op dts = snd <$> find ((dts==) . fst) (binaryOperator op)
+binaryOperation op dts = snd <$> find ((dts ==) . fst) (binaryOperator op)
 
 binaryOperator :: Binary -> Seq ((DataType, DataType), DataType)
 binaryOperator = fromList . \case
-    OpSum        -> arithmetic
-    OpDiff       -> arithmetic
-    OpMul        -> arithmetic
+    OpSum        -> numeric
+    OpDiff       -> numeric
+    OpMul        -> numeric
     OpDivEnt     -> numeric
     OpModEnt     -> numeric
     OpDiv        -> numeric
     OpMod        -> numeric
-    OpCruzSum    -> cruzado
-    OpCruzDiff   -> cruzado
-    OpCruzMul    -> cruzado
-    OpCruzDivEnt -> cruzado
-    OpCruzModEnt -> cruzado
-    OpCruzDiv    -> cruzado
-    OpCruzMod    -> cruzado
     OpEqual      -> everythingCompare
     OpUnequal    -> everythingCompare
     OpLess       -> arithmeticCompare
@@ -125,16 +242,15 @@ binaryOperator = fromList . \case
     OpGreatEq    -> arithmeticCompare
     OpOr         -> boolean
     OpAnd        -> boolean
+    _            -> [((TypeError, TypeError),TypeError)] 
+                    --cualquier otro caso falla
 
     where    
         numeric           = [((Number, Number), Number)]
-        arithmetic        = numeric ++ matrixArithmetic
-        matrixArithmetic  = [((Matrix lexD lexD, Matrix lexD lexD),
-                               Matrix lexD lexD),
-                             ((Col lexD, Col lexD), Col lexD),
-                             ((Row lexD, Row lexD), Row lexD)]
         boolean           = [((Bool, Bool), Bool)]
         arithmeticCompare = [((Number, Number), Bool)]
+        everythingCompare = arithmeticCompare ++ boolean
+{-
         cruzado           = cruzadoM1 ++ cruzadoC2 ++ cruzadoC1 ++ cruzadoC2 ++
                             cruzadoR1 ++ cruzadoR2
         cruzadoM1         = [((Matrix lexD lexD, Number), Matrix lexD lexD)] 
@@ -143,12 +259,9 @@ binaryOperator = fromList . \case
         cruzadoC2         = [((Number, Col lexD), Col lexD)] 
         cruzadoR1         = [((Number, Row lexD), Row lexD)]
         cruzadoR2         = [((Row lexD, Number), Row lexD)]
-        everythingCompare = arithmeticCompare ++ boolean ++ matrixCompare
-        matrixCompare     = [((Matrix lexD lexD, Matrix lexD lexD), Bool),
-                             ((Col lexD, Col lexD), Bool), ((Row lexD, Row lexD), Bool)]
 
-lexD :: Lexeme Number
-lexD = Lex 0.0 defaultPosn
+-}
+
 ---------------------------------------------------------------------
 
 data Unary 
@@ -168,12 +281,36 @@ unaryOperation op dt = snd <$> find ((dt==) . fst) (unaryOperator op)
 
 unaryOperator :: Unary -> Seq (DataType, DataType)
 unaryOperator = fromList . \case
-    OpNegative  -> [(Number, Number)] ++ matrixes
-    OpNot       -> [(Bool, Bool)]
-    OpTranspose -> matrixes
+    OpNegative -> [(Number, Number)]
+    OpNot      -> [(Bool, Bool)]
+    _          -> [(TypeError, TypeError)] 
+                  --cualquier otro caso falla
+
+unaryMatrix :: Unary -> DataType -> Maybe DataType
+unaryMatrix op dt@(Matrix l1 l2) = snd <$> find ((dt==) . fst) (unOp op)
     where 
-        matrixes = [(Matrix lexD lexD, Matrix lexD lexD),
-                   (Row lexD, Row lexD), (Col lexD, Col lexD)]
+        unOp = fromList . \case 
+            OpNegative  -> [(Matrix l1 l2, Matrix l1 l2)]
+            OpTranspose -> [(Matrix l1 l2, Matrix l2 l1)]
+            _           -> [(TypeError, TypeError)] 
+
+
+unaryCol :: Unary -> DataType -> Maybe DataType
+unaryCol op dt@(Col l1) = snd <$> find ((dt==) . fst) (unOp op)
+    where 
+        unOp = fromList . \case 
+            OpNegative  -> [(Col l1, Col l1)]
+            OpTranspose -> [(Col l1, Row l1)]
+            _           -> [(TypeError, TypeError)] 
+
+
+unaryRow :: Unary -> DataType -> Maybe DataType
+unaryRow op dt@(Row l1) = snd <$> find ((dt==) . fst) (unOp op)
+    where 
+        unOp = fromList . \case 
+            OpNegative  -> [(Row l1, Row l1)]
+            OpTranspose -> [(Row l1, Col l1)]
+            _           -> [(TypeError, TypeError)] 
 
 ---------------------------------------------------------------------
 

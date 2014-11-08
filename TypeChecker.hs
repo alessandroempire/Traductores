@@ -353,7 +353,8 @@ typeCheckExpression (Lex exp posn) = case exp of
                                       runMaybeT $ do
         lDt <- lift $ typeCheckExpression lExp
         rDt <- lift $ typeCheckExpression rExp
-        let expDt = binaryOperation op (lDt, rDt)
+
+        expDt <- checkBinaryType op (lDt, rDt)
 
         guard (isValid lDt)
         guard (isValid rDt)
@@ -363,12 +364,87 @@ typeCheckExpression (Lex exp posn) = case exp of
 
     ExpUnary (Lex op pos) exp -> liftM (fromMaybe TypeError) $ runMaybeT $ do
         dt <- lift $ typeCheckExpression exp
-        let expDt = unaryOperation op dt
+
+        expDt <- checkUnaryType op dt
 
         guard (isValid dt)
         unlessGuard (isJust expDt) $ tellSError posn (UnaryTypes op dt)
 
         return (fromJust expDt)
+
+
+--checkUnaryType ::
+--Para el caso de matrices
+checkUnaryType op mat@(Matrix l1 l2) = return $ unaryMatrix op mat
+
+--Para el caso de Col
+checkUnaryType op col@(Col l1) = return $ unaryCol op col
+
+--Para el caso de Row
+checkUnaryType op row@(Row l1) = return $ unaryRow op row
+
+--Para cualquiero otro caso que no sean matrices
+checkUnaryType op dt = return $ unaryOperation op dt
+
+------------------------
+--checkBinaryType :: Binary -> (DataType, DataType) -> Maybe DataType
+--multiplicacion de matrices
+checkBinaryType OpMul mat@(Matrix l1 l2, Matrix l3 l4) = do
+    unlessGuard(lexInfo l2 == lexInfo l3) $ tellSError (lexPosn l2) (MulMatrix l1 l3)
+    return $ binaryMatrixMul OpMul mat
+
+--multiplicacion de row y col
+checkBinaryType OpMul rc@(Col l1, Row l2) = do
+    unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (MulRC l1 l2)
+    return $ binaryRCMul OpMul rc
+
+--multiplicacion de row y col
+checkBinaryType OpMul (Row l1, Col l2) = do
+    unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (MulRC l1 l2)
+    return $ binaryRCMul OpMul (Col l2, Row l1)
+
+--operaciones sobre las matrices
+checkBinaryType op mat@(Matrix l1 l2, Matrix l3 l4) = do
+        unlessGuard(lexInfo l1 == lexInfo l3) $ tellSError (lexPosn l1) (OperacionesRow op l1 l3)
+        unlessGuard(lexInfo l2 == lexInfo l4) $ tellSError (lexPosn l2) (OperacionesCol op l2 l4)
+        return $ binaryOperationMatrix op mat
+
+--operaciones sobre col
+checkBinaryType op col@(Col l1, Col l2) = do
+        unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (OperacionesCol op l1 l2)
+        return $ binaryOperationCol op col
+
+--operaciones sobre row
+checkBinaryType op row@(Row l1, Row l2) = do
+        unlessGuard(lexInfo l1 == lexInfo l2) $ tellSError (lexPosn l1) (OperacionesRow op l1 l2)
+        return $ binaryOperationRow op row
+ 
+--operaciones cruazadas de matrices
+checkBinaryType op (Matrix l1 l2, dtR) = do
+    return $ binaryOperationMC op (Matrix l1 l2, dtR)
+
+checkBinaryType op (dtL, Matrix l1 l2) = do 
+    return $ binaryOperationMC op (Matrix l1 l2, dtL) 
+
+--operaciones cruzadas de Col
+checkBinaryType op (Col l1, dtR) = do
+    return $ binaryOperationCC op (Col l1, dtR)
+
+checkBinaryType op (dtL, Col l1) = do 
+    return $ binaryOperationCC op (Col l1, dtL)
+ 
+--operaciones cruzadas de Row 
+checkBinaryType op (Row l1, dtR) = do
+    return $ binaryOperationRC op (Row l1, dtR)
+
+checkBinaryType op (dtL, Row l1) = do 
+    return $ binaryOperationRC op (Row l1, dtL)
+            
+--Todos los casos que no son matrices       
+checkBinaryType op (dtL, dtR) = do
+        return $ binaryOperation op (dtL, dtR)
+
+
 
 --------------------------------------------------------------------------------
 
