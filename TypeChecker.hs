@@ -361,13 +361,23 @@ typeCheckExpression (Lex exp posn) = case exp of
 
     ExpUnary (Lex op pos) exp -> liftM (fromMaybe TypeError) $ runMaybeT $ do
         dt <- lift $ typeCheckExpression exp
-        let expDt = unaryOperation op dt
+
+        expDt <- checkUnaryType op dt
 
         guard (isValid dt)
         unlessGuard (isJust expDt) $ tellSError posn (UnaryTypes op dt)
 
         return (fromJust expDt)
 
+
+--checkUnaryType ::
+checkUnaryType op mat@(Matrix l1 l2) = return $ unaryMatrix op mat
+
+checkUnaryType op col@(Col l1) = return $ unaryCol op col
+
+checkUnaryType op row@(Row l1) = return $ unaryRow op row
+
+checkUnaryType op dt = return $ unaryOperation op dt
 
 --checkBinaryType :: Binary -> (DataType, DataType) -> Maybe DataType
 --multiplicacion de matrices

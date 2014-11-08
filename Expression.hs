@@ -13,6 +13,9 @@ module Expression
     , binaryMatrixMul
     , binaryRCMul
     , unaryOperation
+    , unaryMatrix
+    , unaryCol
+    , unaryRow
     , isComparable
     ) where
 
@@ -222,8 +225,7 @@ binaryOperator = fromList . \case
         cruzadoR2         = [((Row lexD, Number), Row lexD)]
 
 -}
-lexD :: Lexeme Number
-lexD = Lex 0.0 defaultPosn
+
 ---------------------------------------------------------------------
 
 data Unary 
@@ -243,12 +245,36 @@ unaryOperation op dt = snd <$> find ((dt==) . fst) (unaryOperator op)
 
 unaryOperator :: Unary -> Seq (DataType, DataType)
 unaryOperator = fromList . \case
-    OpNegative  -> [(Number, Number)] ++ matrixes
-    OpNot       -> [(Bool, Bool)]
-    OpTranspose -> matrixes
+    OpNegative -> [(Number, Number)]
+    OpNot      -> [(Bool, Bool)]
+    _          -> [(TypeError, TypeError)] 
+                  --cualquier otro caso falla
+
+unaryMatrix :: Unary -> DataType -> Maybe DataType
+unaryMatrix op dt@(Matrix l1 l2) = snd <$> find ((dt==) . fst) (unOp op)
     where 
-        matrixes = [(Matrix lexD lexD, Matrix lexD lexD),
-                   (Row lexD, Row lexD), (Col lexD, Col lexD)]
+        unOp = fromList . \case 
+            OpNegative  -> [(Matrix l1 l2, Matrix l1 l2)]
+            OpTranspose -> [(Matrix l1 l2, Matrix l2 l1)]
+            _           -> [(TypeError, TypeError)] 
+
+
+unaryCol :: Unary -> DataType -> Maybe DataType
+unaryCol op dt@(Col l1) = snd <$> find ((dt==) . fst) (unOp op)
+    where 
+        unOp = fromList . \case 
+            OpNegative  -> [(Col l1, Col l1)]
+            OpTranspose -> [(Col l1, Row l1)]
+            _           -> [(TypeError, TypeError)] 
+
+
+unaryRow :: Unary -> DataType -> Maybe DataType
+unaryRow op dt@(Row l1) = snd <$> find ((dt==) . fst) (unOp op)
+    where 
+        unOp = fromList . \case 
+            OpNegative  -> [(Row l1, Row l1)]
+            OpTranspose -> [(Row l1, Col l1)]
+            _           -> [(TypeError, TypeError)] 
 
 ---------------------------------------------------------------------
 
