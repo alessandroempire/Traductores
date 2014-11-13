@@ -21,8 +21,8 @@ module SymbolTable
     , emptySymFunction
     , Used
     , Returned
-    , Offset
-    , Width
+--    , Offset
+--    , Width
     , SymbolCategory(..)
     , symbolCategory
     , module Stack
@@ -77,8 +77,6 @@ showTable t tab = tabs ++ "Tabla de Simbolos:\n" ++ concatMap (++ ("\n" ++ tabs)
 
 type Used = Bool
 type Returned = Bool
-type Offset = Int
-type Width = Int
 
 ---------------------------------------------------------------------
 
@@ -87,9 +85,8 @@ data Symbol =
         { dataType   :: Lexeme DataType
         , scopeStack :: Stack Scope
         , defPosn    :: Position
-        , offset     :: Offset
-        , width      :: Width
         , used       :: Used
+        , value      :: TypeValue
         }
     | SymFunction
         { paramTypes :: Seq (Lexeme DataType)
@@ -98,26 +95,25 @@ data Symbol =
         , body       :: StatementSeq
         , scopeStack :: Stack Scope
         , defPosn    :: Position
-        , blockWidth :: Width
-        , paramWidth :: Width
         , used       :: Used
+--        , value      :: TypeValue
         }
 
 instance Show Symbol where
     show sym = case sym of
-        SymInfo dt stk pos off by u -> intercalate ", " [showP pos, showC, showDT, showU u, showW by, showOff, showStk stk]
+        SymInfo dt stk pos u val -> intercalate ", " [showP pos, showC, showDT, showU u, showStk stk, showVal]
             where
+                showVal = show val
                 showC = show CatInfo
                 showDT  = show $ lexInfo dt
-                showOff = "offset: " ++ show off
-        SymFunction param rt _ _ stk pos bBy pBy u -> intercalate ", " [showP pos, showC, showSign, showU u, showW bBy, showW pBy, showStk stk]
+
+        SymFunction param rt _ _ stk pos u -> intercalate ", " [showP pos, showC, showSign, showU u, showStk stk]
             where
                 showC = show CatFunction
                 showSign = "(" ++ intercalate "," (map (show . lexInfo) $ toList param) ++ ") return " ++ show (lexInfo rt)
         where
             showP pos  = "(" ++ show pos ++ ")"
             showU u  = if u then "Usada" else "No usada"
-            showW by = show by ++ " bytes"
             showStk  = ("stack: " ++) . show
 
 ---------------------------------------------------------------------
@@ -153,9 +149,8 @@ emptySymInfo = SymInfo
     { dataType = pure Bool
     , scopeStack = globalStack
     , defPosn = defaultPosn
-    , offset = 0
-    , width = 0
     , used = False
+    , value = defaultValue Bool
     }
 
 emptySymFunction :: Symbol
@@ -166,8 +161,6 @@ emptySymFunction = SymFunction
     , body = empty
     , scopeStack = globalStack
     , defPosn = defaultPosn
-    , blockWidth = 0
-    , paramWidth = 0
     , used = False
     }
 

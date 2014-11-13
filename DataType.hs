@@ -10,6 +10,8 @@ module DataType
     , isRow
     , isCol
     , isValid
+    , TypeValue(..)
+    , defaultValue
     ) where
 
 import          Lexeme
@@ -92,3 +94,24 @@ isCol = \case
 
 isValid :: DataType -> Bool
 isValid = (/= TypeError)
+
+---------------------------------------------------------------------
+
+data TypeValue 
+    = DataBool Bool 
+    | DataNumber Number
+    | DataMatrix [[Number]]
+
+instance Show TypeValue where
+    show = \case
+        DataBool b          -> "Bool " ++ show b
+        DataNumber n        -> "Number " ++ show n
+        DataMatrix m        -> "Matrix " ++ show m
+
+defaultValue :: DataType -> TypeValue
+defaultValue = \case
+    Bool -> DataBool False
+    Number -> DataNumber 0.0 
+    Matrix row col -> DataMatrix $ replicate (floor $ lexInfo row) $ replicate (floor $ lexInfo col) 1.0
+    Row size -> DataMatrix $ replicate (floor $ lexInfo size) [1.0]
+    Col size -> DataMatrix $ [replicate (floor $ lexInfo size) 1.0]
