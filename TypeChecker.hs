@@ -508,3 +508,4 @@ accessDataType (Lex acc posn) = case acc of
         unless (expDt == Number) $ tellSError posn (IndexAssignType expDt id)
 
         return (id, Number)
+

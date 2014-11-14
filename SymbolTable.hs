@@ -19,6 +19,7 @@ module SymbolTable
     , scope
     , emptySymInfo
     , emptySymFunction
+    , changeValue
     , Used
     , Returned
 --    , Offset
@@ -163,6 +164,9 @@ emptySymFunction = SymFunction
     , defPosn = defaultPosn
     , used = False
     }
+
+changeValue :: Symbol -> TypeValue -> Symbol
+changeValue sym newValue = sym{ value = newValue }
 
 ---------------------------------------------------------------------
 

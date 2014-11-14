@@ -50,12 +50,6 @@ instance TrinityState InterpreterState where
 instance Show InterpreterState where
     show = showTrinityState
 
-evalExpression :: Expression -> TypeValue
-evalExpression = \case
-    LitNumber vL             -> DataNumber (lexInfo vL)
-    LitBool vL               -> DataBool (lexInfo vL)
-    _ -> DataEmpty
-
 ---------------------------------------------------------------------
 
 initialState :: InterpreterState
@@ -70,7 +64,7 @@ initialState = InterpreterState
 ---------------------------------------------------------------------
 
 buildInterpreter :: TrinityWriter -> SymbolTable -> Program -> Interpreter ()
-buildInterpreter w tab program@(Program fun block) = do
+buildInterpreter w tab program@(Program _ block) = do
     modify $ \s -> s { table = tab, ast = program }
     tell w
     void $ runStatements block
@@ -107,13 +101,43 @@ runStatements = liftM or . mapM runStatement
 runStatement :: Lexeme Statement -> Interpreter Returned
 runStatement (Lex st posn) = case st of
 
+    StAssign accL expL ->  do
+        expValue <- evalExpression expL
+        id <- accessDataType accL
+        -- Aqui modificamos el valor en la tabla de simbolos...
+        return False
+
+    StReturn expL -> do
+        return False
+
+    StFunctionCall idL expLs -> do
+        return False
+
+    StRead idL -> do
+        return False
+
+    StPrint exprL -> do
+        return False   
+
+    StIf expL trueBlock falseBlock -> do
+        return False
+
+    StFor idL expL block -> do
+        return False
+
+    StWhile expL block -> do
+        return False
+
+    StBlock dclS block -> do
+        return False
+       
     _ -> return False
 
 --------------------------------------------------------------------------------
 -- Expressions
 
-runExpression :: Lexeme Expression -> Interpreter TypeValue
-runExpression (Lex exp posn) = case exp of
+evalExpression :: Lexeme Expression -> Interpreter TypeValue
+evalExpression (Lex exp posn) = case exp of
 
     LitNumber vL -> return (DataNumber $ (lexInfo vL))
 
@@ -147,15 +171,15 @@ runExpression (Lex exp posn) = case exp of
 
     ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe DataEmpty) $ 
                                       runMaybeT $ do
-        lValue <- lift $ runExpression lExp
-        rValue <- lift $ runExpression rExp
+        lValue <- lift $ evalExpression lExp
+        rValue <- lift $ evalExpression rExp
 
         expValue <- lift $ runBinary op (lValue, rValue)
 
         return expValue
 
     ExpUnary (Lex op pos) exp -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
-        val <- lift $ runExpression exp
+        val <- lift $ evalExpression exp
 
         expValue <- lift $ runUnary op val
 
@@ -221,3 +245,15 @@ notOp (DataBool bool) = (DataBool (not bool))
 
 transposeOp :: TypeValue -> TypeValue
 transposeOp (DataMatrix matrix) = (DataMatrix (L.transpose matrix))
+
+--------------------------------------------------------------------------------
+
+accessDataType :: Lexeme Access -> Interpreter Identifier
+accessDataType (Lex acc posn) = case acc of
+
+    VariableAccess idL -> return (lexInfo idL)
+
+    MatrixAccess idL explL exprL -> return (lexInfo idL)
+
+    RCAccess idL expL -> return (lexInfo idL)
+
