@@ -118,3 +118,4 @@ defaultValue = \case
     Row size -> DataMatrix $ replicate (floor $ lexInfo size) [0.0]
     Col size -> DataMatrix $ [replicate (floor $ lexInfo size) 0.0]
     _ -> DataEmpty
+

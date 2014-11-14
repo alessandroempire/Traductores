@@ -3,6 +3,7 @@ import          Lexer
 import          TrinityMonad
 import          Definition
 import          TypeChecker
+import          Interpreter
 
 import          System.Environment      (getArgs)
 import          Data.Sequence           (null)

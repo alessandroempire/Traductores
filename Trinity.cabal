@@ -20,7 +20,7 @@ executable Trinity
   other-modules: Lexer, Parser, DataType, Declaration, Definition, Error, 
                  Expression, Function, Identifier, Lexeme, Position, Program,
                  Scope, Stack, Statement, SymbolTable, Token, TrinityMonad,
-                 TypeChecker
+                 TypeChecker, Interpreter
   build-depends: base ==4.6.*, containers ==0.5.*, array ==0.4.*, 
                  directory, mtl, split, transformers ==0.3.*
   build-tools: alex, happy

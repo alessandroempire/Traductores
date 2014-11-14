@@ -24,7 +24,7 @@ import            Data.Functor ((<$>))
 import            Data.Maybe (fromJust, fromMaybe, isJust)
 import            Data.Sequence (Seq, empty, length, zipWith)
 import            Data.Traversable (forM, mapM)
-import qualified  Data.List as L (and, length)
+import qualified  Data.List as L (and, length, transpose)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, null, or, zipWith)
 
 type Interpreter = RWS TrinityReader TrinityWriter InterpreterState
@@ -109,7 +109,6 @@ runStatement (Lex st posn) = case st of
 
     _ -> return False
 
-
 --------------------------------------------------------------------------------
 -- Expressions
 
@@ -166,8 +165,59 @@ runExpression (Lex exp posn) = case exp of
 -- Operations
 
 runBinary :: Binary -> (TypeValue, TypeValue) -> Interpreter TypeValue
-runBinary = undefined
+runBinary op (lValue, rValue) = case op of
+    OpSum        -> return (addOp lValue rValue)
+    OpDiff       -> return (diffOp lValue rValue)
+    OpMul        -> return (mulOp lValue rValue)
+    OpLess       -> return (less lValue rValue)
+    OpLessEq     -> return (lessEq lValue rValue)
+    OpGreat      -> return (great lValue rValue)
+    OpGreatEq    -> return (greatEq lValue rValue)
+    OpOr         -> return (orOp lValue rValue)
+    OpAnd        -> return (andOp lValue rValue)
+
+addOp :: TypeValue -> TypeValue -> TypeValue
+addOp (DataNumber n) (DataNumber m) = (DataNumber (n+m))
+--add (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix lmatrix)
+
+diffOp :: TypeValue -> TypeValue -> TypeValue
+diffOp (DataNumber n) (DataNumber m) = (DataNumber (n-m))
+
+mulOp :: TypeValue -> TypeValue -> TypeValue
+mulOp (DataNumber n) (DataNumber m) = (DataNumber (n*m))
+
+less :: TypeValue -> TypeValue -> TypeValue
+less (DataNumber n) (DataNumber m) = (DataBool (n < m))
+
+lessEq :: TypeValue -> TypeValue -> TypeValue
+lessEq (DataNumber n) (DataNumber m) = (DataBool (n <= m))
+
+great :: TypeValue -> TypeValue -> TypeValue
+great (DataNumber n) (DataNumber m) = (DataBool (n > m))
+
+greatEq :: TypeValue -> TypeValue -> TypeValue
+greatEq (DataNumber n) (DataNumber m) = (DataBool (n >= m))
+
+orOp :: TypeValue -> TypeValue -> TypeValue
+orOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool || rbool))
+
+andOp :: TypeValue -> TypeValue -> TypeValue
+andOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool && rbool))
+
+--------------------------------------------------------------------------------
 
 runUnary :: Unary -> TypeValue -> Interpreter TypeValue
-runUnary = undefined
+runUnary op value = case op of
+    OpNegative   -> return (negOp value) 
+    OpNot        -> return (notOp value)
+    OpTranspose  -> return (transposeOp value)
 
+negOp :: TypeValue -> TypeValue
+negOp (DataNumber n) = (DataNumber (-n))
+negOp (DataMatrix matrix) = (DataMatrix (map (map (\ x -> -x)) matrix))
+
+notOp :: TypeValue -> TypeValue
+notOp (DataBool bool) = (DataBool (not bool))
+
+transposeOp :: TypeValue -> TypeValue
+transposeOp (DataMatrix matrix) = (DataMatrix (L.transpose matrix))
