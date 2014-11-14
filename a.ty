@@ -1,8 +1,6 @@
-function
-  scale(number s, row(3) r)
-  return row(3)
-  begin
- return r .*. s;
-  end;
 program 
+    use number x = 4;
+    in 
+      print x;
+    end;
 end;

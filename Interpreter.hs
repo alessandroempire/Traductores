@@ -4,7 +4,7 @@
 module Interpreter
     ( InterpreterState
     , Interpreter
-    , runInterpreter
+    , processInterpreter
     ) where
 
 import            Error
@@ -92,6 +92,26 @@ exitFunction = modify $ \s -> s { funcStack = pop $ funcStack s }
 currentFunction :: Interpreter (Identifier, DataType, Scope)
 currentFunction = gets (top . funcStack)
 
+---------------------------------------------------------------------
+-- Declarations
+
+runDeclarations :: DeclarationSeq -> Interpreter Returned
+runDeclarations = liftM or . mapM runDeclaration
+
+runDeclaration :: Lexeme Declaration -> Interpreter Returned
+runDeclaration (Lex dcl posn) = case dcl of
+
+    DclInit dtL idL expL -> do
+        let id = lexInfo idL
+
+        expValue <- evalExpression expL
+
+        changeValue id expValue
+
+        return False
+
+    _ -> return False
+
 --------------------------------------------------------------------------------
 -- Statements
 
@@ -104,7 +124,9 @@ runStatement (Lex st posn) = case st of
     StAssign accL expL ->  do
         expValue <- evalExpression expL
         id <- accessDataType accL
-        -- Aqui modificamos el valor en la tabla de simbolos...
+
+        changeValue id expValue
+ 
         return False
 
     StReturn expL -> do
@@ -129,6 +151,10 @@ runStatement (Lex st posn) = case st of
         return False
 
     StBlock dclS block -> do
+        enterScope
+        runDeclarations dclS
+        void $ runStatements block
+        exitScope
         return False
        
     _ -> return False

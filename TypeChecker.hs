@@ -161,7 +161,7 @@ typeCheckFunction (Lex fun posn) = case fun of
         return False
 
 ---------------------------------------------------------------------
--- Declaration
+-- Declarations
 
 typeCheckDeclarations :: DeclarationSeq -> TypeChecker Returned
 typeCheckDeclarations = liftM or . mapM typeCheckDeclaration
@@ -272,6 +272,7 @@ typeCheckStatement (Lex st posn) = case st of
 
 --------------------------------------------------------------------------------
 -- Expressions
+
 typeCheckExpression :: Lexeme Expression -> TypeChecker DataType
 typeCheckExpression (Lex exp posn) = case exp of
 
@@ -292,7 +293,6 @@ typeCheckExpression (Lex exp posn) = case exp of
         markUsed id
         return dt
     
-     --LitMatrix [Seq (Lexeme Expression)]
     LitMatrix exps -> liftM (fromMaybe TypeError ) $ runMaybeT $ do
 
         aDts <- lift $ mapM (mapM typeCheckExpression) exps
