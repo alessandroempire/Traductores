@@ -64,7 +64,7 @@ initialState = InterpreterState
 ---------------------------------------------------------------------
 
 buildInterpreter :: TrinityWriter -> SymbolTable -> Program -> Interpreter ()
-buildInterpreter w tab program@(Program _ block) = do
+buildInterpreter w tab program@(Program fun block) = do
     modify $ \s -> s { table = tab, ast = program }
     tell w
     void $ runStatements block
@@ -126,9 +126,9 @@ runStatement (Lex st posn) = case st of
         id <- accessDataType accL
 
         changeValue id expValue
- 
+        
         return False
-
+ 
     StReturn expL -> do
         return False
 

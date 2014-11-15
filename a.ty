@@ -1,6 +1,7 @@
 program 
     use number x = 4;
     in 
+      set x = 12;
       print x;
     end;
 end;
