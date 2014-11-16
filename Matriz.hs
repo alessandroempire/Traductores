@@ -9,7 +9,6 @@ module Matriz (
     , multStd
     -- Operadores cruzados
     , sumMatriz
-    , resMatriz
     , mulMatriz
     , divEntMatriz
     , modEntMatriz
@@ -135,20 +134,21 @@ multStd_ a1@(M n m _) a2@(M _ m' _) = matrix n m' $ \(i,j) -> sum [ a1 ! (i,k) *
 sumMatriz :: Num a => a -> Matriz a -> Matriz a
 sumMatriz = fmap . (+)
 
-resMatriz :: Num a => a -> Matriz a -> Matriz a
-resMatriz n m = undefined --fmap (- n) m  -- lo hace mal
+-- resta de matriz
+-- 3 - m == 3 + minusMatriz m
+-- m - 3 = 3 + (-3)
 
 mulMatriz :: Num a => a -> Matriz a -> Matriz a
 mulMatriz = fmap . (*)
 
---divEntMatriz :: Num a => a -> Matriz a -> Matriz a
-divEntMatriz = undefined -- fmap . (/)
+divEntMatriz :: Num a => a -> Matriz a -> Matriz a
+divEntMatriz = undefined --fmap . (/)
 
 modEntMatriz :: Num a => a -> Matriz a -> Matriz a
 modEntMatriz = undefined -- fmap . (%)
 
 divMatriz :: Integral a => a -> Matriz a -> Matriz a
-divMatriz = undefined --fmap . (div)
+divMatriz = undefined -- fmap . (div)
 
 modMatriz :: Integral a => a -> Matriz a -> Matriz a
 modMatriz = undefined --fmap . (mod)
