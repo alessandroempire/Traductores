@@ -10,7 +10,8 @@ module Matriz (
     -- Operadores cruzados
     , sumMatriz
     , mulMatriz
-    , divEntMatriz
+    , divEntNM
+    , divEntMN
     , modEntMatriz
     , divMatriz
     , modMatriz
@@ -141,14 +142,25 @@ sumMatriz = fmap . (+)
 mulMatriz :: Num a => a -> Matriz a -> Matriz a
 mulMatriz = fmap . (*)
 
-divEntMatriz :: Num a => a -> Matriz a -> Matriz a
-divEntMatriz = undefined --fmap . (/)
+-- Number / matrix
+divEntNM ::  Double -> Matriz Double -> Matriz Double
+divEntNM = fmap . (/)
 
-modEntMatriz :: Num a => a -> Matriz a -> Matriz a
-modEntMatriz = undefined -- fmap . (%)
+-- matrix / Number
+divEntMN :: Double -> Matriz Double -> Matriz Double
+divEntMN num (M a b v1) =
+    M a b $ V.imap (\i rx -> V.map (/num) rx) v1
 
-divMatriz :: Integral a => a -> Matriz a -> Matriz a
-divMatriz = undefined -- fmap . (div)
+-- Number % matrix
+modEntMatriz :: (Integral a) => a -> Matriz a -> Matriz a
+--modEntMatriz :: Double -> Matriz Double -> Matriz Double
+modEntMatriz = undefined --fmap . (rem)
+
+-- matrix % Number
+
+--divMatriz :: Integral a => a -> Matriz a -> Matriz a
+divMatriz :: (Integral a )=> Double -> Matriz Double -> Matriz a
+divMatriz = undefined --fmap . (div)
 
 modMatriz :: Integral a => a -> Matriz a -> Matriz a
 modMatriz = undefined --fmap . (mod)
@@ -166,4 +178,8 @@ equalMatriz (M a b v) m2@(M z x v2) =
 unEqMatriz :: Eq a => Matriz a -> Matriz a -> Bool
 unEqMatriz (M a b v) m2@(M z x v2) = 
     V.and $ V.map V.and $ V.imap (\i rx -> V.zipWith (/=) rx (getRow (i+1) m2)) v
+
+---------------------------------------------------------------------
+
+--Operaciones aux
 
