@@ -136,27 +136,26 @@ sumMatrix :: Num a => a -> Matrix a -> Matrix a
 sumMatrix = fmap . (+)
 
 resMatrix :: Num a => a -> Matrix a -> Matrix a
-resMatrix = fmap . (-) --lo hace mal
+resMatrix n m = undefined --fmap (- n) m  -- lo hace mal
 
 mulMatrix :: Num a => a -> Matrix a -> Matrix a
 mulMatrix = fmap . (*)
 
-divEntMatrix :: Num a => a -> Matrix a -> Matrix a
-divEntMatrix = undefined
---divEntMatrix = fmap . (/)
+--divEntMatrix :: Num a => a -> Matrix a -> Matrix a
+divEntMatrix = undefined -- fmap . (/)
 
 modEntMatrix :: Num a => a -> Matrix a -> Matrix a
-modEntMatrix = undefined --fmap . (%)
+modEntMatrix = undefined -- fmap . (%)
 
-divMatrix :: Num a => a -> Matrix a -> Matrix a
+divMatrix :: Integral a => a -> Matrix a -> Matrix a
 divMatrix = undefined --fmap . (div)
 
-modMatrix :: Num a => a -> Matrix a -> Matrix a
-modMatrix = undefined --fmap . (-)
+modMatrix :: Integral a => a -> Matrix a -> Matrix a
+modMatrix = undefined --fmap . (mod)
 
 --Operador unario (-)
 minusMatrix :: Num a => Matrix a -> Matrix a
-minusMatrix = undefined --fmap . (- 1)
+minusMatrix matriz = fmap (* (-1)) matriz
 
 ---------------------------------------------------------------------
 --Comparacion de matrices
