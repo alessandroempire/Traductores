@@ -1,5 +1,24 @@
 module Matrix (
       Matrix(..)
+    , zero
+    , fromLists
+    --Operaciones
+    , transpose
+    , sumarM 
+    , restarM 
+    , multStd
+    -- Operadores cruzados
+    , sumMatrix
+    , resMatrix
+    , mulMatrix
+    , divEntMatrix
+    , modEntMatrix
+    , divMatrix
+    , modMatrix
+    , minusMatrix
+    --Comparacion de matrices
+    , equalMatrix
+    , unEqMatrix
     ) where
 
 import qualified        Data.Vector as V
@@ -91,12 +110,12 @@ fromLists xss = M (length xss) (length $ head xss) $ V.fromList $ fmap V.fromLis
 transpose :: Matrix a -> Matrix a
 transpose m = matrix (ncols m) (nrows m) $ \(i,j) -> m ! (j,i)
 
-sumar :: Num a => Matrix a -> Matrix a -> Matrix a
-sumar (M a b v1) m2@(M z x v2) =
+sumarM :: Num a => Matrix a -> Matrix a -> Matrix a
+sumarM (M a b v1) m2@(M z x v2) =
     M a b $ V.imap (\i rx -> V.zipWith (+) rx (getRow (i+1) m2)) v1
 
-restar :: Num a => Matrix a -> Matrix a -> Matrix a
-restar (M a b v1) m2@(M z x v2) =
+restarM :: Num a => Matrix a -> Matrix a -> Matrix a
+restarM (M a b v1) m2@(M z x v2) =
     M a b $ V.imap (\i rx -> V.zipWith (-) rx (getRow (i+1) m2)) v1
 
 -- Multiplicacion de Matrices
@@ -117,26 +136,27 @@ sumMatrix :: Num a => a -> Matrix a -> Matrix a
 sumMatrix = fmap . (+)
 
 resMatrix :: Num a => a -> Matrix a -> Matrix a
-resMatrix = fmap . (-)
+resMatrix = fmap . (-) --lo hace mal
 
 mulMatrix :: Num a => a -> Matrix a -> Matrix a
 mulMatrix = fmap . (*)
 
---divEntMatrix :: Num a => a -> Matrix a -> Matrix a
+divEntMatrix :: Num a => a -> Matrix a -> Matrix a
+divEntMatrix = undefined
 --divEntMatrix = fmap . (/)
 
---modEntMatrix :: Num a => a -> Matrix a -> Matrix a
---modEntMatrix = fmap . (%)
+modEntMatrix :: Num a => a -> Matrix a -> Matrix a
+modEntMatrix = undefined --fmap . (%)
 
---divMatrix :: Num a => a -> Matrix a -> Matrix a
---divMatrix = fmap . (div)
+divMatrix :: Num a => a -> Matrix a -> Matrix a
+divMatrix = undefined --fmap . (div)
 
---modMatrix :: Num a => a -> Matrix a -> Matrix a
---modMatrix = fmap . (-)
+modMatrix :: Num a => a -> Matrix a -> Matrix a
+modMatrix = undefined --fmap . (-)
 
 --Operador unario (-)
---minusMatrix :: Num a => Matrix a -> Matrix a
---minusMatrix = fmap . (- 1)
+minusMatrix :: Num a => Matrix a -> Matrix a
+minusMatrix = undefined --fmap . (- 1)
 
 ---------------------------------------------------------------------
 --Comparacion de matrices

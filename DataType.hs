@@ -16,6 +16,7 @@ module DataType
 
 import          Lexeme
 import          Identifier
+import          Matrix
 
 import          Data.Function (on)
 
@@ -101,6 +102,7 @@ data TypeValue
     = DataBool Bool 
     | DataNumber Number
     | DataMatrix [[Number]]
+    | DataMatriz 
     | DataEmpty
 
 instance Show TypeValue where
