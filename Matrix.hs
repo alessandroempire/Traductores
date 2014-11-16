@@ -139,10 +139,12 @@ mulMatrix = fmap . (*)
 --minusMatrix = fmap . (- 1)
 
 ---------------------------------------------------------------------
+--Comparacion de matrices
+equalMatrix :: Eq a => Matrix a -> Matrix a -> Bool
+equalMatrix (M a b v) m2@(M z x v2) = 
+    V.and $ V.map V.and $ V.imap (\i rx -> V.zipWith (==) rx (getRow (i+1) m2)) v
 
---
-equalMatrix :: Num a => Matrix a -> Matrix a -> Bool
-equalMatrix = undefined
+unEqMatrix :: Eq a => Matrix a -> Matrix a -> Bool
+unEqMatrix (M a b v) m2@(M z x v2) = 
+    V.and $ V.map V.and $ V.imap (\i rx -> V.zipWith (/=) rx (getRow (i+1) m2)) v
 
-unEqMatrix :: Num a => Matrix a -> Matrix a -> Bool
-unEqMatrix = undefined
