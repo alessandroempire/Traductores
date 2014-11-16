@@ -16,6 +16,7 @@ module DataType
 
 import          Lexeme
 import          Identifier
+import          Matriz
 
 import          Data.Function (on)
 
@@ -100,7 +101,8 @@ isValid = (/= TypeError)
 data TypeValue 
     = DataBool Bool 
     | DataNumber Number
-    | DataMatrix [[Number]]
+    -- | DataMatrix [[Number]]
+    | DataMatrix (Matriz Number)
     | DataEmpty
 
 instance Show TypeValue where
@@ -112,10 +114,10 @@ instance Show TypeValue where
 
 defaultValue :: DataType -> TypeValue
 defaultValue = \case
-    Bool -> DataBool False
-    Number -> DataNumber 0.0 
-    Matrix row col -> DataMatrix $ replicate (floor $ lexInfo row) $ replicate (floor $ lexInfo col) 0.0
-    Row size -> DataMatrix $ replicate (floor $ lexInfo size) [0.0]
-    Col size -> DataMatrix $ [replicate (floor $ lexInfo size) 0.0]
-    _ -> DataEmpty
+    Bool           -> DataBool False
+    Number         -> DataNumber 0.0 
+    Matrix row col -> DataMatrix $ zero (floor $ lexInfo row) (floor $ lexInfo col)
+    Row size -> DataMatrix $ zero 1 (floor $ lexInfo size) 
+    Col size -> DataMatrix $ zero (floor $ lexInfo size) 1
+    _        -> DataEmpty
 

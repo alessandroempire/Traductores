@@ -1,5 +1,5 @@
-module Matrix (
-      Matrix(..)
+module Matriz (
+      Matriz(..)
     , zero
     , fromLists
     --Operaciones
@@ -8,33 +8,33 @@ module Matrix (
     , restarM 
     , multStd
     -- Operadores cruzados
-    , sumMatrix
-    , resMatrix
-    , mulMatrix
-    , divEntMatrix
-    , modEntMatrix
-    , divMatrix
-    , modMatrix
-    , minusMatrix
+    , sumMatriz
+    , resMatriz
+    , mulMatriz
+    , divEntMatriz
+    , modEntMatriz
+    , divMatriz
+    , modMatriz
+    , minusMatriz
     --Comparacion de matrices
-    , equalMatrix
-    , unEqMatrix
+    , equalMatriz
+    , unEqMatriz
     ) where
 
 import qualified        Data.Vector as V
 import                  Data.Monoid
 import                  Control.DeepSeq
 
-data Matrix a = M {
+data Matriz a = M {
           nrows :: !Int
         , ncols :: !Int
         , mvect :: V.Vector (V.Vector a)
         } deriving Eq
 
-instance Show a => Show (Matrix a) where
-    show = prettyMatrix
+instance Show a => Show (Matriz a) where
+    show = prettyMatriz
 
-instance Functor Matrix where
+instance Functor Matriz where
  fmap f (M n m v) = M n m $ fmap (fmap f) v
 
 ---------------------------------------------------------------------
@@ -44,8 +44,8 @@ sizeStr :: Int -> Int -> String
 sizeStr n m = show n ++ "x" ++ show m
 
 -- Imprimi la matriz
-prettyMatrix :: Show a => Matrix a -> String
-prettyMatrix m@(M _ _ v) = unlines
+prettyMatriz :: Show a => Matriz a -> String
+prettyMatriz m@(M _ _ v) = unlines
     [ "( " <> unwords (fmap (\j -> 
         fill mx $ show $ m ! (i,j)) [1..ncols m]) <> " )" | i <- [1..nrows m] ]
     where
@@ -57,20 +57,20 @@ prettyMatrix m@(M _ _ v) = unlines
 zero :: Num a =>
         Int -- ^ Rows
      -> Int -- ^ Columns
-     -> Matrix a
+     -> Matriz a
 zero n m = M n m $ V.replicate n $ V.replicate m 0
 
 -- Generador de matriz
 matrix :: Int -- ^ Rows
        -> Int -- ^ Columns
        -> ((Int,Int) -> a) -- ^ Generator function
-       -> Matrix a
+       -> Matriz a
 matrix n m f = M n m $ V.generate n $ \i -> V.generate m $ \j -> f (i+1,j+1)
 
 -- Accesando la matriz
 getElem :: Int      -- ^ Row
         -> Int      -- ^ Column
-        -> Matrix a -- ^ Matrix
+        -> Matriz a -- ^ Matriz
         -> a
 getElem i j (M n m v)
     | i > n || j > m = error $ "Trying to get the " ++ show (i,j) ++ " element from a "
@@ -78,23 +78,23 @@ getElem i j (M n m v)
     | otherwise = (v V.! (i-1)) V.! (j-1)
 
 -- Alias para getElem
-(!) :: Matrix a -> (Int,Int) -> a
+(!) :: Matriz a -> (Int,Int) -> a
 m ! (i,j) = getElem i j m
 
 mapRow :: (Int -> a -> a) 
         -> Int            
-        -> Matrix a -> Matrix a
+        -> Matriz a -> Matriz a
 mapRow f r (M n m v) =
     M n m $ V.imap (\i rx -> if i+1 == r then V.imap (f . succ) rx else rx) v
 
-getRow :: Int -> Matrix a -> V.Vector a
+getRow :: Int -> Matriz a -> V.Vector a
 getRow i (M _ _ vs) = vs V.! (i-1)
 ---------------------------------------------------------------------
 -- Para llenar Matrices
 fromList :: Int -- ^ Rows
          -> Int -- ^ Columns
          -> [a] -- ^ List of elements
-         -> Matrix a
+         -> Matriz a
 fromList n m xs = fromLists $ go 1 xs
     where
         go i ys = if i > n
@@ -102,68 +102,68 @@ fromList n m xs = fromLists $ go 1 xs
                   else let (r,zs) = splitAt m ys
                        in  r : go (succ i) zs
 
-fromLists :: [[a]] -> Matrix a
+fromLists :: [[a]] -> Matriz a
 fromLists xss = M (length xss) (length $ head xss) $ V.fromList $ fmap V.fromList xss
 
 ---------------------------------------------------------------------
 -- Transponer matriz
-transpose :: Matrix a -> Matrix a
+transpose :: Matriz a -> Matriz a
 transpose m = matrix (ncols m) (nrows m) $ \(i,j) -> m ! (j,i)
 
-sumarM :: Num a => Matrix a -> Matrix a -> Matrix a
+sumarM :: Num a => Matriz a -> Matriz a -> Matriz a
 sumarM (M a b v1) m2@(M z x v2) =
     M a b $ V.imap (\i rx -> V.zipWith (+) rx (getRow (i+1) m2)) v1
 
-restarM :: Num a => Matrix a -> Matrix a -> Matrix a
+restarM :: Num a => Matriz a -> Matriz a -> Matriz a
 restarM (M a b v1) m2@(M z x v2) =
     M a b $ V.imap (\i rx -> V.zipWith (-) rx (getRow (i+1) m2)) v1
 
 -- Multiplicacion de Matrices
-multStd :: Num a => Matrix a -> Matrix a -> Matrix a
+multStd :: Num a => Matriz a -> Matriz a -> Matriz a
 multStd a1@(M n m _) a2@(M n' m' _)
    | m /= n' = error $ "Multiplication de matrices AxB de tamanio distinto" 
                           ++ "A: " ++ sizeStr n m ++ "  "
                           ++ "B:" ++ sizeStr n' m'
    | otherwise = multStd_ a1 a2
 
-multStd_ :: Num a => Matrix a -> Matrix a -> Matrix a
+multStd_ :: Num a => Matriz a -> Matriz a -> Matriz a
 multStd_ a1@(M n m _) a2@(M _ m' _) = matrix n m' $ \(i,j) -> sum [ a1 ! (i,k) * a2 ! (k,j) | k <- [1 .. m] ]
 
 ---------------------------------------------------------------------
 --Operadores cruzados
 
-sumMatrix :: Num a => a -> Matrix a -> Matrix a
-sumMatrix = fmap . (+)
+sumMatriz :: Num a => a -> Matriz a -> Matriz a
+sumMatriz = fmap . (+)
 
-resMatrix :: Num a => a -> Matrix a -> Matrix a
-resMatrix n m = undefined --fmap (- n) m  -- lo hace mal
+resMatriz :: Num a => a -> Matriz a -> Matriz a
+resMatriz n m = undefined --fmap (- n) m  -- lo hace mal
 
-mulMatrix :: Num a => a -> Matrix a -> Matrix a
-mulMatrix = fmap . (*)
+mulMatriz :: Num a => a -> Matriz a -> Matriz a
+mulMatriz = fmap . (*)
 
---divEntMatrix :: Num a => a -> Matrix a -> Matrix a
-divEntMatrix = undefined -- fmap . (/)
+--divEntMatriz :: Num a => a -> Matriz a -> Matriz a
+divEntMatriz = undefined -- fmap . (/)
 
-modEntMatrix :: Num a => a -> Matrix a -> Matrix a
-modEntMatrix = undefined -- fmap . (%)
+modEntMatriz :: Num a => a -> Matriz a -> Matriz a
+modEntMatriz = undefined -- fmap . (%)
 
-divMatrix :: Integral a => a -> Matrix a -> Matrix a
-divMatrix = undefined --fmap . (div)
+divMatriz :: Integral a => a -> Matriz a -> Matriz a
+divMatriz = undefined --fmap . (div)
 
-modMatrix :: Integral a => a -> Matrix a -> Matrix a
-modMatrix = undefined --fmap . (mod)
+modMatriz :: Integral a => a -> Matriz a -> Matriz a
+modMatriz = undefined --fmap . (mod)
 
 --Operador unario (-)
-minusMatrix :: Num a => Matrix a -> Matrix a
-minusMatrix matriz = fmap (* (-1)) matriz
+minusMatriz :: Num a => Matriz a -> Matriz a
+minusMatriz matriz = fmap (* (-1)) matriz
 
 ---------------------------------------------------------------------
 --Comparacion de matrices
-equalMatrix :: Eq a => Matrix a -> Matrix a -> Bool
-equalMatrix (M a b v) m2@(M z x v2) = 
+equalMatriz :: Eq a => Matriz a -> Matriz a -> Bool
+equalMatriz (M a b v) m2@(M z x v2) = 
     V.and $ V.map V.and $ V.imap (\i rx -> V.zipWith (==) rx (getRow (i+1) m2)) v
 
-unEqMatrix :: Eq a => Matrix a -> Matrix a -> Bool
-unEqMatrix (M a b v) m2@(M z x v2) = 
+unEqMatriz :: Eq a => Matriz a -> Matriz a -> Bool
+unEqMatriz (M a b v) m2@(M z x v2) = 
     V.and $ V.map V.and $ V.imap (\i rx -> V.zipWith (/=) rx (getRow (i+1) m2)) v
 

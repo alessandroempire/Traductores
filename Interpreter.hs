@@ -11,6 +11,7 @@ import            Error
 import            Program
 import            TrinityMonad
 import            SymbolTable
+import            Matriz
 
 import            Control.Arrow ((&&&))
 import            Control.Monad (guard, liftM, unless, void, when, (>=>))
@@ -264,13 +265,14 @@ runUnary op value = case op of
 
 negOp :: TypeValue -> TypeValue
 negOp (DataNumber n) = (DataNumber (-n))
-negOp (DataMatrix matrix) = (DataMatrix (map (map (\ x -> -x)) matrix))
+negOp (DataMatrix matrix) = undefined 
+--(DataMatrix (map (map (\ x -> -x)) matrix))
 
 notOp :: TypeValue -> TypeValue
 notOp (DataBool bool) = (DataBool (not bool))
 
 transposeOp :: TypeValue -> TypeValue
-transposeOp (DataMatrix matrix) = (DataMatrix (L.transpose matrix))
+transposeOp (DataMatrix matrix) = (DataMatrix (transpose matrix))
 
 --------------------------------------------------------------------------------
 
