@@ -136,7 +136,7 @@ sumMatriz = fmap . (+)
 
 -- resta de matriz
 -- 3 - m == 3 + minusMatriz m
--- m - 3 = 3 + (-3)
+-- m - 3 = m + (-3)
 
 mulMatriz :: Num a => a -> Matriz a -> Matriz a
 mulMatriz = fmap . (*)
