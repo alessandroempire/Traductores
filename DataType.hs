@@ -107,11 +107,11 @@ data TypeValue
 
 instance Show TypeValue where
     show = \case
-        DataBool b          -> "Bool " ++ show b
-        DataNumber n        -> "Number " ++ show n
-        DataMatrix m        -> "Matrix \n" ++ show m ++ "\n"
-        DataString s        -> "String " ++ show s
-        DataEmpty           -> error "TypeValue: Empty"
+        DataBool b   -> "Bool " ++ show b
+        DataNumber n -> "Number " ++ show n
+        DataMatrix m -> "Matrix \n" ++ show m ++ "\n"
+        DataString s -> "String " ++ show s
+        DataEmpty    -> error "TypeValue: Empty"
 
 instance Eq TypeValue where
     a == b = case (a,b) of
