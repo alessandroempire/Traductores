@@ -303,12 +303,12 @@ typeCheckExpression (Lex exp posn) = case exp of
             column = fromIntegral $ length $ head exps
 
         if rows /= 1 && column == 1 
-        then return $ Col (Lex rows posn)
-        else if rows == 1 && column /= 1 
-             then do let lenExps = map length exps
-                     unlessGuard (L.and $ map (== 1) lenExps) $
+        then do let lenExps = map length exps
+                unlessGuard (L.and $ map (== 1) lenExps) $
                       tellSError posn (NumElemCol)
-                     return $ Row (Lex column posn)
+                return $ Col (Lex rows posn)
+        else if rows == 1 && column /= 1 
+             then do return $ Row (Lex column posn)
              else do let lenExps = map length exps
                      unlessGuard (L.and $ map (== (truncate column)) lenExps) $
                       tellSError posn (NumElemMatrix)

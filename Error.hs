@@ -89,6 +89,7 @@ data StaticError
     | ProyMatrixExpression DataType
     | ProyRCExpression DataType
     | NumElemCol
+    | NumElemRow
     | NumElemMatrix
     | OperacionesCol Binary (Lexeme Double) (Lexeme Double)
     | OperacionesRow Binary (Lexeme Double) (Lexeme Double)
@@ -121,7 +122,8 @@ instance Show StaticError where
         LitMatricial -> "No son expresiones numericas los elementos de la literal matricial "
         ProyMatrixExpression dt -> "Expresion de proyeccion matricial tiene tipo '" ++ show dt ++ "'"
         ProyRCExpression dt -> "Expresion de proyeccion vectorial tiene tipo '" ++ show dt ++ "'"
-        NumElemCol -> "Error en el numero de elementos de la columna " 
+        NumElemCol -> "Error en el numero de elementos de la columna Col " 
+        NumElemRow -> "Error en el numero de elementos de la fila Row" 
         NumElemMatrix -> "Error en el numero de elementos de la matriz "
         OperacionesCol op l1 l2 -> "Error en la operacion aritmetica '" ++ show op ++ 
             "' debido a que hay un numero incorrecto de elementos en la columna de la matriz (_, " ++  

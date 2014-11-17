@@ -19,7 +19,7 @@ module Matriz (
     --Comparacion de matrices
     , equalMatriz
     , unEqMatriz
-    ) where
+    ) where        
 
 import qualified        Data.Vector as V
 import                  Data.Monoid
@@ -54,11 +54,11 @@ prettyMatriz m@(M _ _ v) = unlines
 
 ---------------------------------------------------------------------
 -- Llenar la matriz de 0
-zero :: Num a =>
-        Int -- ^ Rows
+zero :: Int -- ^ Rows
      -> Int -- ^ Columns
+     -> a   -- Tipo de la matriz
      -> Matriz a
-zero n m = M n m $ V.replicate n $ V.replicate m 0
+zero n m t = M n m $ V.replicate n $ V.replicate m t
 
 -- Generador de matriz
 matrix :: Int -- ^ Rows

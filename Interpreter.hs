@@ -180,7 +180,11 @@ evalExpression (Lex exp posn) = case exp of
         return val
     
     LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
-        return DataEmpty
+        --aqui
+        let arrays = map toList exps
+        value <- lift $ mapM (mapM evalExpression) arrays
+        let matriz = fromLists value
+        return $ DataMatrix matriz
 
     FunctionCall idL expLs -> liftM (fromMaybe DataEmpty) $ 
                                   runMaybeT $ do 
