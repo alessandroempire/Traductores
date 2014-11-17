@@ -1,4 +1,7 @@
 module Operadores (
+     (%)
+    , div
+    , mod
     ) where
 
 import          Prelude hiding (div, mod)

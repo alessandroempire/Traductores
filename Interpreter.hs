@@ -12,6 +12,7 @@ import            Program
 import            TrinityMonad
 import            SymbolTable
 import            Matriz
+import            Operadores
 
 import            Control.Arrow ((&&&))
 import            Control.Monad (guard, liftM, unless, void, when, (>=>))
@@ -26,7 +27,8 @@ import            Data.Maybe (fromJust, fromMaybe, isJust)
 import            Data.Sequence (Seq, empty, length, zipWith)
 import            Data.Traversable (forM, mapM)
 import qualified  Data.List as L (and, length, transpose)
-import            Prelude hiding (all, and, exp, length, lookup, mapM, null, or, zipWith)
+import            Prelude hiding (all, and, exp, length, lookup, mapM, 
+                                  null, or, zipWith, mod, div)
 
 type Interpreter = RWS TrinityReader TrinityWriter InterpreterState
 
@@ -264,18 +266,16 @@ mulOp :: TypeValue -> TypeValue -> TypeValue
 mulOp (DataNumber n) (DataNumber m) = (DataNumber (n*m))
 
 divOp :: TypeValue -> TypeValue -> TypeValue
---divOp (DataNumber n) (DataNumber m) = (DataNumber (n `div` m))
-divOp = undefined
+divOp (DataNumber n) (DataNumber m) = (DataNumber (div m n))
 
 modOp :: TypeValue -> TypeValue -> TypeValue
---modOp (DataNumber n) (DataNumber m) = (DataNumber (n `mod` m))
-modOp = undefined
+modOp (DataNumber n) (DataNumber m) = (DataNumber (mod m n))
 
 divEntOp :: TypeValue -> TypeValue -> TypeValue
-divEntOp (DataNumber n) (DataNumber m) = (DataNumber (n/m))
+divEntOp (DataNumber n) (DataNumber m) = (DataNumber (n / m))
 
 modEntOp :: TypeValue -> TypeValue -> TypeValue
-modEntOp = undefined
+modEntOp (DataNumber n) (DataNumber m) = (DataNumber (n % m))
 
 less :: TypeValue -> TypeValue -> TypeValue
 less (DataNumber n) (DataNumber m) = (DataBool (n < m))
