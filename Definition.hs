@@ -116,7 +116,8 @@ processDeclaration (Lex dcl posn) = case dcl of
             info = emptySymInfo
                 { dataType   = dtL
                 , scopeStack = stk
-                , defPosn    = posn 
+                , defPosn    = posn
+                , value      = defaultValue (lexInfo dtL) 
                 }
         maySymI <- getsSymbol id $ \sym -> (scopeStack sym, defPosn sym)
         case maySymI of

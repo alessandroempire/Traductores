@@ -20,7 +20,8 @@ executable Trinity
   other-modules: Lexer, Parser, DataType, Declaration, Definition, Error, 
                  Expression, Function, Identifier, Lexeme, Position, Program,
                  Scope, Stack, Statement, SymbolTable, Token, TrinityMonad,
-                 TypeChecker, Interpreter
+                 TypeChecker, Interpreter, Matriz
   build-depends: base ==4.6.*, containers ==0.5.*, array ==0.4.*, 
-                 directory, mtl, split, transformers ==0.3.*
+                 directory, mtl, split, transformers ==0.3.*, 
+                 deepseq ==1.3.*, vector ==0.9.*
   build-tools: alex, happy

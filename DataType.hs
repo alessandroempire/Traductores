@@ -102,6 +102,7 @@ data TypeValue
     = DataBool Bool 
     | DataNumber Number
     | DataMatrix (Matriz TypeValue)
+    | DataString String
     | DataEmpty
 
 instance Show TypeValue where
@@ -109,8 +110,17 @@ instance Show TypeValue where
         DataBool b          -> "Bool " ++ show b
         DataNumber n        -> "Number " ++ show n
         DataMatrix m        -> "Matrix \n" ++ show m ++ "\n"
+        DataString s        -> "String " ++ show s
         DataEmpty           -> error "TypeValue: Empty"
 
+instance Eq TypeValue where
+    a == b = case (a,b) of
+        (DataBool bl, DataBool br)             -> bl == br
+        (DataNumber n, DataNumber m)           -> n == m
+        (DataString ls, DataString rs)         -> ls == rs
+        (DataEmpty, DataEmpty)                 -> True
+        _                                      -> False
+    
 defaultValue :: DataType -> TypeValue
 defaultValue = \case
     Bool           -> DataBool False

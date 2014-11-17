@@ -170,7 +170,7 @@ evalExpression (Lex exp posn) = case exp of
 
     LitBool vL   -> return (DataBool $ (lexInfo vL))
 
-    LitString _ -> return DataEmpty
+    LitString sL -> return (DataString $ (lexInfo sL))
 
     VariableId idL -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         let id = lexInfo idL
@@ -228,8 +228,30 @@ runBinary op (lValue, rValue) = case op of
     OpLessEq     -> return (lessEq lValue rValue)
     OpGreat      -> return (great lValue rValue)
     OpGreatEq    -> return (greatEq lValue rValue)
+    OpEqual      -> return (DataBool (lValue == rValue))
+    OpUnequal    -> return (DataBool (lValue /= rValue))
     OpOr         -> return (orOp lValue rValue)
     OpAnd        -> return (andOp lValue rValue)
+    OpDiv        -> do
+        if (rValue == DataNumber 0.0) then
+            error "Error: Division entre 0"
+        else
+            return (divOp lValue rValue)
+    OpMod        -> do
+        if (rValue == DataNumber 0.0) then
+            error "Error: Division entre 0"
+        else
+            return (modOp lValue rValue)
+    OpDivEnt    -> do
+        if (rValue == DataNumber 0.0) then
+            error "Error: Division entre 0"
+        else
+            return (divEntOp lValue rValue)
+    OpModEnt    -> do
+        if (rValue == DataNumber 0.0) then
+            error "Error: Division entre 0"
+        else
+            return (modEntOp lValue rValue)
 
 addOp :: TypeValue -> TypeValue -> TypeValue
 addOp (DataNumber n) (DataNumber m) = (DataNumber (n+m))
@@ -240,6 +262,20 @@ diffOp (DataNumber n) (DataNumber m) = (DataNumber (n-m))
 
 mulOp :: TypeValue -> TypeValue -> TypeValue
 mulOp (DataNumber n) (DataNumber m) = (DataNumber (n*m))
+
+divOp :: TypeValue -> TypeValue -> TypeValue
+--divOp (DataNumber n) (DataNumber m) = (DataNumber (n `div` m))
+divOp = undefined
+
+modOp :: TypeValue -> TypeValue -> TypeValue
+--modOp (DataNumber n) (DataNumber m) = (DataNumber (n `mod` m))
+modOp = undefined
+
+divEntOp :: TypeValue -> TypeValue -> TypeValue
+divEntOp (DataNumber n) (DataNumber m) = (DataNumber (n/m))
+
+modEntOp :: TypeValue -> TypeValue -> TypeValue
+modEntOp = undefined
 
 less :: TypeValue -> TypeValue -> TypeValue
 less (DataNumber n) (DataNumber m) = (DataBool (n < m))
@@ -269,14 +305,14 @@ runUnary op value = case op of
 
 negOp :: TypeValue -> TypeValue
 negOp (DataNumber n) = (DataNumber (-n))
-negOp (DataMatrix matrix) = undefined 
---(DataMatrix (map (map (\ x -> -x)) matrix))
+--negOp (DataMatrix matrix) = (DataMatrix (map (map (\ x -> -x)) matrix))
 
 notOp :: TypeValue -> TypeValue
 notOp (DataBool bool) = (DataBool (not bool))
 
 transposeOp :: TypeValue -> TypeValue
-transposeOp (DataMatrix matrix) = (DataMatrix (transpose matrix))
+transposeOp = undefined
+--transposeOp (DataMatrix matrix) = (DataMatrix (L.transpose matrix))
 
 --------------------------------------------------------------------------------
 
