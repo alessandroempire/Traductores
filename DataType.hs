@@ -101,7 +101,7 @@ isValid = (/= TypeError)
 data TypeValue 
     = DataBool Bool 
     | DataNumber Number
-    -- | DataMatrix [[Number]]
+    | DataString String
     | DataMatrix (Matriz Number)
     | DataEmpty
 
@@ -109,13 +109,23 @@ instance Show TypeValue where
     show = \case
         DataBool b          -> "Bool " ++ show b
         DataNumber n        -> "Number " ++ show n
+        DataString s        -> "String " ++ show s
         DataMatrix m        -> "Matrix " ++ show m
         DataEmpty           -> error "TypeValue: Empty"
+
+instance Eq TypeValue where
+    a == b = case (a,b) of
+        (DataBool bl, DataBool br)             -> bl == br
+        (DataNumber n, DataNumber m)           -> n == m
+        (DataString ls, DataString rs)         -> ls == rs
+        (DataEmpty, DataEmpty)                 -> True
+        _                                      -> False
+    
 
 defaultValue :: DataType -> TypeValue
 defaultValue = \case
     Bool           -> DataBool False
-    Number         -> DataNumber 0.0 
+    Number         -> DataNumber 0.0
     Matrix row col -> DataMatrix $ zero (floor $ lexInfo row) (floor $ lexInfo col)
     Row size -> DataMatrix $ zero 1 (floor $ lexInfo size) 
     Col size -> DataMatrix $ zero (floor $ lexInfo size) 1
