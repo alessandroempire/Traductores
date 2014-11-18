@@ -167,6 +167,7 @@ defaultValue = \case
     Col size -> DataMatrix $ zero' (floor $ lexInfo size) 1 (DataNumber 0.0)
     _        -> DataEmpty
 
+---------------------------------------------------------------------
 --Simular un fuctor
 --prueba :: (DataNumber m) -> (DataNumber n) -> DataNumber 
 funcP (DataNumber m) (DataNumber n) = DataNumber( m Operadores.% n)
@@ -177,8 +178,9 @@ modEntNM = fmap . (funcP)
 
 -- matrix % Number
 modEntMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
-modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcP num) rx) v1
+modEntMN = fmap . flip funcP
 
+----------------------------------
 -- Functor para el div
 funcDiv (DataNumber m) (DataNumber n) = DataNumber(Operadores.div m n)
 
@@ -188,8 +190,9 @@ divNM = fmap . (funcDiv)
 
 -- matriz div number
 divMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
-divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcDiv num) rx) v1
+divMN = fmap . flip funcDiv
 
+----------------------------------
 -- Functor para el mod
 funcMod (DataNumber m) (DataNumber n) = DataNumber(Operadores.mod m n)
 
@@ -199,5 +202,5 @@ modNM = fmap . (funcMod)
 
 -- matriz mod number
 modMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
-modMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcMod num) rx) v1
+modMN = fmap . flip funcMod
 
