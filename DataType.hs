@@ -117,6 +117,7 @@ instance Eq TypeValue where
     a == b = case (a,b) of
         (DataBool bl, DataBool br)             -> bl == br
         (DataNumber n, DataNumber m)           -> n == m
+        (DataMatrix m, DataMatrix n)           -> equalMatriz m n
         (DataString ls, DataString rs)         -> ls == rs
         (DataEmpty, DataEmpty)                 -> True
         _                                      -> False

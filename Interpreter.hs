@@ -298,16 +298,16 @@ andOp :: TypeValue -> TypeValue -> TypeValue
 andOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool && rbool))
 
 cruzSumOp :: TypeValue -> TypeValue -> TypeValue
-cruzSumOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (sumMatriz j m))
-cruzSumOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (sumMatriz j m))
+cruzSumOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j m))
+cruzSumOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz j m))
 
 cruzDiffOp :: TypeValue -> TypeValue -> TypeValue
-cruzDiffOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (sumMatriz j (minusMatriz m)))
-cruzDiffOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (sumMatriz (-j) m))
+cruzDiffOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j (-m)))
+cruzDiffOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz (-j) m))
 
 cruzMulOp :: TypeValue -> TypeValue -> TypeValue
-cruzMulOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (mulMatriz j m))
-cruzMulOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (mulMatriz j m))
+cruzMulOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (mulMatriz j m))
+cruzMulOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (mulMatriz j m))
 
 cruzDivEntOp :: TypeValue -> TypeValue -> TypeValue
 cruzDivEntOp = undefined

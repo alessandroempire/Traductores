@@ -62,7 +62,6 @@ module Matriz(
   , modEntMatriz
   , divMatriz
   , modMatriz
-  , minusMatriz
   --Comparacion de matrices
   , equalMatriz
   , unEqMatriz
@@ -774,10 +773,6 @@ divMatriz = fmap . (O.div)
 
 modMatriz :: Double -> Matriz Double -> Matriz Double
 modMatriz = fmap . (O.mod)
-
---Operador unario (-)
-minusMatriz :: Num a => Matriz a -> Matriz a
-minusMatriz matriz = fmap (* (-1)) matriz
 
 ---------------------------------------------------------------------
 --Comparacion de matrices
