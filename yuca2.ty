@@ -22,7 +22,10 @@ program
    matrix(3,3) s8;
    matrix(3,3) s9;
    matrix(3,3) s10;
-   matrix(2,2) s11;
+   matrix(3,3) s11;
+   matrix(3,3) s12;
+   matrix(3,3) s13;
+   matrix(3,3) s14;
    boolean     a;
   in
    
@@ -50,6 +53,12 @@ program
    set s6 = z .-. 3;
    set s7 = 3 .-. z;
    set s8 = z .*. 3;
+
+   set s9  = z ./. 3;
+   set s10 = 3 ./. z;
+
+   set s11 = 3 .%. z;
+   set s12 = z .%. 3;
 
    #los que dan errores
          #print "Print 1", x; # x es del tipo especificado por matrix(1, 3)

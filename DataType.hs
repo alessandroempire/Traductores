@@ -129,6 +129,27 @@ instance Num TypeValue  where
     abs (DataNumber m)    = DataNumber (abs m)
     signum (DataNumber m) = DataNumber (signum m)
     fromInteger a = (DataNumber 0)
+
+instance Fractional TypeValue where
+    DataNumber m / DataNumber n = (DataNumber (m / n))
+    recip (DataNumber m)        = (DataNumber (recip m))
+    fromRational a              = (DataNumber 0)
+
+instance Ord TypeValue where
+    compare (DataNumber m) (DataNumber n) = (compare m n)
+    (DataNumber m) < (DataNumber n)       = m < n
+    (DataNumber m) >= (DataNumber n)      = m >= n
+    (DataNumber m) >(DataNumber n)        = m > n
+    (DataNumber m) <= (DataNumber n)      = m <= n
+    max (DataNumber m) (DataNumber n)     = (DataNumber (max m n))
+    min (DataNumber m) (DataNumber n)     = (DataNumber (min m n))
+
+instance Real TypeValue where
+    toRational (DataNumber m) = toRational m
+
+instance RealFrac TypeValue where
+    floor (DataNumber m) = floor m
+    properFraction (DataNumber m) = error "Operacion no implementada"
         
 --------------------------------------------------------------------- 
 defaultValue :: DataType -> TypeValue

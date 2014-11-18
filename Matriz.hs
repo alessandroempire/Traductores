@@ -9,7 +9,8 @@ module Matriz(
   , forceMatriz
     -- * Builders
   , matrix
-  , fromList , fromLists
+  , fromList 
+  , fromLists
   , rowVector
   , colVector
     -- ** Special matrices
@@ -59,7 +60,8 @@ module Matriz(
   , mulMatriz
   , divEntNM
   , divEntMN
-  , modEntMatriz
+  , modEntNM
+  , modEntMN
   , divMatriz
   , modMatriz
   --Comparacion de matrices
@@ -752,28 +754,36 @@ mulMatriz :: Num a => a -> Matriz a -> Matriz a
 mulMatriz = fmap . (*)
 
 -- Number / matrix
-divEntNM ::  Double -> Matriz Double -> Matriz Double
+divEntNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
 divEntNM = fmap . (/)
 
 -- matrix / Number
-divEntMN :: Double -> Matriz Double -> Matriz Double
+divEntMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
 divEntMN num (M a b v1) =
     M a b $ V.imap (\i rx -> V.map (/num) rx) v1
 
+--NO SALEN::::
+
 -- Number % matrix
---modEntMatriz :: (Integral a) => a -> Matriz a -> Matriz a
---modEntMatriz :: Double -> Matriz Double -> Matriz Double
-modEntMatriz = undefined --fmap . (%)
+modEntNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
+modEntNM = fmap . (%)
 
 -- matrix % Number
+modEntMN :: (Fractional a, Real a)=> a -> Matriz a -> Matriz a
+modEntMN num (M a b v1) =
+    M a b $ V.imap (\i rx -> V.map (% num) rx) v1
 
---divMatriz :: Integral a => a -> Matriz a -> Matriz a
-divMatriz :: Double -> Matriz Double -> Matriz Double
-divMatriz = fmap . (O.div)
+-- Number div matriz
+divMatriz :: Integral a => a -> Matriz a -> Matriz a
+divMatriz = undefined --fmap . (O.div)
 
+-- matriz div number
+
+-- number mod matriz
 modMatriz :: Double -> Matriz Double -> Matriz Double
-modMatriz = fmap . (O.mod)
+modMatriz = undefined --fmap . (O.mod)
 
+-- matriz mod numbe
 ---------------------------------------------------------------------
 --Comparacion de matrices
 equalMatriz :: Eq a => Matriz a -> Matriz a -> Bool

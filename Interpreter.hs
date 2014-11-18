@@ -310,12 +310,13 @@ cruzMulOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (mulMatriz j m))
 cruzMulOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (mulMatriz j m))
 
 cruzDivEntOp :: TypeValue -> TypeValue -> TypeValue
-cruzDivEntOp = undefined
---cruzDivEntOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (divEntNM n m))
---cruzDivEntOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (divEntMN n m))
+cruzDivEntOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (divEntNM j m))
+cruzDivEntOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (divEntMN j m))
 
+--este es el %
 cruzModEntOp :: TypeValue -> TypeValue -> TypeValue
-cruzModEntOp = undefined
+cruzModEntOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (modEntNM j m))
+cruzModEntOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (modEntMN j m))
 
 cruzDivOp :: TypeValue -> TypeValue -> TypeValue
 cruzDivOp = undefined
