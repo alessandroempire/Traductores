@@ -1,0 +1,2 @@
+let a = fromLists [[(DataNumber 1.0), (DataNumber 2.0)] , [(DataNumber 3.0),(DataNumber 4.0)]]
+let b = fromLists [[(DataNumber 2.0), (DataNumber 2.0)] , [(DataNumber 4.0),(DataNumber 4.0)]]

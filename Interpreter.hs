@@ -257,15 +257,15 @@ runBinary op (lValue, rValue) = case op of
 
 addOp :: TypeValue -> TypeValue -> TypeValue
 addOp (DataNumber n) (DataNumber m) = (DataNumber (n+m))
-addOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (sumarM lmatrix rmatrix))
+addOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (lmatrix + rmatrix))
 
 diffOp :: TypeValue -> TypeValue -> TypeValue
 diffOp (DataNumber n) (DataNumber m) = (DataNumber (n-m))
-diffOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (restarM lmatrix rmatrix))
+diffOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (lmatrix - rmatrix))
 
 mulOp :: TypeValue -> TypeValue -> TypeValue
 mulOp (DataNumber n) (DataNumber m) = (DataNumber (n*m))
-mulOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (multStrassenMixed lmatrix rmatrix))
+mulOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (lmatrix * rmatrix))
 
 divOp :: TypeValue -> TypeValue -> TypeValue
 divOp (DataNumber n) (DataNumber m) = (DataNumber (div m n))
@@ -298,16 +298,16 @@ andOp :: TypeValue -> TypeValue -> TypeValue
 andOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool && rbool))
 
 cruzSumOp :: TypeValue -> TypeValue -> TypeValue
-cruzSumOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j m))
-cruzSumOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz j m))
+cruzSumOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (sumMatriz j m))
+cruzSumOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (sumMatriz j m))
 
 cruzDiffOp :: TypeValue -> TypeValue -> TypeValue
-cruzDiffOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j (minusMatriz m)))
-cruzDiffOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz (-j) m))
+cruzDiffOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (sumMatriz j (minusMatriz m)))
+cruzDiffOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (sumMatriz (-j) m))
 
 cruzMulOp :: TypeValue -> TypeValue -> TypeValue
-cruzMulOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (mulMatriz j m))
-cruzMulOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (mulMatriz j m))
+cruzMulOp j@(DataNumber n) (DataMatrix m) = undefined --(DataMatrix (mulMatriz j m))
+cruzMulOp (DataMatrix m) j@(DataNumber n) = undefined --(DataMatrix (mulMatriz j m))
 
 cruzDivEntOp :: TypeValue -> TypeValue -> TypeValue
 cruzDivEntOp = undefined
@@ -333,7 +333,7 @@ runUnary op value = case op of
 
 negOp :: TypeValue -> TypeValue
 negOp (DataNumber n) = (DataNumber (-n))
-negOp (DataMatrix matrix) = (DataMatrix (minusMatriz matrix))
+negOp (DataMatrix matrix) = (DataMatrix (-matrix))
 
 notOp :: TypeValue -> TypeValue
 notOp (DataBool bool) = (DataBool (not bool))
