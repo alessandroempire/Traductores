@@ -120,7 +120,39 @@ instance Eq TypeValue where
         (DataString ls, DataString rs)         -> ls == rs
         (DataEmpty, DataEmpty)                 -> True
         _                                      -> False
-    
+
+
+instance Num TypeValue  where
+    a + b = case (a, b) of
+        (DataNumber m, DataNumber n) -> DataNumber (m + n)
+        (DataMatrix m, DataMatrix n) -> error "loco"--DataMatrix (sumarM m n)
+        _ -> error "error: no se pueden sumar tipos distintos de numeros"
+    a - b = case (a, b) of
+        (DataNumber m, DataNumber n) -> DataNumber (m - n)
+        (DataMatrix m, DataMatrix n) -> DataMatrix (restarM m n)
+        _ -> error "error: no se pueden restar tipos distintos de numeros"
+    a * b = case (a, b) of
+        (DataNumber m, DataNumber n) -> DataNumber (m * n)
+        (DataMatrix m, DataMatrix n) -> error "loco2" --DataMatrix (multStd m n)
+        _ -> error "error: no se pueden multiplicar tipos distintos de numeros"
+    negate a = case a of
+        DataNumber m -> DataNumber (-m)
+        DataMatrix m -> DataMatrix (negate m)
+        _ -> error "error: no se pueden negar tipos distintos de numeros"
+    abs a = case a of
+        DataNumber m -> DataNumber (abs m)
+        DataMatrix m -> error "error operacion no implementada abs de matriz"
+        _ -> error "error: no se puede obtener el valor absoluto de tipos distintos de numeros"
+    signum a = case a of
+        DataNumber m -> DataNumber (signum m)
+        DataMatrix m -> error "error operacion no implementada signum de matriz"
+        _ -> error "error: no se pueden obtener el signum de tipos distintos de numeros"
+    fromInteger a = case a of
+        --DataNumber m -> error "Datanumber"
+        _ -> error "error: operacion no soportada por los Number"
+
+
+--------------------------------------------------------------------- 
 defaultValue :: DataType -> TypeValue
 defaultValue = \case
     Bool           -> DataBool False

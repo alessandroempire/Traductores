@@ -223,47 +223,49 @@ evalExpression (Lex exp posn) = case exp of
 
 runBinary :: Binary -> (TypeValue, TypeValue) -> Interpreter TypeValue
 runBinary op (lValue, rValue) = case op of
-    OpSum        -> return (addOp lValue rValue)
-    OpDiff       -> return (diffOp lValue rValue)
-    OpMul        -> return (mulOp lValue rValue)
-    OpLess       -> return (less lValue rValue)
-    OpLessEq     -> return (lessEq lValue rValue)
-    OpGreat      -> return (great lValue rValue)
-    OpGreatEq    -> return (greatEq lValue rValue)
+    OpSum        -> return (addOp     lValue rValue)
+    OpDiff       -> return (diffOp    lValue rValue)
+    OpMul        -> return (mulOp     lValue rValue)
+    OpLess       -> return (less      lValue rValue)
+    OpLessEq     -> return (lessEq    lValue rValue)
+    OpGreat      -> return (great     lValue rValue)
+    OpGreatEq    -> return (greatEq   lValue rValue)
     OpEqual      -> return (DataBool (lValue == rValue))
     OpUnequal    -> return (DataBool (lValue /= rValue))
-    OpOr         -> return (orOp lValue rValue)
-    OpAnd        -> return (andOp lValue rValue)
-    OpDiv        -> do
-        if (rValue == DataNumber 0.0) then
-            error "Error: Division entre 0"
-        else
-            return (divOp lValue rValue)
-    OpMod        -> do
-        if (rValue == DataNumber 0.0) then
-            error "Error: Division entre 0"
-        else
-            return (modOp lValue rValue)
-    OpDivEnt    -> do
-        if (rValue == DataNumber 0.0) then
-            error "Error: Division entre 0"
-        else
-            return (divEntOp lValue rValue)
-    OpModEnt    -> do
-        if (rValue == DataNumber 0.0) then
-            error "Error: Division entre 0"
-        else
-            return (modEntOp lValue rValue)
+    OpOr         -> return (orOp      lValue rValue)
+    OpAnd        -> return (andOp     lValue rValue)
+    OpDiv        -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (divOp lValue rValue)
+    OpMod        -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (modOp lValue rValue)
+    OpDivEnt     -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (divEntOp lValue rValue)
+    OpModEnt     -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (modEntOp lValue rValue)
+    OpCruzSum    -> return (cruzSumOp    lValue rValue)
+    OpCruzDiff   -> return (cruzDiffOp   lValue rValue)
+    OpCruzMul    -> return (cruzMulOp    lValue rValue)
+    OpCruzDivEnt -> return (cruzDivEntOp lValue rValue)
+    OpCruzModEnt -> return (cruzModEntOp lValue rValue)
+    OpCruzDiv    -> return (cruzDivOp    lValue rValue)
+    OpCruzMod    -> return (cruzModOp    lValue rValue)
+
 
 addOp :: TypeValue -> TypeValue -> TypeValue
 addOp (DataNumber n) (DataNumber m) = (DataNumber (n+m))
---add (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix lmatrix)
+addOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (sumarM lmatrix rmatrix))
 
 diffOp :: TypeValue -> TypeValue -> TypeValue
 diffOp (DataNumber n) (DataNumber m) = (DataNumber (n-m))
+diffOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (restarM lmatrix rmatrix))
 
 mulOp :: TypeValue -> TypeValue -> TypeValue
 mulOp (DataNumber n) (DataNumber m) = (DataNumber (n*m))
+mulOp (DataMatrix lmatrix) (DataMatrix rmatrix) = (DataMatrix (multStrassenMixed lmatrix rmatrix))
 
 divOp :: TypeValue -> TypeValue -> TypeValue
 divOp (DataNumber n) (DataNumber m) = (DataNumber (div m n))
@@ -295,6 +297,32 @@ orOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool || rbool))
 andOp :: TypeValue -> TypeValue -> TypeValue
 andOp (DataBool lbool) (DataBool rbool) = (DataBool (lbool && rbool))
 
+cruzSumOp :: TypeValue -> TypeValue -> TypeValue
+cruzSumOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j m))
+cruzSumOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz j m))
+
+cruzDiffOp :: TypeValue -> TypeValue -> TypeValue
+cruzDiffOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (sumMatriz j (minusMatriz m)))
+cruzDiffOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (sumMatriz (-j) m))
+
+cruzMulOp :: TypeValue -> TypeValue -> TypeValue
+cruzMulOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (mulMatriz j m))
+cruzMulOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (mulMatriz j m))
+
+cruzDivEntOp :: TypeValue -> TypeValue -> TypeValue
+cruzDivEntOp = undefined
+--cruzDivEntOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (divEntNM n m))
+--cruzDivEntOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (divEntMN n m))
+
+cruzModEntOp :: TypeValue -> TypeValue -> TypeValue
+cruzModEntOp = undefined
+
+cruzDivOp :: TypeValue -> TypeValue -> TypeValue
+cruzDivOp = undefined
+
+cruzModOp :: TypeValue -> TypeValue -> TypeValue
+cruzModOp = undefined
+
 --------------------------------------------------------------------------------
 
 runUnary :: Unary -> TypeValue -> Interpreter TypeValue
@@ -305,14 +333,13 @@ runUnary op value = case op of
 
 negOp :: TypeValue -> TypeValue
 negOp (DataNumber n) = (DataNumber (-n))
---negOp (DataMatrix matrix) = (DataMatrix (map (map (\ x -> -x)) matrix))
+negOp (DataMatrix matrix) = (DataMatrix (minusMatriz matrix))
 
 notOp :: TypeValue -> TypeValue
 notOp (DataBool bool) = (DataBool (not bool))
 
 transposeOp :: TypeValue -> TypeValue
-transposeOp = undefined
---transposeOp (DataMatrix matrix) = (DataMatrix (L.transpose matrix))
+transposeOp (DataMatrix matrix) = (DataMatrix (transpose matrix))
 
 --------------------------------------------------------------------------------
 

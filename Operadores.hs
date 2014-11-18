@@ -4,8 +4,7 @@ module Operadores (
     , mod
     ) where
 
-import          Prelude hiding (div, mod)
-
+import          Prelude         hiding (div, mod)
 
 -- m / n
 (%) :: Double -> Double -> Double
