@@ -759,34 +759,6 @@ divEntNM = fmap . (/)
 divEntMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
 divEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (/num) rx) v1
 
---NO SALEN::::
-
--- Number % matrix
-modEntNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-modEntNM = fmap . (Operadores.%)
-
--- matrix % Number
-modEntMN :: (Fractional a, Real a)=> a -> Matriz a -> Matriz a
-modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.% num) rx) v1
-
--- Number div matriz
-divNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-divNM = fmap . (Operadores.div)
-
--- matriz div number
-divMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.div num) rx) v1
-
--- number mod matriz
-modNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-modNM = fmap . (Operadores.mod)
-
--- matriz mod number
-modMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-modMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.mod num) rx) v1
-
-
--- matriz mod numbe
 ---------------------------------------------------------------------
 --Comparacion de matrices
 equalMatriz :: Eq a => Matriz a -> Matriz a -> Bool
