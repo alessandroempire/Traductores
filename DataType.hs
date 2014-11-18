@@ -12,13 +12,22 @@ module DataType
     , isValid
     , TypeValue(..)
     , defaultValue
+    --
+    , modEntNM
+    , modEntMN
+    , divMN
+    , divNM
+    , modMN
+    , modNM
     ) where
 
 import          Lexeme
 import          Identifier
 import          Matriz
+import          Operadores
 
-import          Data.Function (on)
+import              Data.Function (on)
+import qualified    Data.Vector         as V
 
 type Number = Double
 
@@ -121,6 +130,7 @@ instance Eq TypeValue where
         (DataString ls, DataString rs)         -> ls == rs
         (DataEmpty, DataEmpty)                 -> True
         _                                      -> False
+
 instance Num TypeValue  where
     DataNumber m + DataNumber n = DataNumber (m + n)
     DataNumber m - DataNumber n = DataNumber (m - n)
@@ -146,10 +156,6 @@ instance Ord TypeValue where
 
 instance Real TypeValue where
     toRational (DataNumber m) = toRational m
-
-instance RealFrac TypeValue where
-    floor (DataNumber m) = floor m
-    properFraction (DataNumber m) = error "Operacion no implementada"
         
 --------------------------------------------------------------------- 
 defaultValue :: DataType -> TypeValue
@@ -160,4 +166,38 @@ defaultValue = \case
     Row size -> DataMatrix $ zero' 1 (floor $ lexInfo size) (DataNumber 0.0) 
     Col size -> DataMatrix $ zero' (floor $ lexInfo size) 1 (DataNumber 0.0)
     _        -> DataEmpty
+
+--Simular un fuctor
+--prueba :: (DataNumber m) -> (DataNumber n) -> DataNumber 
+funcP (DataNumber m) (DataNumber n) = DataNumber( m Operadores.% n)
+
+-- Number % matrix
+modEntNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+modEntNM = fmap . (funcP)
+
+-- matrix % Number
+modEntMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcP num) rx) v1
+
+-- Functor para el div
+funcDiv (DataNumber m) (DataNumber n) = DataNumber(Operadores.div m n)
+
+-- Number div matriz
+divNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+divNM = fmap . (funcDiv)
+
+-- matriz div number
+divMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcDiv num) rx) v1
+
+-- Functor para el mod
+funcMod (DataNumber m) (DataNumber n) = DataNumber(Operadores.mod m n)
+
+-- number mod matriz
+modNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+modNM = fmap . (funcMod)
+
+-- matriz mod number
+modMN :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
+modMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (funcMod num) rx) v1
 

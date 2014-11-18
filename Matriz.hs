@@ -4,8 +4,10 @@
 --   Every provided example has been tested.
 module Matriz(
     -- * Matriz type
-    Matriz , prettyMatriz
-  , nrows , ncols
+    Matriz(..) 
+  , prettyMatriz
+  --, nrows 
+  --, ncols
   , forceMatriz
     -- * Builders
   , matrix
@@ -60,17 +62,12 @@ module Matriz(
   , mulMatriz
   , divEntNM
   , divEntMN
-  , modEntNM
-  , modEntMN
-  , divMN
-  , divNM
-  , modMatriz
   --Comparacion de matrices
   , equalMatriz
   , unEqMatriz
   ) where
 
-import              Operadores          as O
+import              Operadores
 
 import              Data.Monoid
 import              Control.DeepSeq
@@ -766,23 +763,28 @@ divEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (/num) rx) v1
 
 -- Number % matrix
 modEntNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-modEntNM = fmap . (%)
+modEntNM = fmap . (Operadores.%)
 
 -- matrix % Number
 modEntMN :: (Fractional a, Real a)=> a -> Matriz a -> Matriz a
-modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (% num) rx) v1
+modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.% num) rx) v1
 
 -- Number div matriz
 divNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-divNM = fmap . (O.div)
+divNM = fmap . (Operadores.div)
 
 -- matriz div number
 divMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (% num) rx) v1
+divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.div num) rx) v1
 
 -- number mod matriz
-modMatriz :: Double -> Matriz Double -> Matriz Double
-modMatriz = undefined --fmap . (O.mod)
+modNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
+modNM = fmap . (Operadores.mod)
+
+-- matriz mod number
+modMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
+modMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (Operadores.mod num) rx) v1
+
 
 -- matriz mod numbe
 ---------------------------------------------------------------------
