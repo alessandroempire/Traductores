@@ -37,7 +37,7 @@ program
 
    set q = { 4 , 5 , 1   :  6, 7, 2   :  8 , 9, 3 };
    
-   set a = z == q;
+   set a = z /= q;
 
    set s = z + q;
    set x1 = x + y';
