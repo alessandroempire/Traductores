@@ -60,6 +60,9 @@ program
    set s11 = 3 .%. z;
    set s12 = z .%. 3;
 
+   set s13 = 3 .div. z;
+   set s14 = z .div. 3;
+
    #los que dan errores
          #print "Print 1", x; # x es del tipo especificado por matrix(1, 3)
   end;

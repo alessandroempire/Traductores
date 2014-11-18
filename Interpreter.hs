@@ -318,8 +318,10 @@ cruzModEntOp :: TypeValue -> TypeValue -> TypeValue
 cruzModEntOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (modEntNM j m))
 cruzModEntOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (modEntMN j m))
 
+-- este es el div
 cruzDivOp :: TypeValue -> TypeValue -> TypeValue
-cruzDivOp = undefined
+cruzDivOp j@(DataNumber n) (DataMatrix m) = (DataMatrix (divNM j m))
+cruzDivOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (divMN j m))
 
 cruzModOp :: TypeValue -> TypeValue -> TypeValue
 cruzModOp = undefined

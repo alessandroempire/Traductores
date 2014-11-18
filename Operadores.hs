@@ -6,38 +6,20 @@ module Operadores (
 
 import          Prelude         hiding (div, mod)
 
--- m / n
-{-
---(%) :: Double -> Double -> Double
---(%) :: (Fractional a) => a -> a -> a
-(%) :: (RealFrac a) => a -> a -> a
-m % n = m - ((fromIntegral (d n m)) * n) 
- 
-      --d = toInteger (n / m)
-
-d :: (Integral b, RealFrac a) => a -> a -> b
-d m n = floor (n / m )
-
---d1 m n ::
-d1 m n = fromIntegral (d m n) 
- -}
-
---aux :: (Fractional a ) => a -> a -> a
 (%) :: (Fractional a, Real a) => a -> a -> a
-m % n = m - (fromIntegral (ay m n )) * n
+m % n = reducer $ m - (fromIntegral (aux m n )) * n
 
-ay :: (Fractional a, Integral b, Real a) => a -> a -> b
-ay m n = floor $ toRational (m/n)
-
+aux :: (Fractional a, Integral b, Real a) => a -> a -> b
+aux m n = floor $ toRational (m/n)
 
 -- m div n
-div :: Double -> Double -> Double
-div m n = undefined -- fromIntegral (truncate (m / n)) :: Double
+div :: (Fractional a, Real a) => a -> a -> a
+div m n = fromIntegral (truncate (toRational(m / n)))
 
 -- m mod n
-mod :: Double -> Double -> Double
-mod m n = undefined --fromIntegral (truncate (m % n)) :: Double
+mod :: (Fractional a, Real a) => a -> a -> a
+mod m n = fromIntegral (truncate (toRational (m % n)))
 
 --Auxiliar
-reducer :: Double -> Double
-reducer n = (fromInteger $ round $ n * (10^2) :: Double) / (10.0^^2)
+reducer :: (Fractional a, Real a) => a -> a
+reducer n = (fromInteger $ round $ (toRational n) * (10^2)) / (10.0^^2)

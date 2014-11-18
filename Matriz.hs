@@ -62,7 +62,8 @@ module Matriz(
   , divEntMN
   , modEntNM
   , modEntMN
-  , divMatriz
+  , divMN
+  , divNM
   , modMatriz
   --Comparacion de matrices
   , equalMatriz
@@ -759,8 +760,7 @@ divEntNM = fmap . (/)
 
 -- matrix / Number
 divEntMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
-divEntMN num (M a b v1) =
-    M a b $ V.imap (\i rx -> V.map (/num) rx) v1
+divEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (/num) rx) v1
 
 --NO SALEN::::
 
@@ -770,14 +770,15 @@ modEntNM = fmap . (%)
 
 -- matrix % Number
 modEntMN :: (Fractional a, Real a)=> a -> Matriz a -> Matriz a
-modEntMN num (M a b v1) =
-    M a b $ V.imap (\i rx -> V.map (% num) rx) v1
+modEntMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (% num) rx) v1
 
 -- Number div matriz
-divMatriz :: Integral a => a -> Matriz a -> Matriz a
-divMatriz = undefined --fmap . (O.div)
+divNM :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
+divNM = fmap . (O.div)
 
 -- matriz div number
+divMN :: (Fractional a, Real a) => a -> Matriz a -> Matriz a
+divMN num (M a b v1) = M a b $ V.imap (\i rx -> V.map (% num) rx) v1
 
 -- number mod matriz
 modMatriz :: Double -> Matriz Double -> Matriz Double
