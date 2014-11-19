@@ -212,13 +212,43 @@ evalExpression (Lex exp posn) = case exp of
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
+        expValue <- lift $ evalExpression expL
         
-        return DataEmpty
+        let (i,j) = getSize expValue
+        let m = getMatrix expValue
+
+        rindex <- lift $ evalExpression indexlL
+        let rsize = getNumber rindex
+
+        if (rsize > i)
+        then error "Error: Accesando a elemento inexistente en la matriz"
+        else do
+            cindex <- lift $ evalExpression indexrL
+            let csize = getNumber cindex 
+        
+            if (csize > j)
+            then error "Error: Accesando a elemento inexistente en la matriz"
+            else return (m ! (rsize,csize))
 
     ProyRC expL indexL -> liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
+        expValue <- lift $ evalExpression expL
+        
+        let (i,j) = getSize expValue
+        let m = getMatrix expValue
 
-        return DataEmpty
+        index <- lift $ evalExpression indexL
+        let size = getNumber index
+
+        if (i == 1)
+        then do
+            if (size > j)
+            then error "Error: Accesando a elemento inexistente del vector"
+            else return (m ! (i, size))
+        else do
+            if (size > i)
+            then error "Error: Accesando a elemento inexistente del vector"
+            else return (m ! (size, j))
 
     ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe DataEmpty) $ 
                                       runMaybeT $ do

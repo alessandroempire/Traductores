@@ -12,7 +12,9 @@ module DataType
     , isValid
     , TypeValue(..)
     , defaultValue
-    --
+    , getSize
+    , getNumber
+    , getMatrix
     , modEntNM
     , modEntMN
     , divMN
@@ -166,6 +168,15 @@ defaultValue = \case
     Row size -> DataMatrix $ zero' 1 (floor $ lexInfo size) (DataNumber 0.0) 
     Col size -> DataMatrix $ zero' (floor $ lexInfo size) 1 (DataNumber 0.0)
     _        -> DataEmpty
+
+getSize :: TypeValue -> (Int,Int)
+getSize (DataMatrix m) = (rowSize m, colSize m)
+
+getNumber :: TypeValue -> Int
+getNumber (DataNumber n) = round n
+
+getMatrix :: TypeValue -> Matriz TypeValue
+getMatrix (DataMatrix m) = m
 
 ---------------------------------------------------------------------
 --Simular un fuctor

@@ -11,6 +11,8 @@ module Matriz(
   , forceMatriz
     -- * Builders
   , matrix
+  , rowSize
+  , colSize
   , fromList 
   , fromLists
   , rowVector
@@ -92,6 +94,14 @@ data Matriz a = M {
 -- | Just a cool way to output the size of a matrix.
 sizeStr :: Int -> Int -> String
 sizeStr n m = show n ++ "x" ++ show m
+
+-- | Get row size
+rowSize :: Matriz a -> Int
+rowSize (M i _ _) = i
+
+-- | Get col size
+colSize :: Matriz a -> Int
+colSize (M _ j _) = j
 
 -- | Display a matrix as a 'String' using the 'Show' instance of its elements.
 prettyMatriz :: Show a => Matriz a -> String
@@ -246,7 +256,7 @@ getElem :: Int      -- ^ Row
         -> Matriz a -- ^ Matriz
         -> a
 getElem i j (M n m v)
- | i > n || j > m = error $ "Trying to get the " ++ show (i,j) ++ " element from a "
+ | i > n || j > m = error $ "Intentando obtener el elemento " ++ show (i,j) ++ " element from a "
                          ++ sizeStr n m ++ " matrix."
  | otherwise = (v V.! (i-1)) V.! (j-1)
 
