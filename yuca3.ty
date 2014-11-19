@@ -1,0 +1,27 @@
+program
+    use 
+        matrix(2, 2) fresh_m = {3,4 : 5,6};
+        number z;
+    in
+        use 
+            number fresh_r = 1; 
+        in
+            while fresh_r <= 2 do
+                use 
+                    number fresh_c = 1; 
+                in
+                    while fresh_c <= 2 do 
+                        use
+                        number i = fresh_m[fresh_r, fresh_c];
+                        in
+                            set z = i;
+                        end;
+                    set fresh_c = fresh_c + 1;
+                    end;
+                end;
+            end;
+        set fresh_r = fresh_r + 1;
+        end;
+    end;
+
+end;
