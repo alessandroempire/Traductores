@@ -24,7 +24,7 @@ module DataType
 import          Lexeme
 import          Identifier
 import          Matriz
-import          Operadores
+import          Operator
 
 import              Data.Function (on)
 import qualified    Data.Vector         as V
@@ -170,7 +170,7 @@ defaultValue = \case
 ---------------------------------------------------------------------
 --Simular un fuctor
 --prueba :: (DataNumber m) -> (DataNumber n) -> DataNumber 
-funcP (DataNumber m) (DataNumber n) = DataNumber( m Operadores.% n)
+funcP (DataNumber m) (DataNumber n) = DataNumber( m Operator.% n)
 
 -- Number % matrix
 modEntNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
@@ -182,7 +182,7 @@ modEntMN = fmap . flip funcP
 
 ----------------------------------
 -- Functor para el div
-funcDiv (DataNumber m) (DataNumber n) = DataNumber(Operadores.div m n)
+funcDiv (DataNumber m) (DataNumber n) = DataNumber(Operator.div m n)
 
 -- Number div matriz
 divNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue
@@ -194,7 +194,7 @@ divMN = fmap . flip funcDiv
 
 ----------------------------------
 -- Functor para el mod
-funcMod (DataNumber m) (DataNumber n) = DataNumber(Operadores.mod m n)
+funcMod (DataNumber m) (DataNumber n) = DataNumber(Operator.mod m n)
 
 -- number mod matriz
 modNM :: TypeValue -> Matriz TypeValue -> Matriz TypeValue

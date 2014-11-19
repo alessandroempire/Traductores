@@ -67,7 +67,7 @@ module Matriz(
   , unEqMatriz
   ) where
 
-import              Operadores
+import              Operator
 
 import              Data.Monoid
 import              Control.DeepSeq
@@ -104,8 +104,9 @@ prettyMatriz m@(M _ _ v) = unlines
 instance Show a => Show (Matriz a) where
  show = prettyMatriz
 
-instance NFData a => NFData (Matriz a) where
- rnf (M _ _ v) = rnf v
+--OJO!
+--instance NFData a => NFData (Matriz a) where
+-- rnf (M _ _ v) = rnf v
 
 -- | /O(rows*cols)/. Similar to 'V.force', drop any extra memory.
 --

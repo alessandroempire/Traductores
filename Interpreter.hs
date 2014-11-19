@@ -12,10 +12,10 @@ import            Program
 import            TrinityMonad
 import            SymbolTable
 import            Matriz
-import            Operadores
+import            Operator
 
 import            Control.Arrow ((&&&))
-import            Control.Monad (guard, liftM, unless, void, when, (>=>))
+import            Control.Monad (forever, guard, liftM, unless, void, when, (>=>))
 import            Control.Monad.Reader (asks)
 import            Control.Monad.RWS (RWS, evalRWS, execRWS, lift)
 import            Control.Monad.State (gets, modify)
@@ -141,17 +141,35 @@ runStatement (Lex st posn) = case st of
     StRead idL -> do
         return False
 
-    StPrint exprL -> do
+    StPrint expL -> do
+        expValue <- evalExpression expL
+      
+--        print expValue
+
         return False   
 
     StIf expL trueBlock falseBlock -> do
+        expValue <- evalExpression expL
+
+        if (expValue == DataBool True)
+        then void $ runStatements trueBlock
+        else void $ runStatements falseBlock
+
         return False
 
     StFor idL expL block -> do
         return False
 
-    StWhile expL block -> do
-        return False
+    StWhile expL block -> loop
+        where
+        loop = do
+          expValue <- evalExpression expL
+
+          if (expValue == DataBool True)
+          then do
+            void $ runStatements block
+            loop
+          else return False
 
     StBlock dclS block -> do
         enterScope
@@ -182,10 +200,10 @@ evalExpression (Lex exp posn) = case exp of
         return val
     
     LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
-        --aqui
         let arrays = map toList exps
         value <- lift $ mapM (mapM evalExpression) arrays
         let matriz = fromLists value
+
         return $ DataMatrix matriz
 
     FunctionCall idL expLs -> liftM (fromMaybe DataEmpty) $ 

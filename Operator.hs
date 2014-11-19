@@ -1,4 +1,4 @@
-module Operadores (
+module Operator (
      (%)
     , div
     , mod
