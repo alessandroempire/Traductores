@@ -1,0 +1,16 @@
+
+
+program
+ use
+  number x; # inicializado en 0
+  number y; # inicializado en 0
+  number z; 
+ in
+    set z = 4;
+    for x in 
+        {2,4 : 5,9}
+    do 
+        set y = x;
+    end;
+ end;
+end;

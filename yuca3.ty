@@ -12,7 +12,7 @@ program
                 in
                     while fresh_c <= 2 do 
                         use
-                        number i = fresh_m[fresh_r, fresh_c];
+                        number i = fresh_m[fresh_r, fresh_c]; #seria el x
                         in
                             set z = i;
                         end;
@@ -25,3 +25,8 @@ program
     end;
 
 end;
+
+#for x in
+#{ 1, 2, 3 : 4, 5, 6 }
+# do
+# instrucciones

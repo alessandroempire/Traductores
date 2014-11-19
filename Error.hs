@@ -5,6 +5,7 @@ module Error
     , LexerError(..)
     , ParseError(..)
     , StaticError(..)
+    , DinamicError(..)
     , Warning(..)
     , isError
     ) where
@@ -21,6 +22,7 @@ data Error
     = LError Position LexerError
     | PError Position ParseError
     | SError Position StaticError
+    | DError DinamicError
     | Warn Position Warning
 
 instance Show Error where
@@ -153,6 +155,16 @@ instance Show Warning where
         VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definido pero no usado"
         FunctionDefinedNotUsed id -> "Funcion '"   ++ id ++ "' definida pero no usada"
 
+---------------------------------------------------------------------
+data DinamicError 
+    = NoEsMatriz
+    | Loco
+    
+
+instance Show DinamicError where
+    show = \case
+        NoEsMatriz -> "Se esta aplicando un for a un elemento que no es matriz"
+        Loco -> "Loco"
 ---------------------------------------------------------------------
 
 isError :: Error -> Bool

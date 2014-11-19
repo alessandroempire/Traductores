@@ -158,6 +158,12 @@ runStatement (Lex st posn) = case st of
         return False
 
     StFor idL expL block -> do
+        let id = lexInfo idL
+        matrix <- evalExpression expL
+        
+        unless(isDataMatrix matrix )  $ tellDError NoEsMatriz
+        void $ iteraRows 0 0 id (getMatrix matrix) block
+
         return False
 
     StWhile expL block -> loop
@@ -265,6 +271,24 @@ evalExpression (Lex exp posn) = case exp of
         expValue <- lift $ runUnary op val
 
         return expValue
+
+---------------------------------------
+iteraRows :: Int -> Int -> Identifier -> Matriz TypeValue 
+                 -> (StatementSeq) -> Interpreter Returned
+iteraRows i j id matrix block = do
+    if (i <= (rowSize matrix ))
+    then do iteraColumn i j id matrix block
+            --iteraRows (i+1) j id matrix block
+    else return False
+
+iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
+                    -> (StatementSeq) -> Interpreter Returned
+iteraColumn i j id matrix block = do
+    if (j <= (colSize matrix))
+    then do changeValue id (getElem i j matrix)
+            void $ runStatements block
+            iteraColumn i (j+1) id matrix block
+    else iteraRows (i+1) 0 id matrix block
 
 --------------------------------------------------------------------------------
 -- Operations

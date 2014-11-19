@@ -11,6 +11,11 @@ module DataType
     , isCol
     , isValid
     , TypeValue(..)
+    , isDataBool
+    , isDataNumber
+    , isDataMatrix
+    , isDataString
+    , isDataEmpty
     , defaultValue
     , getSize
     , getNumber
@@ -159,6 +164,37 @@ instance Ord TypeValue where
 instance Real TypeValue where
     toRational (DataNumber m) = toRational m
         
+---------------------------------------------------------------------
+
+isDataBool :: TypeValue -> Bool
+isDataBool = \case
+    DataBool _ -> True
+    _          -> False
+
+isDataNumber :: TypeValue -> Bool
+isDataNumber = \case
+    DataNumber _ -> True
+    _            -> False
+
+isDataMatrix :: TypeValue -> Bool
+isDataMatrix = \case
+    DataMatrix _ -> True
+    _            -> False
+
+--isNumberMatrix
+--isNumberMatrix = \case
+--    (Matriz a) -> True
+--    _          -> False
+
+isDataString :: TypeValue -> Bool
+isDataString = \case
+    DataString _ -> True
+    _            -> False
+
+isDataEmpty :: TypeValue -> Bool
+isDataEmpty = \case
+    DataEmpty -> True
+    _         -> False
 --------------------------------------------------------------------- 
 defaultValue :: DataType -> TypeValue
 defaultValue = \case
@@ -178,6 +214,8 @@ getNumber (DataNumber n) = round n
 getMatrix :: TypeValue -> Matriz TypeValue
 getMatrix (DataMatrix m) = m
 
+--getMatrixT :: Matriz TypeValue -> TypeValue
+--getMatrixT (Matriz a) = a
 ---------------------------------------------------------------------
 --Simular un fuctor
 --prueba :: (DataNumber m) -> (DataNumber n) -> DataNumber 
