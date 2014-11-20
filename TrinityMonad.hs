@@ -123,9 +123,3 @@ markUsed :: (TrinityState s, MonadState s m)
 markUsed idn = modifySymbol idn $ \sym -> sym { used = True }
 
 ---------------------------------------------------------------------
-
-{-
-changeValue :: (TrinityState s, MonadState s m)
-               => Identifier -> TypeValue -> m ()
-changeValue idn newval = modifySymbol idn $ \sym -> sym { value = newval }
--}

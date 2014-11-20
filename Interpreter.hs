@@ -18,7 +18,7 @@ import qualified  Data.Map as M
 import            Control.Arrow ((&&&))
 import            Control.Monad (forever, guard, liftM, unless, void, when, (>=>))
 import            Control.Monad.Reader (asks)
-import            Control.Monad.RWS (RWS, evalRWS, execRWS, lift)
+import qualified  Control.Monad.RWS as RWS--(RWS, evalRWS, execRWS, RWS.lift)
 import            Control.Monad.State (gets, modify)
 import            Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
 import            Control.Monad.Writer (tell)
@@ -31,35 +31,11 @@ import qualified  Data.List as L (and, length, transpose)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, 
                                   null, or, zipWith, mod, div)
 
-type Interpreter = RWS TrinityReader TrinityWriter InterpreterState
+type Interpreter = RWS.RWST TrinityReader TrinityWriter InterpreterState
 
 data InterpreterState = InterpreterState
     { marcoPila :: Stack (M.Map Identifier TypeValue)
     }
-    
-{-
-    { table :: SymbolTable
-    , stack :: Stack Scope
-    , scopeId :: Scope
-    , ast :: Program
-    , funcStack :: Stack (Identifier, DataType, Scope)
-}
--}
-
---instance TrinityState InterpreterState where
---    getAst = ast
-    --getMarcoPila = marcoPila
-
-{-
-    getTable = table
-    getStack = stack
-    getScopeId = scopeId
-    getAst = ast
-    putTable tab s = s { table = tab }
-    putStack stk s = s { stack = stk }
-    putScopeId sc s = s { scopeId = sc }
-    putAst as s = s { ast = as }
--}
 
 instance Show InterpreterState where
     show (InterpreterState a) = show a
@@ -70,20 +46,13 @@ initialState :: InterpreterState
 initialState = InterpreterState 
     { marcoPila = push (M.empty) emptyStack
     }
-{-
-    { table = emptyTable
-    , stack = globalStack
-    , scopeId = globalScope
-    , ast = Program empty empty
-    , funcStack = emptyStack
-    }
--}
+
 ---------------------------------------------------------------------
 
 buildInterpreter :: TrinityWriter -> Program -> Interpreter ()
 buildInterpreter w program@(Program fun block) = do
 --    modify $ \s -> s { ast = program }
-    tell w
+    --tell w
     void $ runStatements block
 
 ---------------------------------------------------------------------
@@ -94,7 +63,7 @@ processInterpreter :: TrinityReader -> TrinityWriter
 processInterpreter r w = runInterpreter r . buildInterpreter w
 
 runInterpreter :: TrinityReader -> Interpreter a -> (InterpreterState, TrinityWriter)
-runInterpreter r = flip (flip execRWS r) initialState
+runInterpreter r = flip (flip RWS.execRWS r) initialState
 
 --------------------------------------------------------------------------------
 -- Monad handling
@@ -119,11 +88,14 @@ modifyMarco id tv = do mapAct <- currentFunction
                        let newMap = M.insert id tv mapAct
                        enterMarco (newMap)
 
+--showMarc :: Interpreter ()
+--showMarc = do return $ show $ gets $ top . marcoPila 
+--              return ()
 ---------------------------------------------------------------------
 -- Declarations
 
 runDeclarations :: DeclarationSeq -> Interpreter Returned
-runDeclarations = liftM or . mapM runDeclaration
+runDeclarations = RWS.liftM or . mapM runDeclaration
 
 runDeclaration :: Lexeme Declaration -> Interpreter Returned
 runDeclaration (Lex dcl posn) = case dcl of
@@ -149,7 +121,7 @@ runDeclaration (Lex dcl posn) = case dcl of
 -- Statements
 
 runStatements :: StatementSeq -> Interpreter Returned
-runStatements = liftM or . mapM runStatement
+runStatements = RWS.liftM or . mapM runStatement
 
 runStatement :: Lexeme Statement -> Interpreter Returned
 runStatement (Lex st posn) = case st of
@@ -171,6 +143,7 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
+        --show expValue
         return False   
 
     StIf expL trueBlock falseBlock -> do
@@ -224,51 +197,51 @@ evalExpression (Lex exp posn) = case exp of
     LitString sL -> return (DataString $ (lexInfo sL))
 
     VariableId idL -> return (DataNumber 0.0)
-        --liftM (fromMaybe DataEmpty) $ runMaybeT $ do
+        --RWS.liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         --let id = lexInfo idL
         --maySymI <- getsSymbol  id ((lexInfo . dataType) &&& value)
         --let (dt, val) = fromJust maySymI
         --return (DataNumber 0.0)
     
-    LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
+    LitMatrix exps -> RWS.liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         let arrays = map toList exps
-        value <- lift $ mapM (mapM evalExpression) arrays
+        value <- RWS.lift $ mapM (mapM evalExpression) arrays
         let matriz = fromLists value
 
         return $ DataMatrix matriz
 
-    FunctionCall idL expLs -> liftM (fromMaybe DataEmpty) $ 
+    FunctionCall idL expLs -> RWS.liftM (fromMaybe DataEmpty) $ 
                                   runMaybeT $ do 
         return DataEmpty
 
-    ProyM expL indexlL indexrL -> liftM (fromMaybe DataEmpty) $
+    ProyM expL indexlL indexrL -> RWS.liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
-        expValue <- lift $ evalExpression expL
+        expValue <- RWS.lift $ evalExpression expL
         
         let (i,j) = getSize expValue
         let m = getMatrix expValue
 
-        rindex <- lift $ evalExpression indexlL
+        rindex <- RWS.lift $ evalExpression indexlL
         let rsize = getNumber rindex
 
         if (rsize > i)
         then error "Error: Accesando a elemento inexistente en la matriz"
         else do
-            cindex <- lift $ evalExpression indexrL
+            cindex <- RWS.lift $ evalExpression indexrL
             let csize = getNumber cindex 
         
             if (csize > j)
             then error "Error: Accesando a elemento inexistente en la matriz"
             else return (m ! (rsize,csize))
 
-    ProyRC expL indexL -> liftM (fromMaybe DataEmpty) $
+    ProyRC expL indexL -> RWS.liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
-        expValue <- lift $ evalExpression expL
+        expValue <- RWS.lift $ evalExpression expL
         
         let (i,j) = getSize expValue
         let m = getMatrix expValue
 
-        index <- lift $ evalExpression indexL
+        index <- RWS.lift $ evalExpression indexL
         let size = getNumber index
 
         if (i == 1)
@@ -281,19 +254,19 @@ evalExpression (Lex exp posn) = case exp of
             then error "Error: Accesando a elemento inexistente del vector"
             else return (m ! (size, j))
 
-    ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe DataEmpty) $ 
+    ExpBinary (Lex op pos) lExp rExp -> RWS.liftM (fromMaybe DataEmpty) $ 
                                       runMaybeT $ do
-        lValue <- lift $ evalExpression lExp
-        rValue <- lift $ evalExpression rExp
+        lValue <- RWS.lift $ evalExpression lExp
+        rValue <- RWS.lift $ evalExpression rExp
 
-        expValue <- lift $ runBinary op (lValue, rValue)
+        expValue <- RWS.lift $ runBinary op (lValue, rValue)
 
         return expValue
 
-    ExpUnary (Lex op pos) exp -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
-        val <- lift $ evalExpression exp
+    ExpUnary (Lex op pos) exp -> RWS.liftM (fromMaybe DataEmpty) $ runMaybeT $ do
+        val <- RWS.lift $ evalExpression exp
 
-        expValue <- lift $ runUnary op val
+        expValue <- RWS.lift $ runUnary op val
 
         return expValue
 

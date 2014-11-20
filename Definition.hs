@@ -101,7 +101,6 @@ processDeclaration (Lex dcl posn) = case dcl of
                 { dataType   = dtL
                 , scopeStack = stk
                 , defPosn    = posn 
-                --, value      = defaultValue (lexInfo dtL)
                 }
         maySymI <- getsSymbol id $ \sym -> (scopeStack sym, defPosn sym)
         case maySymI of
@@ -117,7 +116,6 @@ processDeclaration (Lex dcl posn) = case dcl of
                 { dataType   = dtL
                 , scopeStack = stk
                 , defPosn    = posn
-                --, value      = defaultValue (lexInfo dtL) 
                 }
         maySymI <- getsSymbol id $ \sym -> (scopeStack sym, defPosn sym)
         case maySymI of
@@ -133,7 +131,6 @@ processDeclaration (Lex dcl posn) = case dcl of
                 { dataType   = dtL
                 , scopeStack = stk
                 , defPosn    = posn 
-                --, value      = defaultValue (lexInfo dtL)
                 }
         maySymI <- getsSymbol id $ \sym -> (scopeStack sym, defPosn sym)
         case maySymI of
