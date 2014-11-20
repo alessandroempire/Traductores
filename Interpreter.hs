@@ -226,15 +226,14 @@ evalExpression (Lex exp posn) = case exp of
         rindex <- lift $ evalExpression indexlL
         let rsize = getNumber rindex
 
-        if (rsize > i)
-        then error "Error: Accesando a elemento inexistente en la matriz"
-        else do
-            cindex <- lift $ evalExpression indexrL
-            let csize = getNumber cindex 
+        unless( rsize <= i )  $ tellDError MatrixIndex
+
+        cindex <- lift $ evalExpression indexrL
+        let csize = getNumber cindex 
         
-            if (csize > j)
-            then error "Error: Accesando a elemento inexistente en la matriz"
-            else return (m ! (rsize,csize))
+        unless( csize <= j )  $ tellDError MatrixIndex
+        
+        return (m ! (rsize,csize))
 
     ProyRC expL indexL -> liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
@@ -248,13 +247,13 @@ evalExpression (Lex exp posn) = case exp of
 
         if (i == 1)
         then do
-            if (size > j)
-            then error "Error: Accesando a elemento inexistente del vector"
-            else return (m ! (i, size))
+            unless( size <= j )  $ tellDError VectorIndex
+
+            return (m ! (i, size))
         else do
-            if (size > i)
-            then error "Error: Accesando a elemento inexistente del vector"
-            else return (m ! (size, j))
+            unless( size <= i )  $ tellDError VectorIndex
+
+            return (m ! (size, j))
 
     ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe DataEmpty) $ 
                                       runMaybeT $ do
@@ -306,18 +305,22 @@ runBinary op (lValue, rValue) = case op of
     OpUnequal    -> return (DataBool (lValue /= rValue))
     OpOr         -> return (orOp      lValue rValue)
     OpAnd        -> return (andOp     lValue rValue)
-    OpDiv        -> if (rValue == DataNumber 0.0) 
-                    then error "Error: Division entre 0"
-                    else return (divOp lValue rValue)
-    OpMod        -> if (rValue == DataNumber 0.0) 
-                    then error "Error: Division entre 0"
-                    else return (modOp lValue rValue)
-    OpDivEnt     -> if (rValue == DataNumber 0.0) 
-                    then error "Error: Division entre 0"
-                    else return (divEntOp lValue rValue)
-    OpModEnt     -> if (rValue == DataNumber 0.0) 
-                    then error "Error: Division entre 0"
-                    else return (modEntOp lValue rValue)
+    OpDiv        -> do
+                        when( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
+
+                        return (divOp lValue rValue)
+    OpMod        -> do
+                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
+
+                        return (modOp lValue rValue)
+    OpDivEnt     -> do
+                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
+
+                        return (divEntOp lValue rValue)
+    OpModEnt     -> do
+                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
+
+                        return (modEntOp lValue rValue)
     OpCruzSum    -> return (cruzSumOp    lValue rValue)
     OpCruzDiff   -> return (cruzDiffOp   lValue rValue)
     OpCruzMul    -> return (cruzMulOp    lValue rValue)

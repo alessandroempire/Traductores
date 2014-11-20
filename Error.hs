@@ -158,13 +158,17 @@ instance Show Warning where
 ---------------------------------------------------------------------
 data DinamicError 
     = NoEsMatriz
-    | Loco
-    
+    | MatrixIndex
+    | VectorIndex
+    | ZeroDiv
 
 instance Show DinamicError where
     show = \case
         NoEsMatriz -> "Se esta aplicando un for a un elemento que no es matriz"
-        Loco -> "Loco"
+        MatrixIndex -> "Accesando a elemento inexistente en la matriz"
+        VectorIndex -> "Accesando a elemento inexistente del vector"
+        ZeroDiv -> "Division entre cero"
+
 ---------------------------------------------------------------------
 
 isError :: Error -> Bool

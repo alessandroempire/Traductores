@@ -5,12 +5,18 @@ program
   number x; # inicializado en 0
   number y; # inicializado en 0
   number z; 
+  matrix(2,2) m = {2,4 : 5,9};
  in
     set z = 4;
     for x in 
-        {2,4 : 5,9}
+        m
     do 
         set y = x;
+    end;
+    set z = 34 / 0;
+    if z == 4 then
+      set x = m[2,2];
+      set y = 42;
     end;
  end;
 end;
