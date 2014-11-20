@@ -28,7 +28,7 @@ main = do
 
     let (intS, intErrors) = processInterpreter False tpErrors program
     
-    liftIO $ print intS
+    liftIO $ print (getPrinter intS)
     liftIO $ putStrLn "Proceso terminado."
     exitSuccess
   

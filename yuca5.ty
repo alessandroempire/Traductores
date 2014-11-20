@@ -1,10 +1,10 @@
 program
  use
-  number x; # inicializado en 0
+  number x = 4; # inicializado en 0
   number y; # inicializado en 0
   number z; 
  in
     set z = 4;
-    print z;
+    print (2+3);
  end;
 end;

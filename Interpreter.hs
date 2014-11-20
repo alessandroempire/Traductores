@@ -5,6 +5,7 @@ module Interpreter
     ( InterpreterState
     , Interpreter
     , processInterpreter
+    , getPrinter
     ) where
 
 import            Error
@@ -36,22 +37,26 @@ type Interpreter = RWS.RWST () () InterpreterState IO
 
 data InterpreterState = InterpreterState
     { marcoPila :: Stack (M.Map Identifier TypeValue)
+    , printer :: Stack (TypeValue)
     } 
 
-instance Show InterpreterState where
-    show (InterpreterState a) = show a
+--instance Show InterpreterState where
+--    show (InterpreterState a) = show a
 
+--getPrinter :: InterpreterState -> [TypeValue]
+getPrinter (InterpreterState a b) = b
 ---------------------------------------------------------------------
 
 initialState :: InterpreterState
 initialState = InterpreterState 
     { marcoPila = push (M.empty) emptyStack
+    , printer = push (DataString "") emptyStack
     }
 
 ---------------------------------------------------------------------
 
-buildInterpreter :: Program 
-                 -> RWS.RWS TrinityReader TrinityWriter InterpreterState ()
+--buildInterpreter :: Program 
+--                 -> RWS.RWS TrinityReader TrinityWriter InterpreterState ()
 buildInterpreter program@(Program fun block) = do
     void $ runStatements block
 
@@ -62,9 +67,9 @@ processInterpreter :: TrinityReader -> TrinityWriter
                        -> Program -> (InterpreterState, TrinityWriter)
 processInterpreter r w = runInterpreter r . buildInterpreter
 
-runInterpreter :: TrinityReader 
-              -> RWS.RWS TrinityReader TrinityWriter InterpreterState a0 
-              -> (InterpreterState, TrinityWriter)
+--runInterpreter :: TrinityReader 
+--              -> RWS.RWS TrinityReader TrinityWriter InterpreterState a0 
+--              -> (InterpreterState, TrinityWriter)
 runInterpreter r = flip (flip RWS.execRWS r) initialState
 
 --------------------------------------------------------------------------------
@@ -86,6 +91,8 @@ modifyMarco id tv = do mapAct <- currentFunction
                        let newMap = M.insert id tv mapAct
                        enterMarco (newMap)
 
+addPrinter elem = do modify $ \s -> s { printer = push elem (printer s) }
+
 --showMarc :: RWS.RWS TrinityReader TrinityWriter InterpreterState (IO ())
 showMarc m = do RWS.evalRWST (m) () ()
               --return $ putStrLn "h"
@@ -105,7 +112,7 @@ runDeclaration (Lex dcl posn) = case dcl of
     Dcl dtL idL -> do
         let id       = lexInfo idL
             defaultV = defaultValue (lexInfo dtL)
-
+        
         modifyMarco id defaultV
         return False
 
@@ -122,12 +129,12 @@ runDeclaration (Lex dcl posn) = case dcl of
 --------------------------------------------------------------------------------
 -- Statements
 
-runStatements :: StatementSeq 
-              -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
+--runStatements :: StatementSeq 
+--              -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
 runStatements = RWS.liftM or . mapM runStatement
 
-runStatement :: Lexeme Statement 
-             -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
+--runStatement :: Lexeme Statement 
+--             -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
 runStatement (Lex st posn) = case st of
 
     StAssign accL expL ->  do
@@ -147,14 +154,7 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
-        --return $ putStrLn "hol"
-        --return $ show "hola"
-        return $ print "hola"
-        --showMarc ()
-        --RWS.lift $ putStrLn "hola"
-        --RWS.evalRWST () () ()
-        --print "hola"
-        --putStrLn expValue
+        addPrinter expValue
         return False   
 
     StIf expL trueBlock falseBlock -> do
@@ -208,7 +208,12 @@ evalExpression (Lex exp posn) = case exp of
 
     LitString sL -> return (DataString $ (lexInfo sL))
 
-    VariableId idL -> return (DataNumber 0.0)
+    VariableId idL -> RWS.liftM (fromMaybe DataEmpty)  $ runMaybeT $ do
+                         let id = lexInfo idL
+                         marco <- currentFunction
+                         let var = M.lookup id marco
+                         return (DataNumber 0.0)
+
         --RWS.liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         --let id = lexInfo idL
         --maySymI <- getsSymbol  id ((lexInfo . dataType) &&& value)
