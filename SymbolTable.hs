@@ -21,8 +21,6 @@ module SymbolTable
     , emptySymFunction
     , Used
     , Returned
---    , Offset
---    , Width
     , SymbolCategory(..)
     , symbolCategory
     , module Stack
@@ -86,7 +84,6 @@ data Symbol =
         , scopeStack :: Stack Scope
         , defPosn    :: Position
         , used       :: Used
-        , value      :: TypeValue
         }
     | SymFunction
         { paramTypes :: Seq (Lexeme DataType)
@@ -96,14 +93,12 @@ data Symbol =
         , scopeStack :: Stack Scope
         , defPosn    :: Position
         , used       :: Used
---        , value      :: TypeValue
         }
 
 instance Show Symbol where
     show sym = case sym of
-        SymInfo dt stk pos u val -> intercalate ", " [showP pos, showC, showDT, showU u, showStk stk, showVal]
+        SymInfo dt stk pos u-> intercalate ", " [showP pos, showC, showDT, showU u, showStk stk]
             where
-                showVal = show val
                 showC = show CatInfo
                 showDT  = show $ lexInfo dt
 
@@ -150,7 +145,6 @@ emptySymInfo = SymInfo
     , scopeStack = globalStack
     , defPosn = defaultPosn
     , used = False
-    , value = defaultValue Bool
     }
 
 emptySymFunction :: Symbol

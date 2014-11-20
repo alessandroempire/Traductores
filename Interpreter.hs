@@ -14,6 +14,7 @@ import            SymbolTable
 import            Matriz
 import            Operator
 
+import qualified  Data.Map as M
 import            Control.Arrow ((&&&))
 import            Control.Monad (forever, guard, liftM, unless, void, when, (>=>))
 import            Control.Monad.Reader (asks)
@@ -33,14 +34,23 @@ import            Prelude hiding (all, and, exp, length, lookup, mapM,
 type Interpreter = RWS TrinityReader TrinityWriter InterpreterState
 
 data InterpreterState = InterpreterState
+    { marcoPila :: Stack (M.Map Identifier TypeValue)
+    }
+    
+{-
     { table :: SymbolTable
     , stack :: Stack Scope
     , scopeId :: Scope
     , ast :: Program
     , funcStack :: Stack (Identifier, DataType, Scope)
 }
+-}
 
-instance TrinityState InterpreterState where
+--instance TrinityState InterpreterState where
+--    getAst = ast
+    --getMarcoPila = marcoPila
+
+{-
     getTable = table
     getStack = stack
     getScopeId = scopeId
@@ -49,34 +59,39 @@ instance TrinityState InterpreterState where
     putStack stk s = s { stack = stk }
     putScopeId sc s = s { scopeId = sc }
     putAst as s = s { ast = as }
+-}
 
 instance Show InterpreterState where
-    show = showTrinityState
+    show (InterpreterState a) = show a
 
 ---------------------------------------------------------------------
 
 initialState :: InterpreterState
-initialState = InterpreterState
+initialState = InterpreterState 
+    { marcoPila = push (M.empty) emptyStack
+    }
+{-
     { table = emptyTable
     , stack = globalStack
     , scopeId = globalScope
     , ast = Program empty empty
     , funcStack = emptyStack
     }
-
+-}
 ---------------------------------------------------------------------
 
-buildInterpreter :: TrinityWriter -> SymbolTable -> Program -> Interpreter ()
-buildInterpreter w tab program@(Program fun block) = do
-    modify $ \s -> s { table = tab, ast = program }
+buildInterpreter :: TrinityWriter -> Program -> Interpreter ()
+buildInterpreter w program@(Program fun block) = do
+--    modify $ \s -> s { ast = program }
     tell w
     void $ runStatements block
 
 ---------------------------------------------------------------------
 -- Using the Monad
 
-processInterpreter :: TrinityReader -> TrinityWriter -> SymbolTable -> Program -> (InterpreterState, TrinityWriter)
-processInterpreter r w tab = runInterpreter r . buildInterpreter w tab
+processInterpreter :: TrinityReader -> TrinityWriter 
+                      -> Program -> (InterpreterState, TrinityWriter)
+processInterpreter r w = runInterpreter r . buildInterpreter w
 
 runInterpreter :: TrinityReader -> Interpreter a -> (InterpreterState, TrinityWriter)
 runInterpreter r = flip (flip execRWS r) initialState
@@ -84,16 +99,25 @@ runInterpreter r = flip (flip execRWS r) initialState
 --------------------------------------------------------------------------------
 -- Monad handling
 
-enterFunction :: Identifier -> DataType -> Interpreter ()
-enterFunction idL dt = do
-    currentId <- currentScope
-    modify $ \s -> s { funcStack = push (idL, dt, currentId) (funcStack s) }
+enterMarco :: (M.Map Identifier TypeValue) -> Interpreter ()
+enterMarco map = do
+    modify $ \s -> s { marcoPila = push (map) (marcoPila s)}
+    --currentId <- currentScope
+    --modify $ \s -> s { funcStack = push (idL, dt, currentId) (funcStack s) }
 
-exitFunction :: Interpreter ()
-exitFunction = modify $ \s -> s { funcStack = pop $ funcStack s }
+exitMarco :: Interpreter ()
+exitMarco = modify $ \s -> s { marcoPila = pop $ marcoPila s }
+--modify $ \s -> s { funcStack = pop $ funcStack s }
 
-currentFunction :: Interpreter (Identifier, DataType, Scope)
-currentFunction = gets (top . funcStack)
+currentFunction :: Interpreter (M.Map Identifier TypeValue)
+currentFunction = gets (top . marcoPila)
+--gets (top . funcStack)
+
+modifyMarco :: Identifier -> TypeValue -> Interpreter ()
+modifyMarco id tv = do mapAct <- currentFunction
+                       exitMarco
+                       let newMap = M.insert id tv mapAct
+                       enterMarco (newMap)
 
 ---------------------------------------------------------------------
 -- Declarations
@@ -104,12 +128,18 @@ runDeclarations = liftM or . mapM runDeclaration
 runDeclaration :: Lexeme Declaration -> Interpreter Returned
 runDeclaration (Lex dcl posn) = case dcl of
 
+    Dcl dtL idL -> do
+        let id       = lexInfo idL
+            defaultV = defaultValue (lexInfo dtL)
+
+        modifyMarco id defaultV
+        return False
+
     DclInit dtL idL expL -> do
         let id = lexInfo idL
-
         expValue <- evalExpression expL
 
-        changeValue id expValue
+        modifyMarco id expValue
 
         return False
 
@@ -127,9 +157,7 @@ runStatement (Lex st posn) = case st of
     StAssign accL expL ->  do
         expValue <- evalExpression expL
         id <- accessDataType accL
-
-        changeValue id expValue
-        
+        modifyMarco id expValue
         return False
  
     StReturn expL -> do
@@ -143,9 +171,6 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
-      
---        print expValue
-
         return False   
 
     StIf expL trueBlock falseBlock -> do
@@ -178,10 +203,10 @@ runStatement (Lex st posn) = case st of
           else return False
 
     StBlock dclS block -> do
-        enterScope
+        enterMarco M.empty
         runDeclarations dclS
         void $ runStatements block
-        exitScope
+        exitMarco
         return False
        
     _ -> return False
@@ -198,12 +223,12 @@ evalExpression (Lex exp posn) = case exp of
 
     LitString sL -> return (DataString $ (lexInfo sL))
 
-    VariableId idL -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
-        let id = lexInfo idL
-        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& value)
-        let (dt, val) = fromJust maySymI
-
-        return val
+    VariableId idL -> return (DataNumber 0.0)
+        --liftM (fromMaybe DataEmpty) $ runMaybeT $ do
+        --let id = lexInfo idL
+        --maySymI <- getsSymbol  id ((lexInfo . dataType) &&& value)
+        --let (dt, val) = fromJust maySymI
+        --return (DataNumber 0.0)
     
     LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         let arrays = map toList exps
@@ -278,14 +303,13 @@ iteraRows :: Int -> Int -> Identifier -> Matriz TypeValue
 iteraRows i j id matrix block = do
     if (i <= (rowSize matrix ))
     then do iteraColumn i j id matrix block
-            --iteraRows (i+1) j id matrix block
     else return False
 
 iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
                     -> (StatementSeq) -> Interpreter Returned
 iteraColumn i j id matrix block = do
     if (j <= (colSize matrix))
-    then do changeValue id (getElem i j matrix)
+    then do modifyMarco id (getElem i j matrix)
             void $ runStatements block
             iteraColumn i (j+1) id matrix block
     else iteraRows (i+1) 0 id matrix block
