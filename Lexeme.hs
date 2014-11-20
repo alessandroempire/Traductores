@@ -30,7 +30,3 @@ instance Applicative Lexeme where
 
 fillLex :: a -> Lexeme a
 fillLex lex = Lex lex defaultPosn
-
---isLexeme :: a -> Bool
-isLexeme (Lex a b) = True
-isLexeme _ = False
