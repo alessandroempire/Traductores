@@ -49,7 +49,7 @@ initialState = InterpreterState
 
 ---------------------------------------------------------------------
 
-buildInterpreter :: TrinityWriter -> Program -> Interpreter ()
+--buildInterpreter :: TrinityWriter -> Program -> Interpreter ()
 buildInterpreter w program@(Program fun block) = do
 --    modify $ \s -> s { ast = program }
     --tell w
@@ -59,45 +59,49 @@ buildInterpreter w program@(Program fun block) = do
 -- Using the Monad
 
 processInterpreter :: TrinityReader -> TrinityWriter 
-                      -> Program -> (InterpreterState, TrinityWriter)
+                       -> Program -> (InterpreterState, TrinityWriter)
 processInterpreter r w = runInterpreter r . buildInterpreter w
 
-runInterpreter :: TrinityReader -> Interpreter a -> (InterpreterState, TrinityWriter)
+--runInterpreter :: TrinityReader 
+--              -> RWS.RWS TrinityReader TrinityReader InterpreterState a 
+--              -> (InterpreterState, TrinityWriter)
 runInterpreter r = flip (flip RWS.execRWS r) initialState
 
 --------------------------------------------------------------------------------
 -- Monad handling
 
-enterMarco :: (M.Map Identifier TypeValue) -> Interpreter ()
+--enterMarco :: (M.Map Identifier TypeValue) -> Interpreter ()
 enterMarco map = do
     modify $ \s -> s { marcoPila = push (map) (marcoPila s)}
     --currentId <- currentScope
     --modify $ \s -> s { funcStack = push (idL, dt, currentId) (funcStack s) }
 
-exitMarco :: Interpreter ()
+--exitMarco :: Interpreter ()
 exitMarco = modify $ \s -> s { marcoPila = pop $ marcoPila s }
 --modify $ \s -> s { funcStack = pop $ funcStack s }
 
-currentFunction :: Interpreter (M.Map Identifier TypeValue)
+--currentFunction :: Interpreter (M.Map Identifier TypeValue)
 currentFunction = gets (top . marcoPila)
 --gets (top . funcStack)
 
-modifyMarco :: Identifier -> TypeValue -> Interpreter ()
+--modifyMarco :: Identifier -> TypeValue -> Interpreter ()
 modifyMarco id tv = do mapAct <- currentFunction
                        exitMarco
                        let newMap = M.insert id tv mapAct
                        enterMarco (newMap)
 
 --showMarc :: Interpreter ()
---showMarc = do return $ show $ gets $ top . marcoPila 
+showMarc m = do RWS.evalRWST m () ()
+                putStrLn "hola"
+                --show $ gets $ top . marcoPila 
 --              return ()
 ---------------------------------------------------------------------
 -- Declarations
 
-runDeclarations :: DeclarationSeq -> Interpreter Returned
+--runDeclarations :: DeclarationSeq -> Interpreter Returned
 runDeclarations = RWS.liftM or . mapM runDeclaration
 
-runDeclaration :: Lexeme Declaration -> Interpreter Returned
+--runDeclaration :: Lexeme Declaration -> Interpreter Returned
 runDeclaration (Lex dcl posn) = case dcl of
 
     Dcl dtL idL -> do
@@ -120,10 +124,10 @@ runDeclaration (Lex dcl posn) = case dcl of
 --------------------------------------------------------------------------------
 -- Statements
 
-runStatements :: StatementSeq -> Interpreter Returned
+--runStatements :: StatementSeq -> Interpreter Returned
 runStatements = RWS.liftM or . mapM runStatement
 
-runStatement :: Lexeme Statement -> Interpreter Returned
+--runStatement :: Lexeme Statement -> Interpreter Returned
 runStatement (Lex st posn) = case st of
 
     StAssign accL expL ->  do
@@ -143,6 +147,7 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
+        --showMarc
         --show expValue
         return False   
 
@@ -187,7 +192,7 @@ runStatement (Lex st posn) = case st of
 --------------------------------------------------------------------------------
 -- Expressions
 
-evalExpression :: Lexeme Expression -> Interpreter TypeValue
+--evalExpression :: Lexeme Expression -> Interpreter TypeValue
 evalExpression (Lex exp posn) = case exp of
 
     LitNumber vL -> return (DataNumber $ (lexInfo vL))
@@ -271,15 +276,15 @@ evalExpression (Lex exp posn) = case exp of
         return expValue
 
 ---------------------------------------
-iteraRows :: Int -> Int -> Identifier -> Matriz TypeValue 
-                 -> (StatementSeq) -> Interpreter Returned
+--iteraRows :: Int -> Int -> Identifier -> Matriz TypeValue 
+               --  -> (StatementSeq) -> Interpreter Returned
 iteraRows i j id matrix block = do
     if (i <= (rowSize matrix ))
     then do iteraColumn i j id matrix block
     else return False
 
-iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
-                    -> (StatementSeq) -> Interpreter Returned
+--iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
+            --        -> (StatementSeq) -> Interpreter Returned
 iteraColumn i j id matrix block = do
     if (j <= (colSize matrix))
     then do modifyMarco id (getElem i j matrix)
@@ -290,7 +295,7 @@ iteraColumn i j id matrix block = do
 --------------------------------------------------------------------------------
 -- Operations
 
-runBinary :: Binary -> (TypeValue, TypeValue) -> Interpreter TypeValue
+--runBinary :: Binary -> (TypeValue, TypeValue) -> Interpreter TypeValue
 runBinary op (lValue, rValue) = case op of
     OpSum        -> return (addOp     lValue rValue)
     OpDiff       -> return (diffOp    lValue rValue)
@@ -398,7 +403,7 @@ cruzModOp (DataMatrix m) j@(DataNumber n) = (DataMatrix (modMN j m))
 
 --------------------------------------------------------------------------------
 
-runUnary :: Unary -> TypeValue -> Interpreter TypeValue
+--runUnary :: Unary -> TypeValue -> Interpreter TypeValue
 runUnary op value = case op of
     OpNegative   -> return (negOp value) 
     OpNot        -> return (notOp value)
@@ -416,7 +421,7 @@ transposeOp (DataMatrix matrix) = (DataMatrix (transpose matrix))
 
 --------------------------------------------------------------------------------
 
-accessDataType :: Lexeme Access -> Interpreter Identifier
+--accessDataType :: Lexeme Access -> Interpreter Identifier
 accessDataType (Lex acc posn) = case acc of
 
     VariableAccess idL -> return (lexInfo idL)
