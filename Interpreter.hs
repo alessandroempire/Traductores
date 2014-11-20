@@ -31,11 +31,11 @@ import qualified  Data.List as L (and, length, transpose)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, 
                                   null, or, zipWith, mod, div)
 
-type Interpreter = RWS.RWST TrinityReader TrinityWriter InterpreterState
+type Interpreter = RWS.RWST () () InterpreterState IO
 
 data InterpreterState = InterpreterState
     { marcoPila :: Stack (M.Map Identifier TypeValue)
-    }
+    } 
 
 instance Show InterpreterState where
     show (InterpreterState a) = show a
@@ -49,10 +49,9 @@ initialState = InterpreterState
 
 ---------------------------------------------------------------------
 
---buildInterpreter :: TrinityWriter -> Program -> Interpreter ()
-buildInterpreter w program@(Program fun block) = do
---    modify $ \s -> s { ast = program }
-    --tell w
+buildInterpreter :: Program 
+                 -> RWS.RWS TrinityReader TrinityWriter InterpreterState ()
+buildInterpreter program@(Program fun block) = do
     void $ runStatements block
 
 ---------------------------------------------------------------------
@@ -60,11 +59,11 @@ buildInterpreter w program@(Program fun block) = do
 
 processInterpreter :: TrinityReader -> TrinityWriter 
                        -> Program -> (InterpreterState, TrinityWriter)
-processInterpreter r w = runInterpreter r . buildInterpreter w
+processInterpreter r w = runInterpreter r . buildInterpreter
 
---runInterpreter :: TrinityReader 
---              -> RWS.RWS TrinityReader TrinityReader InterpreterState a 
---              -> (InterpreterState, TrinityWriter)
+runInterpreter :: TrinityReader 
+              -> RWS.RWS TrinityReader TrinityWriter InterpreterState a0 
+               -> (InterpreterState, TrinityWriter)
 runInterpreter r = flip (flip RWS.execRWS r) initialState
 
 --------------------------------------------------------------------------------
@@ -73,16 +72,12 @@ runInterpreter r = flip (flip RWS.execRWS r) initialState
 --enterMarco :: (M.Map Identifier TypeValue) -> Interpreter ()
 enterMarco map = do
     modify $ \s -> s { marcoPila = push (map) (marcoPila s)}
-    --currentId <- currentScope
-    --modify $ \s -> s { funcStack = push (idL, dt, currentId) (funcStack s) }
 
 --exitMarco :: Interpreter ()
 exitMarco = modify $ \s -> s { marcoPila = pop $ marcoPila s }
---modify $ \s -> s { funcStack = pop $ funcStack s }
 
 --currentFunction :: Interpreter (M.Map Identifier TypeValue)
 currentFunction = gets (top . marcoPila)
---gets (top . funcStack)
 
 --modifyMarco :: Identifier -> TypeValue -> Interpreter ()
 modifyMarco id tv = do mapAct <- currentFunction
@@ -124,10 +119,12 @@ runDeclaration (Lex dcl posn) = case dcl of
 --------------------------------------------------------------------------------
 -- Statements
 
---runStatements :: StatementSeq -> Interpreter Returned
+runStatements :: StatementSeq 
+              -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
 runStatements = RWS.liftM or . mapM runStatement
 
---runStatement :: Lexeme Statement -> Interpreter Returned
+runStatement :: Lexeme Statement 
+             -> RWS.RWS TrinityReader TrinityWriter InterpreterState Bool
 runStatement (Lex st posn) = case st of
 
     StAssign accL expL ->  do
@@ -147,8 +144,10 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
-        --showMarc
-        --show expValue
+        --RWS.lift $ putStrLn "hola"
+        --RWS.evalRWST () () ()
+        showMarc
+        --putStrLn expValue
         return False   
 
     StIf expL trueBlock falseBlock -> do
