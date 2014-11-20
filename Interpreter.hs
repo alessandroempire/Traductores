@@ -33,6 +33,7 @@ import            Prelude hiding (all, and, exp, length, lookup, mapM,
 
 type Interpreter = RWS.RWST () () InterpreterState IO
 
+
 data InterpreterState = InterpreterState
     { marcoPila :: Stack (M.Map Identifier TypeValue)
     } 
@@ -63,7 +64,7 @@ processInterpreter r w = runInterpreter r . buildInterpreter
 
 runInterpreter :: TrinityReader 
               -> RWS.RWS TrinityReader TrinityWriter InterpreterState a0 
-               -> (InterpreterState, TrinityWriter)
+              -> (InterpreterState, TrinityWriter)
 runInterpreter r = flip (flip RWS.execRWS r) initialState
 
 --------------------------------------------------------------------------------
@@ -85,9 +86,11 @@ modifyMarco id tv = do mapAct <- currentFunction
                        let newMap = M.insert id tv mapAct
                        enterMarco (newMap)
 
---showMarc :: Interpreter ()
-showMarc m = do RWS.evalRWST m () ()
-                putStrLn "hola"
+--showMarc :: RWS.RWS TrinityReader TrinityWriter InterpreterState (IO ())
+showMarc m = do RWS.evalRWST (m) () ()
+              --return $ putStrLn "h"
+--undefined do RWS.evalRWST m () ()
+                --putStrLn "hola"
                 --show $ gets $ top . marcoPila 
 --              return ()
 ---------------------------------------------------------------------
@@ -144,9 +147,13 @@ runStatement (Lex st posn) = case st of
 
     StPrint expL -> do
         expValue <- evalExpression expL
+        --return $ putStrLn "hol"
+        --return $ show "hola"
+        return $ print "hola"
+        --showMarc ()
         --RWS.lift $ putStrLn "hola"
         --RWS.evalRWST () () ()
-        showMarc
+        --print "hola"
         --putStrLn expValue
         return False   
 
@@ -180,6 +187,7 @@ runStatement (Lex st posn) = case st of
           else return False
 
     StBlock dclS block -> do
+        return $ putStrLn "hola"
         enterMarco M.empty
         runDeclarations dclS
         void $ runStatements block
