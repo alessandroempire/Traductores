@@ -39,6 +39,7 @@ $identifiers = [$alpha $digit _]  --Identificadores
 $backlash    = ["\\n] --Backslash
 
 @num = $digit+(\.$digit+)?
+@int = $digit+
 
 @inside_string = ($printable # ["\\] | \\$backlash)
 @string        = \"@inside_string*\"
@@ -132,6 +133,7 @@ tokens :-
     "set"                 { tok' TkSet             }
 
     --Expresiones literales 
+    @int                  { tok (TkInt . read )    }
     @num                  { tok (TkNumber . read)  }
     "true"                { tok' (TkBoolean True)  }
     "false"               { tok' (TkBoolean False) }

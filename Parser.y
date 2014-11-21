@@ -106,6 +106,7 @@ import          Prelude       hiding (concatMap, foldr, zip)
     "set"                 { Lex TkSet          _ }
 
     --Expresiones literales 
+    int                   { Lex (TkInt _)      _ }
     num                   { Lex (TkNumber _)   _ }
     "true"                { Lex (TkBoolean _)  _ }
     "false"               { Lex (TkBoolean _)  _ }
@@ -152,10 +153,11 @@ FunctionList :: { FunctionSeq }
   | FunctionList ";" Function    { $1 |> $3 }
 
 Function :: { Lexeme Function }
-  : "function" Id "(" MaybeSignature ")" "return" DataType "begin" StatementList ";" "end"    { Function $2 $4 $7 $9 <$ $1 } 
+  : "function" Id "(" MaybeSignature ")" "return" DataType "begin" StatementSeq "end"    { Function $2 $4 $7 $9 <$ $1 } 
 
 StatementSeq :: { StatementSeq }
-  : StatementList ";"   { $1 }
+  :    { empty }
+  | StatementList ";"   { $1 }
 
 StatementList :: { StatementSeq }
   : Statement    { expandStatement $1 }
@@ -164,9 +166,11 @@ StatementList :: { StatementSeq }
 Statement :: { Lexeme Statement }
   --Asignación
   : "set" Access "=" Expression    { StAssign $2 $4 <$ $1 }
+
+  -- Expresión
+  | Expression    { StExpression $1 <$ $1 }
   
   --Instrucciones de funciones
-  | Id "(" MaybeExpressionList ")"    { StFunctionCall $1 $3 <$ $1 }
   | "return" Expression    { StReturn $2 <$ $1 }
   
   --Condicionales
@@ -221,6 +225,7 @@ MatrixList :: { [Seq (Lexeme Expression)] }
 
 Expression :: { Lexeme Expression }
   : Number    { LitNumber $1 <$ $1 }
+  | Int    { LitNumber $1 <$ $1 }
   | Bool    { LitBool $1 <$ $1 }
   | String    { LitString $1 <$ $1 }
   | Id    { VariableId $1 <$ $1 }
@@ -251,9 +256,12 @@ Expression :: { Lexeme Expression }
   | Expression "'"    { ExpUnary (OpTranspose <$ $2) $1 <$ $1 }
   | "-" Expression %prec NEG     { ExpUnary (OpNegative <$ $1) $2 <$ $1 }
   | Expression "[" Expression "," Expression "]" %prec MAX    { ProyM $1 $3 $5 <$ $1 }
-  | Expression "[" Expression "]" %prec MAX    { ProyRC $1 $3 <$ $1 }
+  | Expression "[" Expression "]" %prec MAX    { ProyV $1 $3 <$ $1 }
   | "not" Expression    { ExpUnary (OpNot <$ $1) $2 <$ $1 }
   | "(" Expression ")"     { lexInfo $2 <$ $1 }
+
+Int :: { Lexeme Number }
+  : int    { (fromInteger . unTkInt) `fmap` $1 }
 
 Number :: { Lexeme Number }
   : num    { unTkNumber `fmap` $1 }
@@ -268,7 +276,7 @@ String :: { Lexeme String }
 Access :: { Lexeme Access }
   : Id    { VariableAccess $1 <$ $1 }
   | Id "[" Expression "," Expression "]"    { MatrixAccess $1 $3 $5 <$ $1 }
-  | Id "[" Expression "]"    { RCAccess $1 $3 <$ $1 }
+  | Id "[" Expression "]"    { VectorAccess $1 $3 <$ $1 }
 
 Id :: { Lexeme Identifier }
   : id    { unTkId `fmap` $1 }
@@ -276,9 +284,9 @@ Id :: { Lexeme Identifier }
 DataType :: { Lexeme DataType }
   : "boolean"    { Bool <$ $1 }
   | "number"    { Number <$ $1 }
-  | "matrix" "(" Number "," Number ")"    { Matrix $3 $5 <$ $1 }             
-  | "row" "(" Number ")"    { Row $3 <$ $1 }
-  | "col" "(" Number ")"    { Col $3 <$ $1 }
+  | "matrix" "(" Int "," Int ")"    { Matrix $3 $5 <$ $1 }             
+  | "row" "(" Int ")"    { Row $3 <$ $1 }
+  | "col" "(" Int ")"    { Col $3 <$ $1 }
 
 {
 

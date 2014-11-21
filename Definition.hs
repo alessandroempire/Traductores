@@ -157,7 +157,16 @@ definitionStatement (Lex st posn) = case st of
         definitionStatements falseBlock
 
     StFor idL _ block -> do
-        definitionStatements block
+        let id = lexInfo idL
+        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& symbolCategory)
+        let (dt, cat) = fromJust maySymI
+
+        if isJust maySymI
+        then definitionStatements block
+        else do
+            let dcl = Dcl (pure Number) idL <$ idL
+            processDeclaration dcl
+            definitionStatements block
 
     StWhile _ block -> do
         definitionStatements block

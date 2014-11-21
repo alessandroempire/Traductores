@@ -100,13 +100,6 @@ printStatement (Lex st posn) = case st of
         printExpression exp
         lowerTabs
 
-    StFunctionCall id exp -> do
-        printString $ "LLamada a Funcion "
-        raiseTabs
-        printString $ "Identificador " ++ show id
-        mapM_ printExpression exp
-        lowerTabs
-
     StReturn exp -> do
         printString $ "Return "
         raiseTabs
@@ -210,7 +203,14 @@ printExpression (Lex st posn )= case st of
         raiseTabs
         mapM_ (mapM_ printExpression) exp
         lowerTabs
-    
+
+    FunctionCall id exp -> do
+        printString $ "LLamada a Funcion "
+        raiseTabs
+        printString $ "Identificador " ++ show id
+        mapM_ printExpression exp
+        lowerTabs
+
     ProyM exp indexL indexR -> do
         printString $ "Proyeccion de componentes "
         raiseTabs
@@ -219,7 +219,7 @@ printExpression (Lex st posn )= case st of
         printExpression indexR
         lowerTabs
 
-    ProyRC exp index -> do
+    ProyV exp index -> do
         printString $ "Proyeccion de componentes "
         raiseTabs
         printExpression exp
@@ -260,7 +260,7 @@ printAccess (Lex st posn )= case st of
         printExpression sizeC
         lowerTabs
 
-    RCAccess id size -> do
+    VectorAccess id size -> do
         printString $ "Variable asignada (row-col) "
         raiseTabs
         printString $ "Identificador " ++ show id

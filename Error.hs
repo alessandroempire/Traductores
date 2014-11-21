@@ -5,7 +5,6 @@ module Error
     , LexerError(..)
     , ParseError(..)
     , StaticError(..)
-    , DinamicError(..)
     , Warning(..)
     , isError
     ) where
@@ -22,7 +21,6 @@ data Error
     = LError Position LexerError
     | PError Position ParseError
     | SError Position StaticError
-    | DError DinamicError
     | Warn Position Warning
 
 instance Show Error where
@@ -76,20 +74,20 @@ data StaticError
     | ReturnType DataType DataType Identifier
     | NotDefined Identifier
     | ReadNonReadable DataType Identifier
-    | PrintNonPrintable DataType
     | ConditionDataType DataType
     | ForInDataType DataType
+    | ForVariable Identifier DataType
     | InvalidAccess Identifier DataType
     | IndexAssignType DataType Identifier
     | ProyIndexDataType DataType
     | FunctionNotDefined Identifier
     | FunctionArguments Identifier (Seq DataType) (Seq DataType)
-    | NoReturn Identifier
     | BinaryTypes Binary (DataType, DataType)
     | UnaryTypes Unary DataType
     | LitMatricial 
+    | MatrixSize
     | ProyMatrixExpression DataType
-    | ProyRCExpression DataType
+    | ProyVectorExpression DataType
     | NumElemCol
     | NumElemRow
     | NumElemMatrix
@@ -97,6 +95,7 @@ data StaticError
     | OperacionesRow Binary (Lexeme Double) (Lexeme Double)
     | MulMatrix (Lexeme Double) (Lexeme Double)
     | MulRC (Lexeme Double) (Lexeme Double)
+    | Ey
 
 instance Show StaticError where
     show = \case
@@ -107,8 +106,8 @@ instance Show StaticError where
         ReturnType e g fname -> "Tipo de retorno invalido '" ++ show e ++ "' para funcion '" ++ fname ++ "' de tipo '" ++ show g ++ "'"
         NotDefined iden -> "Identificador '" ++ iden ++ "' no ha sido definido"
         ReadNonReadable dt id -> "Variable '" ++ id ++ "' de tipo '" ++ show dt ++ "' no puede ser usada en instrucciones 'read'"
-        PrintNonPrintable dt -> "Instruccion 'print' para tipo '" ++ show dt ++ "' no soportada"
         ConditionDataType dt -> "Condicion debe ser de tipo 'Bool', pero tiene tipo '" ++ show dt ++ "'"
+        ForVariable id dt -> "Variable " ++ show id ++ " debe ser de tipo 'Number', pero tiene tipo '" ++ show dt ++ "'"
         ForInDataType dt -> "Instruccion 'for' debe iterar sobre expresiones de tipo 'Matrix(r,c)', pero tiene tipo '" ++ show dt ++ "'"
         InvalidAccess id dt -> "Intentando accesar al identificador '" ++ show id ++ "' de tipo '" ++ show dt ++ "'"
         IndexAssignType dt id -> "Indice de acceso a '" ++ show id ++ "' debe ser entero, pero tiene tipo '" ++ show dt ++ "'"
@@ -120,10 +119,10 @@ instance Show StaticError where
                                     show dl ++ ", " ++ show dr  ++ ")"
         UnaryTypes op dt -> "Operador unario '" ++ show op ++ 
                             "' no funciona con el operando de tipo (" ++ show dt ++ ")"
-        NoReturn fname -> "Funcion '" ++ fname ++ "' no tiene instruccion 'return'"
         LitMatricial -> "No son expresiones numericas los elementos de la literal matricial "
+        MatrixSize -> "Longitudes de la matriz deben ser enteros positivos "
         ProyMatrixExpression dt -> "Expresion de proyeccion matricial tiene tipo '" ++ show dt ++ "'"
-        ProyRCExpression dt -> "Expresion de proyeccion vectorial tiene tipo '" ++ show dt ++ "'"
+        ProyVectorExpression dt -> "Expresion de proyeccion vectorial tiene tipo '" ++ show dt ++ "'"
         NumElemCol -> "Error en el numero de elementos de la columna Col " 
         NumElemRow -> "Error en el numero de elementos de la fila Row" 
         NumElemMatrix -> "Error en el numero de elementos de la matriz "
@@ -137,6 +136,7 @@ instance Show StaticError where
             show l1 ++ ") con (" ++ show l2 ++ " ,_)"
         MulRC l1 l2 -> "Error en la multiplicacion de Rows y Col ya que no coinciden (" ++ 
             show l1 ++ ") con (" ++ show l2 ++ ")"
+        Ey -> "eeey"
 
 showSign :: Seq DataType -> [Char]
 showSign = intercalate ", " . map show . toList
@@ -154,20 +154,6 @@ instance Show Warning where
         Warning msg -> msg
         VariableDefinedNotUsed id -> "Identificador '" ++ id ++ "' definido pero no usado"
         FunctionDefinedNotUsed id -> "Funcion '"   ++ id ++ "' definida pero no usada"
-
----------------------------------------------------------------------
-data DinamicError 
-    = NoEsMatriz
-    | MatrixIndex
-    | VectorIndex
-    | ZeroDiv
-
-instance Show DinamicError where
-    show = \case
-        NoEsMatriz -> "Se esta aplicando un for a un elemento que no es matriz"
-        MatrixIndex -> "Accesando a elemento inexistente en la matriz"
-        VectorIndex -> "Accesando a elemento inexistente del vector"
-        ZeroDiv -> "Division entre cero"
 
 ---------------------------------------------------------------------
 

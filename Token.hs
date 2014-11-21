@@ -40,9 +40,10 @@ data Token =
     | TkAssign | TkUse | TkIn | TkSet
 
     --Expresiones literales
-    | TkNumber  { unTkNumber  :: Double }
-    | TkBoolean { unTkBoolean :: Bool   } 
-    | TkString  { unTkString  :: String }
+    | TkInt     { unTkInt     :: Integer }
+    | TkNumber  { unTkNumber  :: Double  }
+    | TkBoolean { unTkBoolean :: Bool    } 
+    | TkString  { unTkString  :: String  }
 
     --Identificadores
     | TkId { unTkId :: String }

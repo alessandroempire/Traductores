@@ -19,7 +19,7 @@ type StatementSeq = Seq (Lexeme Statement)
 data Statement
     = StNoop
     | StAssign (Lexeme Access) (Lexeme Expression)
-    | StFunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
+    | StExpression (Lexeme Expression)
     | StReturn (Lexeme Expression)
     | StRead (Lexeme Identifier)
     | StPrint (Lexeme Expression)
@@ -32,7 +32,7 @@ data Statement
 instance Show Statement where
     show = \case
         StAssign accL expL        -> "set" ++ show (lexInfo accL) ++ " = " ++ show (lexInfo expL)
-        StFunctionCall idnL expLs -> lexInfo idnL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
+        StExpression expL         -> show (lexInfo expL)
         StReturn expL             -> "return " ++ show (lexInfo expL)
         StRead accL               -> "read " ++ show (lexInfo accL)
         StPrint expL              -> "print " ++ show (lexInfo expL)

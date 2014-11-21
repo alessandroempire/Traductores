@@ -15,12 +15,14 @@ import            Matriz
 import            Operator
 
 import            Control.Arrow ((&&&))
+import            Control.Monad.Cont (ContT)
 import            Control.Monad (forever, guard, liftM, unless, void, when, (>=>))
 import            Control.Monad.Reader (asks)
-import            Control.Monad.RWS (RWS, evalRWS, execRWS, lift)
-import            Control.Monad.State (gets, modify)
+import            Control.Monad.RWS (RWS, RWST, evalRWS, execRWS, execRWST, lift)
+import            Control.Monad.State (StateT,gets, modify)
+import            Control.Monad.Trans (liftIO)
 import            Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
-import            Control.Monad.Writer (tell)
+import            Control.Monad.Writer (WriterT, tell)
 import            Data.Foldable (all, and, forM_, or, toList)
 import            Data.Functor ((<$>))
 import            Data.Maybe (fromJust, fromMaybe, isJust)
@@ -30,7 +32,10 @@ import qualified  Data.List as L (and, length, transpose)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, 
                                   null, or, zipWith, mod, div)
 
-type Interpreter = RWS TrinityReader TrinityWriter InterpreterState
+type Interpreter = RWST TrinityReader TrinityWriter InterpreterState IO
+
+--instance ValuePrinter Interpreter where
+    
 
 data InterpreterState = InterpreterState
     { table :: SymbolTable
@@ -75,11 +80,11 @@ buildInterpreter w tab program@(Program fun block) = do
 ---------------------------------------------------------------------
 -- Using the Monad
 
-processInterpreter :: TrinityReader -> TrinityWriter -> SymbolTable -> Program -> (InterpreterState, TrinityWriter)
+processInterpreter :: TrinityReader -> TrinityWriter -> SymbolTable -> Program -> IO (InterpreterState, TrinityWriter)
 processInterpreter r w tab = runInterpreter r . buildInterpreter w tab
 
-runInterpreter :: TrinityReader -> Interpreter a -> (InterpreterState, TrinityWriter)
-runInterpreter r = flip (flip execRWS r) initialState
+runInterpreter :: TrinityReader -> Interpreter a -> IO (InterpreterState, TrinityWriter)
+runInterpreter r = flip (flip execRWST r) initialState
 
 --------------------------------------------------------------------------------
 -- Monad handling
@@ -135,16 +140,13 @@ runStatement (Lex st posn) = case st of
     StReturn expL -> do
         return False
 
-    StFunctionCall idL expLs -> do
-        return False
-
     StRead idL -> do
         return False
 
     StPrint expL -> do
         expValue <- evalExpression expL
       
---        print expValue
+        liftIO $ print expValue
 
         return False   
 
@@ -158,12 +160,6 @@ runStatement (Lex st posn) = case st of
         return False
 
     StFor idL expL block -> do
-        let id = lexInfo idL
-        matrix <- evalExpression expL
-        
-        unless(isDataMatrix matrix )  $ tellDError NoEsMatriz
-        void $ iteraRows 0 0 id (getMatrix matrix) block
-
         return False
 
     StWhile expL block -> loop
@@ -226,16 +222,17 @@ evalExpression (Lex exp posn) = case exp of
         rindex <- lift $ evalExpression indexlL
         let rsize = getNumber rindex
 
-        unless( rsize <= i )  $ tellDError MatrixIndex
-
-        cindex <- lift $ evalExpression indexrL
-        let csize = getNumber cindex 
+        if (rsize > i)
+        then error "Error: Accesando a elemento inexistente en la matriz"
+        else do
+            cindex <- lift $ evalExpression indexrL
+            let csize = getNumber cindex 
         
-        unless( csize <= j )  $ tellDError MatrixIndex
-        
-        return (m ! (rsize,csize))
+            if (csize > j)
+            then error "Error: Accesando a elemento inexistente en la matriz"
+            else return (m ! (rsize,csize))
 
-    ProyRC expL indexL -> liftM (fromMaybe DataEmpty) $
+    ProyV expL indexL -> liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do
         expValue <- lift $ evalExpression expL
         
@@ -247,13 +244,13 @@ evalExpression (Lex exp posn) = case exp of
 
         if (i == 1)
         then do
-            unless( size <= j )  $ tellDError VectorIndex
-
-            return (m ! (i, size))
+            if (size > j)
+            then error "Error: Accesando a elemento inexistente del vector"
+            else return (m ! (i, size))
         else do
-            unless( size <= i )  $ tellDError VectorIndex
-
-            return (m ! (size, j))
+            if (size > i)
+            then error "Error: Accesando a elemento inexistente del vector"
+            else return (m ! (size, j))
 
     ExpBinary (Lex op pos) lExp rExp -> liftM (fromMaybe DataEmpty) $ 
                                       runMaybeT $ do
@@ -271,24 +268,6 @@ evalExpression (Lex exp posn) = case exp of
 
         return expValue
 
----------------------------------------
-iteraRows :: Int -> Int -> Identifier -> Matriz TypeValue 
-                 -> (StatementSeq) -> Interpreter Returned
-iteraRows i j id matrix block = do
-    if (i <= (rowSize matrix ))
-    then do iteraColumn i j id matrix block
-            --iteraRows (i+1) j id matrix block
-    else return False
-
-iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
-                    -> (StatementSeq) -> Interpreter Returned
-iteraColumn i j id matrix block = do
-    if (j <= (colSize matrix))
-    then do changeValue id (getElem i j matrix)
-            void $ runStatements block
-            iteraColumn i (j+1) id matrix block
-    else iteraRows (i+1) 0 id matrix block
-
 --------------------------------------------------------------------------------
 -- Operations
 
@@ -305,22 +284,18 @@ runBinary op (lValue, rValue) = case op of
     OpUnequal    -> return (DataBool (lValue /= rValue))
     OpOr         -> return (orOp      lValue rValue)
     OpAnd        -> return (andOp     lValue rValue)
-    OpDiv        -> do
-                        when( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
-
-                        return (divOp lValue rValue)
-    OpMod        -> do
-                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
-
-                        return (modOp lValue rValue)
-    OpDivEnt     -> do
-                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
-
-                        return (divEntOp lValue rValue)
-    OpModEnt     -> do
-                        when ( (getNumber rValue) == 0 )  $ tellDError ZeroDiv
-
-                        return (modEntOp lValue rValue)
+    OpDiv        -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (divOp lValue rValue)
+    OpMod        -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (modOp lValue rValue)
+    OpDivEnt     -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (divEntOp lValue rValue)
+    OpModEnt     -> if (rValue == DataNumber 0.0) 
+                    then error "Error: Division entre 0"
+                    else return (modEntOp lValue rValue)
     OpCruzSum    -> return (cruzSumOp    lValue rValue)
     OpCruzDiff   -> return (cruzDiffOp   lValue rValue)
     OpCruzMul    -> return (cruzMulOp    lValue rValue)
@@ -429,5 +404,5 @@ accessDataType (Lex acc posn) = case acc of
 
     MatrixAccess idL explL exprL -> return (lexInfo idL)
 
-    RCAccess idL expL -> return (lexInfo idL)
+    VectorAccess idL expL -> return (lexInfo idL)
 

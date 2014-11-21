@@ -39,7 +39,7 @@ data Expression
     | LitMatrix [Seq (Lexeme Expression)]
     | FunctionCall (Lexeme Identifier) (Seq (Lexeme Expression))
     | ProyM (Lexeme Expression) (Lexeme Expression) (Lexeme Expression)
-    | ProyRC (Lexeme Expression) (Lexeme Expression)
+    | ProyV (Lexeme Expression) (Lexeme Expression)
     | ExpBinary (Lexeme Binary) (Lexeme Expression) (Lexeme Expression)
     | ExpUnary (Lexeme Unary) (Lexeme Expression)
     deriving (Eq, Ord)
@@ -54,7 +54,7 @@ instance Show Expression where
         FunctionCall idL expLs   -> lexInfo idL ++ "(" ++ concatMap (show . lexInfo) expLs ++ ")"
         ProyM expL indexlL indexrL -> "Proyección: " ++ show (lexInfo expL) ++ "[" 
                                 ++ show (lexInfo indexlL) ++ "," ++ show (lexInfo indexrL) ++ "]"
-        ProyRC expL indexL  -> "Proyección: " ++ show (lexInfo expL) ++ "[" ++ show (lexInfo indexL) ++ "]"                
+        ProyV expL indexL  -> "Proyección: " ++ show (lexInfo expL) ++ "[" ++ show (lexInfo indexL) ++ "]"                
         ExpBinary opL lL rL -> "Operador Binario: " ++ show (lexInfo lL) ++ " " 
                                 ++ show (lexInfo opL) ++ " " ++ show (lexInfo rL)
         ExpUnary opL expL   -> "Operador Unario: " ++ show (lexInfo opL) ++ " " 
@@ -65,7 +65,7 @@ instance Show Expression where
 data Access 
     = VariableAccess (Lexeme Identifier)
     | MatrixAccess (Lexeme Identifier) (Lexeme Expression) (Lexeme Expression)
-    | RCAccess (Lexeme Identifier) (Lexeme Expression)
+    | VectorAccess (Lexeme Identifier) (Lexeme Expression)
     deriving (Eq, Ord)
 
 instance Show Access where
@@ -73,7 +73,7 @@ instance Show Access where
         VariableAccess idnL     -> lexInfo idnL
         MatrixAccess idnL sizeR sizeC -> lexInfo idnL ++ "[" ++ show (lexInfo sizeR) 
                                    ++ "," ++ show (lexInfo sizeC) ++ "]"
-        RCAccess idnL expL -> lexInfo idnL ++ "[" ++ show (lexInfo expL) ++ "]"
+        VectorAccess idnL expL -> lexInfo idnL ++ "[" ++ show (lexInfo expL) ++ "]"
 
 ---------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ binaryRCMul op dts@(Col l1, Row l2) =
     where 
         mul = fromList . \case
             OpMul -> [((Col l1, Row l2), 
-                      Matrix (Lex 1.0 defaultPosn) (Lex 1.0 defaultPosn))]
+                      Matrix (Lex 1 defaultPosn) (Lex 1 defaultPosn))]
 
 --operaciones sobre matrices
 binaryOperationMatrix :: Binary -> (DataType, DataType) -> Maybe DataType

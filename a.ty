@@ -1,20 +1,7 @@
-# Este ejemplo imprime la TS con x = 0.0
-function
-  scale(number s, row(3) r)
-  return row(3)
-  begin
-     return r .*. s;
-  end;
-function
-  doubleit(number s)
-  return number
-  begin
-    return s*2;
- end;
-
 program 
     use number x = 4;
     in 
+      set x = 12;
       print x;
     end;
 end;

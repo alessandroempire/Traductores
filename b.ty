@@ -1,8 +1,7 @@
-# Este ejemplo imprime la TS con x = 4.0
-function
-program 
-    use number x = 4;
-    in 
-      print x;
-    end;
+program
+ use
+    number x;
+ in
+    print x;
+ end;
 end;
