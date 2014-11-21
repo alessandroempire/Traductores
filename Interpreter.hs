@@ -14,6 +14,7 @@ import            SymbolTable
 import            Matriz
 import            Operator
 
+import qualified  Data.Map as M
 import            Control.Arrow ((&&&))
 import            Control.Monad.Cont (ContT)
 import            Control.Monad (forever, guard, liftM, unless, void, when, (>=>))
@@ -34,15 +35,13 @@ import            Prelude hiding (all, and, exp, length, lookup, mapM,
 
 type Interpreter = RWST TrinityReader TrinityWriter InterpreterState IO
 
---instance ValuePrinter Interpreter where
-    
-
 data InterpreterState = InterpreterState
     { table :: SymbolTable
     , stack :: Stack Scope
     , scopeId :: Scope
     , ast :: Program
     , funcStack :: Stack (Identifier, DataType, Scope)
+    , frames :: Stack (M.Map Identifier TypeValue)
 }
 
 instance TrinityState InterpreterState where
@@ -67,6 +66,7 @@ initialState = InterpreterState
     , scopeId = globalScope
     , ast = Program empty empty
     , funcStack = emptyStack
+    , frames = push (M.empty) emptyStack
     }
 
 ---------------------------------------------------------------------
@@ -89,6 +89,27 @@ runInterpreter r = flip (flip execRWST r) initialState
 --------------------------------------------------------------------------------
 -- Monad handling
 
+enterFrame map = do
+    modify $ \s -> s { frames = push (map) (frames s) }
+
+exitFrame = modify $ \s -> s { frames = pop $ frames s }
+
+currentFrame = gets (top . frames)
+
+modifyFrame id value = do
+    map <- currentFrame
+    exitFrame
+    let newMap = M.insert id value map
+    enterFrame (newMap)
+
+lookupValue :: Identifier -> Interpreter TypeValue
+lookupValue id = do
+    frame <- currentFrame
+    case M.lookup id frame of
+        Just val -> return val
+        Nothing -> do
+            error "Valor inesperado..."
+
 enterFunction :: Identifier -> DataType -> Interpreter ()
 enterFunction idL dt = do
     currentId <- currentScope
@@ -109,12 +130,19 @@ runDeclarations = liftM or . mapM runDeclaration
 runDeclaration :: Lexeme Declaration -> Interpreter Returned
 runDeclaration (Lex dcl posn) = case dcl of
 
+    Dcl dtL idL -> do
+        let id = lexInfo idL
+            defValue = defaultValue (lexInfo dtL)
+
+        modifyFrame id defValue
+        return False
+
     DclInit dtL idL expL -> do
         let id = lexInfo idL
 
         expValue <- evalExpression expL
 
-        changeValue id expValue
+        modifyFrame id expValue
 
         return False
 
@@ -133,7 +161,7 @@ runStatement (Lex st posn) = case st of
         expValue <- evalExpression expL
         id <- accessDataType accL
 
-        changeValue id expValue
+        modifyFrame id expValue
         
         return False
  
@@ -160,6 +188,11 @@ runStatement (Lex st posn) = case st of
         return False
 
     StFor idL expL block -> do
+        let id = lexInfo idL
+        matrix <- evalExpression expL
+        
+        void $ iteraRows 0 0 id (getMatrix matrix) block
+
         return False
 
     StWhile expL block -> loop
@@ -196,9 +229,8 @@ evalExpression (Lex exp posn) = case exp of
 
     VariableId idL -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         let id = lexInfo idL
-        maySymI <- getsSymbol  id ((lexInfo . dataType) &&& value)
-        let (dt, val) = fromJust maySymI
-
+        val <- lift $ lookupValue id
+        
         return val
     
     LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
@@ -267,6 +299,22 @@ evalExpression (Lex exp posn) = case exp of
         expValue <- lift $ runUnary op val
 
         return expValue
+
+--------------------------------------------------------------------------------
+
+iteraRows i j id matrix block = do
+    if (i <= (rowSize matrix ))
+    then do iteraColumn i j id matrix block
+    else return False
+
+--iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
+            --        -> (StatementSeq) -> Interpreter Returned
+iteraColumn i j id matrix block = do
+    if (j <= (colSize matrix))
+    then do modifyFrame id (getElem i j matrix)
+            void $ runStatements block
+            iteraColumn i (j+1) id matrix block
+    else iteraRows (i+1) 0 id matrix block
 
 --------------------------------------------------------------------------------
 -- Operations

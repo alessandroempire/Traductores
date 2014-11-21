@@ -1,3 +1,5 @@
+{-# LANGUAGE DoAndIfThenElse #-}
+
 module Definition
     ( DefState(..)
     , processDefinition
