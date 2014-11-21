@@ -208,11 +208,12 @@ evalExpression (Lex exp posn) = case exp of
 
     LitString sL -> return (DataString $ (lexInfo sL))
 
-    VariableId idL -> RWS.liftM (fromMaybe DataEmpty)  $ runMaybeT $ do
-                         let id = lexInfo idL
-                         marco <- currentFunction
-                         let var = M.lookup id marco
-                         return (DataNumber 0.0)
+    VariableId idL -> return (DataNumber 0.0) 
+        --RWS.liftM (fromMaybe DataEmpty)  $ runMaybeT $ do
+         --                let id = lexInfo idL
+          --               marco <- currentFunction
+            --             let var = M.lookup id marco
+             --            return (DataNumber 0.0)
 
         --RWS.liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         --let id = lexInfo idL
