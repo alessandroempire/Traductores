@@ -25,6 +25,7 @@ module SymbolTable
 --    , Width
     , SymbolCategory(..)
     , symbolCategory
+    , getBody
     , module Stack
     , module Scope
     ) where
@@ -98,6 +99,9 @@ data Symbol =
         , used       :: Used
 --        , value      :: TypeValue
         }
+
+getBody :: Symbol -> StatementSeq
+getBody (SymFunction a b c body d e f) = body
 
 instance Show Symbol where
     show sym = case sym of

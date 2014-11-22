@@ -8,6 +8,8 @@ module Stack
     , globalStack
     , emptyStack
     , singletonStack
+    , cloneStack
+    , isEmptyStack
     ) where 
 
 import           Scope
@@ -29,6 +31,10 @@ instance Foldable Stack where
     foldr f b (Stack s) = P.foldr f b s
 
 ---------------------------------------------------------------------
+
+cloneStack :: Stack a -> Stack a
+cloneStack (Stack []) = Stack []
+cloneStack (Stack a) = Stack a
 
 top :: Stack a -> a
 top (Stack [])       = error "Stack.top: Pila vacia"
@@ -56,3 +62,7 @@ emptyStack = Stack [ ]
 
 singletonStack :: a -> Stack a
 singletonStack x = Stack [ x ]
+
+isEmptyStack :: Stack a -> Bool
+isEmptyStack (Stack []) = True
+isEmptyStack _          = False

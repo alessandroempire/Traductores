@@ -1,4 +1,23 @@
+function
+  prueba(matrix(2,2) a, matrix(2,2) b)
+  return matrix(2,2)
+  begin
+     return a * b;
+  end;
 
+function
+  prueba2(number c, number d)
+  return number
+  begin
+     return 2*c * d;
+  end;
+
+function
+  prueba3(number e)
+  return number
+  begin
+     return 2*e;
+  end;
 
 program
  use
@@ -7,16 +26,11 @@ program
   number z; 
   matrix(2,2) m = {2,4 : 5,9};
  in
-    set z = 4;
-    for x in 
-        m
-    do 
-        set y = x;
-    end;
-    set z = 34 / 0;
-    if z == 4 then
-      set x = m[2,2];
-      set y = 42;
-    end;
+    #set z = 4;
+    print z;
+    set x = 2;
+    set y = 2;
+    set z = prueba2(2,2);
+    print z;
  end;
 end;

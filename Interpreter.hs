@@ -5,6 +5,7 @@ module Interpreter
     ( InterpreterState
     , Interpreter
     , processInterpreter
+    , getFrame
     ) where
 
 import            Error
@@ -27,7 +28,7 @@ import            Control.Monad.Writer (WriterT, tell)
 import            Data.Foldable (all, and, forM_, or, toList)
 import            Data.Functor ((<$>))
 import            Data.Maybe (fromJust, fromMaybe, isJust)
-import            Data.Sequence (Seq, empty, length, zipWith)
+import            Data.Sequence (Seq, empty, length, zipWith, (<|))
 import            Data.Traversable (forM, mapM)
 import qualified  Data.List as L (and, length, transpose)
 import            Prelude hiding (all, and, exp, length, lookup, mapM, 
@@ -42,7 +43,10 @@ data InterpreterState = InterpreterState
     , ast :: Program
     , funcStack :: Stack (Identifier, DataType, Scope)
     , frames :: Stack (M.Map Identifier TypeValue)
+    , fun :: (M.Map Identifier (Seq(Identifier)))
 }
+
+getFrame (InterpreterState a b c d f g h) = g
 
 instance TrinityState InterpreterState where
     getTable = table
@@ -67,6 +71,7 @@ initialState = InterpreterState
     , ast = Program empty empty
     , funcStack = emptyStack
     , frames = push (M.empty) emptyStack
+    , fun = M.empty
     }
 
 ---------------------------------------------------------------------
@@ -75,6 +80,7 @@ buildInterpreter :: TrinityWriter -> SymbolTable -> Program -> Interpreter ()
 buildInterpreter w tab program@(Program fun block) = do
     modify $ \s -> s { table = tab, ast = program }
     tell w
+    void $ runFunctions fun
     void $ runStatements block
 
 ---------------------------------------------------------------------
@@ -94,7 +100,27 @@ enterFrame map = do
 
 exitFrame = modify $ \s -> s { frames = pop $ frames s }
 
+currentStack :: Interpreter(Stack (M.Map Identifier TypeValue))
+currentStack = gets frames
+
+currentFrame :: Interpreter(M.Map Identifier TypeValue)
 currentFrame = gets (top . frames)
+
+currentTable :: Interpreter(SymbolTable)
+currentTable = gets table
+
+currentFun :: Interpreter(M.Map Identifier (Seq(Identifier)))
+currentFun = gets fun
+
+modifyFun id idVal = do 
+    fun <- currentFun
+    if (M.member id fun)
+    then do let s = fun M.! id
+                newS = idVal <| s
+            modify $ \s -> s {fun = M.insert id newS fun}
+    else do let s    = empty 
+                newS = idVal <| s 
+            modify $ \s -> s {fun = M.insert id newS fun}
 
 modifyFrame id value = do
     map <- currentFrame
@@ -102,13 +128,23 @@ modifyFrame id value = do
     let newMap = M.insert id value map
     enterFrame (newMap)
 
+--modifyFun (id,val) = do 
+
 lookupValue :: Identifier -> Interpreter TypeValue
 lookupValue id = do
-    frame <- currentFrame
-    case M.lookup id frame of
-        Just val -> return val
-        Nothing -> do
-            error "Valor inesperado..."
+    stack <- currentStack
+    let newStack = cloneStack stack
+    lookupValueStacks id newStack
+
+--lookupValueStacks :: Identifier -> Stack -> Interpreter TypeValue
+lookupValueStacks id stack = do
+    if (isEmptyStack stack )
+    then error "Valor inesperado"
+    else do
+        let t = top stack
+        case M.lookup id t of
+            Just val -> return val
+            Nothing -> lookupValueStacks id (pop stack)
 
 enterFunction :: Identifier -> DataType -> Interpreter ()
 enterFunction idL dt = do
@@ -124,14 +160,14 @@ currentFunction = gets (top . funcStack)
 ---------------------------------------------------------------------
 -- Declarations
 
-runDeclarations :: DeclarationSeq -> Interpreter Returned
-runDeclarations = liftM or . mapM runDeclaration
+runDeclarations :: DeclarationSeq -> Lexeme Identifier -> Interpreter Returned
+runDeclarations d idF = liftM or $ mapM (flip runDeclaration idF) d
 
-runDeclaration :: Lexeme Declaration -> Interpreter Returned
-runDeclaration (Lex dcl posn) = case dcl of
+runDeclaration :: Lexeme Declaration -> Lexeme Identifier -> Interpreter Returned
+runDeclaration (Lex dcl posn) idF = case dcl of
 
     Dcl dtL idL -> do
-        let id = lexInfo idL
+        let id       = lexInfo idL
             defValue = defaultValue (lexInfo dtL)
 
         modifyFrame id defValue
@@ -146,27 +182,40 @@ runDeclaration (Lex dcl posn) = case dcl of
 
         return False
 
-    _ -> return False
+    DclParam dtL idL -> do
+        let id = lexInfo idL
+        modifyFun (lexInfo idF) id
+        return False
+
+---------------------------------------------------------------------
+runFunctions :: FunctionSeq -> Interpreter Returned
+runFunctions = liftM or . mapM runFunction
+
+runFunction :: Lexeme Function -> Interpreter Returned
+runFunction (Lex st posn) = case st of
+
+    Function idL decS dt staSeq ->  do        
+        runDeclarations decS idL
+        return False 
 
 --------------------------------------------------------------------------------
 -- Statements
 
-runStatements :: StatementSeq -> Interpreter Returned
-runStatements = liftM or . mapM runStatement
+--runStatements :: StatementSeq -> Interpreter Returned
+runStatements s = mapM runStatement s
 
-runStatement :: Lexeme Statement -> Interpreter Returned
+--runStatement :: Lexeme Statement -> Interpreter Returned
 runStatement (Lex st posn) = case st of
 
     StAssign accL expL ->  do
         expValue <- evalExpression expL
         id <- accessDataType accL
-
         modifyFrame id expValue
-        
-        return False
+        return DataEmpty
  
     StReturn expL -> do
-        return False
+        expVal <- evalExpression expL
+        return expVal
 
     StRead idL -> do
         let id = lexInfo idL
@@ -181,7 +230,7 @@ runStatement (Lex st posn) = case st of
            
             modifyFrame id value
   
-            return False
+            return DataEmpty
         else do
             line <- liftIO $ processLineBool  
             let value = DataBool line
@@ -190,15 +239,14 @@ runStatement (Lex st posn) = case st of
 
             modifyFrame id value
   
-            return False
-
+            return DataEmpty
  
     StPrint expL -> do
         expValue <- evalExpression expL
       
         liftIO $ print expValue
 
-        return False   
+        return DataEmpty   
 
     StIf expL trueBlock falseBlock -> do
         expValue <- evalExpression expL
@@ -207,7 +255,7 @@ runStatement (Lex st posn) = case st of
         then void $ runStatements trueBlock
         else void $ runStatements falseBlock
 
-        return False
+        return DataEmpty
 
     StFor idL expL block -> do
         let id = lexInfo idL
@@ -215,7 +263,7 @@ runStatement (Lex st posn) = case st of
         
         void $ iteraRows 1 1 id (getMatrix matrix) block
 
-        return False
+        return DataEmpty
 
     StWhile expL block -> loop
         where
@@ -226,16 +274,16 @@ runStatement (Lex st posn) = case st of
           then do
             void $ runStatements block
             loop
-          else return False
+          else return DataEmpty
 
     StBlock dclS block -> do
-        enterScope
-        runDeclarations dclS
+        enterFrame  (M.empty)
+        runDeclarations dclS (fillLex "")
         void $ runStatements block
-        exitScope
-        return False
+        exitFrame
+        return DataEmpty
        
-    _ -> return False
+    _ -> return DataEmpty
 
 --------------------------------------------------------------------------------
 -- Expressions
@@ -251,8 +299,7 @@ evalExpression (Lex exp posn) = case exp of
 
     VariableId idL -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
         let id = lexInfo idL
-        val <- lift $ lookupValue id
-        
+        val <- lift $ lookupValue id 
         return val
     
     LitMatrix exps -> liftM (fromMaybe DataEmpty) $ runMaybeT $ do
@@ -262,9 +309,24 @@ evalExpression (Lex exp posn) = case exp of
 
         return $ DataMatrix matriz
 
-    FunctionCall idL expLs -> liftM (fromMaybe DataEmpty) $ 
-                                  runMaybeT $ do 
-        return DataEmpty
+    FunctionCall idL expLs -> do  
+        t <- currentTable
+        let fun = SymbolTable.lookup (lexInfo idL) t
+            sym = fromJust fun
+            body = getBody sym
+        enterFrame (M.empty)
+        funciones <- currentFun
+        val <- mapM evalExpression expLs
+        let seqFun = toList $ funciones M.! (lexInfo idL)
+            values = toList val
+            newv   = zip seqFun values
+       
+        mapM (\x -> modifyFrame (fst x) (snd x)) newv
+
+        re <- runStatements body
+        let result = head $ toList re
+        exitFrame
+        return result
 
     ProyM expL indexlL indexrL -> liftM (fromMaybe DataEmpty) $
                                   runMaybeT $ do

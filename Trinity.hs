@@ -28,7 +28,8 @@ main = do
 
     (intS, intErrors) <- processInterpreter False tpErrors (getTable typS) program
     
---    liftIO $ print (getTable intS)
+    --liftIO $ print (getTable intS)
+    --liftIO $ print (getFrame intS)
     liftIO $ putStrLn "Proceso terminado."
     exitSuccess
   
