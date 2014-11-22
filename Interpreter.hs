@@ -169,8 +169,30 @@ runStatement (Lex st posn) = case st of
         return False
 
     StRead idL -> do
-        return False
+        let id = lexInfo idL
 
+        maySymI <- getsSymbol id (lexInfo . dataType)
+        let dt = fromJust maySymI
+
+        if (isNumber dt)
+        then do
+            line <- liftIO $ processLineNumber  
+            let value = DataNumber line
+           
+            modifyFrame id value
+  
+            return False
+        else do
+            line <- liftIO $ processLineBool  
+            let value = DataBool line
+
+            liftIO $ print value
+
+            modifyFrame id value
+  
+            return False
+
+ 
     StPrint expL -> do
         expValue <- evalExpression expL
       
@@ -191,7 +213,7 @@ runStatement (Lex st posn) = case st of
         let id = lexInfo idL
         matrix <- evalExpression expL
         
-        void $ iteraRows 0 0 id (getMatrix matrix) block
+        void $ iteraRows 1 1 id (getMatrix matrix) block
 
         return False
 
@@ -302,19 +324,29 @@ evalExpression (Lex exp posn) = case exp of
 
 --------------------------------------------------------------------------------
 
+processLineNumber :: IO Double
+processLineNumber = readLn
+
+processLineBool :: IO Bool
+processLineBool = readLn
+
+--------------------------------------------------------------------------------
+
+
 iteraRows i j id matrix block = do
     if (i <= (rowSize matrix ))
-    then do iteraColumn i j id matrix block
+    then do
+        iteraColumn i j id matrix block
     else return False
 
 --iteraColumn ::  Int -> Int -> Identifier -> Matriz TypeValue 
             --        -> (StatementSeq) -> Interpreter Returned
 iteraColumn i j id matrix block = do
     if (j <= (colSize matrix))
-    then do modifyFrame id (getElem i j matrix)
+    then do modifyFrame id (matrix ! (i,j))
             void $ runStatements block
             iteraColumn i (j+1) id matrix block
-    else iteraRows (i+1) 0 id matrix block
+    else iteraRows (i+1) 1 id matrix block
 
 --------------------------------------------------------------------------------
 -- Operations

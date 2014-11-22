@@ -1,12 +1,25 @@
 program
-  use
-    matrix(2, 3) m = { 1, 2, 3 : 4, 5, 6 };
-    matrix(3, 2) k;
-  in
-    print m;
-    set m =  {1, 2, 3 : 32, 5, 6 };
-    print k;
-    set k = m';
-    print k;
-    end;
+
+use
+number x; # inicializado en 0
+number y; # inicializado en 0
+in
+
+use
+  number x; # inicializado en false
+  col(2) m = { 52 : -34};
+  number y;
+in
+  set y = m[2]; 
+  print "Use 2", x, y; # x es del tipo booleano
+#  read x;
+end;
+
+for x in
+{ 1, 2, 3 : 4, 5, 6 }
+do
+print x; # x es del tipo booleano
+end;
+
+end;
 end;
